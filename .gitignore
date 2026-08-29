@@ -1,0 +1,15 @@
+# terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfvars.local
+# python
+__pycache__/
+*.py[cod]
+.venv/
+# node
+node_modules/
+# env & os
+.env
+.env.*
+.DS_Store
