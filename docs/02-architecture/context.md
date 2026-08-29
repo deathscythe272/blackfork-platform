@@ -8,6 +8,12 @@
 > **v1 diagram** — scheduled for a linear-readability rework (see roadmap). The
 > step-numbering system is described in the diagram's own legend.
 
+## The 30-second version
+
+Blackfork's people and systems on one page: a DoD prime's contract creates the compliance pressure, engineers ship through Gatehouse's gate, telemetry feeds Provenance, and humans hand signed evidence to the auditor. The numbered arrows tell the story in order, 1 to 8.
+
+## The picture
+
 ```mermaid
 flowchart LR
 
@@ -46,3 +52,7 @@ class GHOUSE,PROV build
 classDef key fill:#f1f5f9,stroke:#64748b,color:#111
 class KEY key
 ```
+
+## Why it's built this way
+
+Every architecture conversation needs a 'who and where' frame before any 'how'. This is that frame — one screen, no internals — so a mixed room shares context in under a minute before diving into either system.

@@ -8,6 +8,12 @@
 > **v1 diagram** — scheduled for a linear-readability rework (see roadmap). The
 > step-numbering system is described in the diagram's own legend.
 
+## The 30-second version
+
+One network alert becomes one cited line in a signed audit packet, in 14 numbered steps: five sources feed pipelines, data lands raw then cleaned then agent-ready, agents collect/map/score/draft through one governed door, and a human signs. Boxes marked ◆ run continuously rather than at a step.
+
+## The picture
+
 ```mermaid
 flowchart TB
 
@@ -100,3 +106,7 @@ class OPA,AUD gov
 classDef key fill:#f1f5f9,stroke:#64748b,color:#111
 class K1,K2 key
 ```
+
+## Why it's built this way
+
+The platform's whole argument is chain of custody, and a numbered single journey is the clearest way to show it: any packet claim can be walked backward along these same steps to an untouched original record (BR-2, BR-7). Full rationale per stage: architecture-narrative.md.

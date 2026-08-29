@@ -65,6 +65,14 @@ flowchart LR
 4. Narrow agents, visible seams. 5. The automation must survive audit. 6. Humans sign.
 7. Rent the commodity, build the differentiator.
 
+## Why it's built this way
+
+Docs-first, because the thing being demonstrated is judgment, not just code — and
+judgment lives in requirements, diagrams, and decision records. The company is fictional
+so every number and constraint can be shown publicly and traced honestly (no NDA-shaped
+holes), and every artifact cites a BR because traceability from business need to merged
+change is the product.
+
 ## Go deeper
 
 ```
