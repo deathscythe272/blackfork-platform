@@ -24,10 +24,16 @@ with reading paths for 5 minutes, 15 minutes, or a deep dive.
 - [x] Documentation standard + Foundation docs (F1)
 - [x] CI enforces the docs standard on every PR — Gatehouse's first deterministic gate
 - [ ] Diagram rework for linear readability (v2)
+- [ ] ADR-001: the MCP auth-gateway decision
+- [ ] V1 vertical slice: one agent end-to-end locally (agent + evidence-mcp + auth
+      gateway + Guardrails + one golden eval + OTel trace)
+- [ ] T1: agent-runtime threat model — STRIDE the agent platform itself
+- [ ] Gatehouse: judge lane (G2) + trust machinery with seeded injection evals (G3)
+- [ ] W1: agent workload profile — measured tokens, tool calls, latency,
+      long-horizon behavior
 - [ ] Foundation IaC: Terraform modules, WIF keyless CI (F2–F3)
-- [ ] Provenance: data plane → context plane → agent plane → assurance plane (P1–P4)
-- [ ] Pipeline Steward agent (P5)
-- [ ] Gatehouse: judge lane + trust machinery (G2–G3)
+- [ ] Provenance: widen the planes (P1–P4) + Pipeline Steward (P5)
+- [ ] ADR-008 appendix: confidential/air-gapped deployment pattern (design-only)
 
 ## Honest framing
 
