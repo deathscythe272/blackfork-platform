@@ -26,6 +26,7 @@ screenshared as much as run.
 3. `docs/02-architecture/architecture-narrative.md` — what + why per stage, design
    principles, ADR map
 4. `docs/DOCS-STANDARD.md` — doc template + diagram rules (CI-enforced)
+5. `docs/ROADMAP.md` — the phased build plan; work items and "done" per phase
 
 ## Non-negotiable working rules
 
@@ -111,7 +112,8 @@ protection + required check to be enabled once the repo is pushed.
 
 ## Immediate queue
 
-1. This PR: re-aim the contract at JR2024467/JR2023179 (Serves: BR-1).
+1. This PR: add `docs/ROADMAP.md`, the phased build plan (Serves: BR-4). The re-aim
+   contract PR merged 2026-09-04.
 2. PR: diagram v2 rework to meet the diagram rules (Serves: BR-4) — remove the "v1"
    notes as each is replaced; fix stale cross-references in the narrative.
 3. PR: ADR-001 — the MCP auth gateway decision (include a STRIDE sketch of the
