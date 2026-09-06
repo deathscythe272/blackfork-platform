@@ -1,0 +1,9 @@
+# The Evidence Collector. Runs as a one-shot job; its only network is the edge
+# network (gateway + trace collector + internet for the model endpoint). It cannot
+# reach evidence-mcp or OPA, which live on the internal network. Serves: BR-8, C5.
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements-agent.txt .
+RUN pip install --no-cache-dir -r requirements-agent.txt
+COPY provenance ./provenance
+ENV PYTHONPATH=/app PYTHONUNBUFFERED=1

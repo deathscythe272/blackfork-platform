@@ -34,8 +34,9 @@ Phase-by-phase plan with steps and done-criteria: [`docs/ROADMAP.md`](docs/ROADM
 - [x] CI enforces the docs standard on every PR — Gatehouse's first deterministic gate
 - [x] Phased roadmap with done-criteria per phase
 - [ ] ADR-001: the MCP auth-gateway decision
-- [ ] V1 vertical slice: one agent end-to-end locally (agent + evidence-mcp + auth
-      gateway + Guardrails + one golden eval + OTel trace)
+- [x] V1 vertical slice: one agent end-to-end locally — agent + evidence-mcp + auth
+      gateway (OPA, audit) + Guardrails + golden and injection evals + OTel trace
+      ([docs/20-provenance/v1-slice.md](docs/20-provenance/v1-slice.md))
 - [ ] T1: agent-runtime threat model — STRIDE the agent platform itself, including
       sandboxed execution for command-running agents
 - [ ] Gatehouse: judge lane (G2) + trust machinery with seeded injection evals (G3)
