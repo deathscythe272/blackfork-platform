@@ -1,6 +1,6 @@
 # Provenance Flow
 
-> **In one line:** One network alert's 14-step journey to a signed audit packet, told left to right in four short pictures.
+> **In one line:** One network alert's 14-step journey from raw detection to a signed audit packet.
 
 **You are here:** START HERE › Architecture › Provenance Flow
 **Audience:** 🟡 engineer · **Reads in:** ~5 min
@@ -17,8 +17,8 @@ Every sentence in what they sign can be traced back to the original alert.
 
 ## The picture
 
-Read the four parts in order. Step numbers run 1 to 14 across all four and match the
-walkthrough below and the stage numbers in the architecture narrative.
+Four parts, one after another. Steps 1 to 14 continue across them and are the same
+numbers the architecture narrative uses.
 
 **Part 1 — Collect.** Raw security facts land, untouched.
 

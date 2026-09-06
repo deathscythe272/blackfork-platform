@@ -18,8 +18,7 @@ advice to veto. Every decision the gate makes is stored as compliance evidence.
 
 ## The picture
 
-Read the three parts in order. Step numbers run 1 to 10 across all three and match the
-walkthrough below.
+Three parts, one after another. Steps 1 to 10 continue across them.
 
 **Part 1 — Exact rules first.** Cheap checks that can block, in minutes.
 
