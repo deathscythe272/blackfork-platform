@@ -5,12 +5,11 @@
 Portfolio repo proving Jeff can take an agentic security platform from business
 requirements → architecture → working code. Aimed at two NVIDIA roles:
 
-- **PRIMARY — JR2024467, Senior Solutions Architect, Agentic AI — Safety & Security:**
+- **PRIMARY — a senior solutions-architect role in agentic AI safety & security:**
   agent safety, guardrails, red-teaming, release-gating evals, secure tool use,
   reference architectures.
-- **SECONDARY — JR2023179, Senior SWE, Agent Architecture & Evaluation:** agent
-  building, eval rigor, workload analysis; the JD explicitly values open-source
-  agentic projects.
+- **SECONDARY — a senior software-engineer role in agent architecture & evaluation:**
+  agent building, eval rigor, workload analysis; open-source agentic projects count.
 
 Emphasis order: agent safety/security and evaluation rigor first; data-engineering
 depth is secondary. The customer (Blackfork Systems) is fictional; the engineering is
