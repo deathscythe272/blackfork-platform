@@ -85,7 +85,7 @@ like. Steps are pull-request sized; each PR cites the requirement it serves.
 **Done when:** checker green, no v1 banners, ADR-001 accepted and linked from the ADR
 index and the narrative.
 
-### Phase 2 — V1 vertical slice (Serves: BR-3, BR-7)
+### Phase 2 — V1 vertical slice (Serves: BR-3, BR-7) — done
 
 1. Data stub: a small gold-view fixture in DuckDB with a handful of evidence rows, each
    carrying `system_id`. No Dagster or Iceberg yet.
@@ -108,7 +108,10 @@ index and the narrative.
    run-it-in-five-minutes section.
 
 **Done when:** one command runs the golden question through the gateway, the audit
-table shows the call, the eval passes, and the trace exists.
+table shows the call, the eval passes, and the trace exists. Met: `scripts/demo.py`
+runs three cases (golden, direct injection, indirect injection) in the agent
+container; results in `src/provenance/evals/results/latest.json`; see
+`20-provenance/v1-slice.md`.
 
 ### Phase 3 — Agent-runtime threat model, T1 (Serves: BR-8, C5)
 

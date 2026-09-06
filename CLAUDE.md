@@ -112,13 +112,16 @@ ADR-008 appendix → satellites (patterns repo; upstream PRs to NVIDIA repos as 
 Docs-first phase complete: business case carries BR-8/BR-9 and C5/P7, START HERE
 and the narrative lead with the assurance layer, the three architecture pages read
 left to right in parts with walkthroughs, and `docs/ROADMAP.md` holds the phased plan.
-Docs-standard CI gate live and required on protected `main`; `20-provenance/` and
-`30-gatehouse/` stubbed; ADR-001 (gateway) accepted with a STRIDE seed for T1; no infra
-code yet. Public docs describe the safety and evaluation emphasis without naming job
+Docs-standard CI gate live and required on protected `main`; ADR-001 (gateway)
+accepted with a STRIDE seed for T1. V1 slice runs locally under `src/provenance/`
+(evidence-mcp, gateway with OPA + audit, Evidence Collector on NAT with Guardrails,
+OTel, three evals passing; `scripts/demo.py`). Model: nvidia/nemotron-3.5-lightning-30b-a3b
+with `chat_template_kwargs.enable_thinking=false`. No cloud infra yet. Public docs describe the safety and evaluation emphasis without naming job
 requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. PR: V1 vertical slice (plan paragraph first — it exceeds an hour). Serves: BR-3, BR-7.
-2. PR: T1 agent-runtime threat model, grown from ADR-001's STRIDE seed. Serves: BR-8.
-3. PR: ADR-003 (MCP-only, parameterized tools) as the slice makes it concrete.
+1. PR: T1 agent-runtime threat model, grown from ADR-001's STRIDE seed and the slice.
+   Serves: BR-8, C5.
+2. PR: ADR-003 (MCP-only, parameterized tools), now concrete in the slice.
+3. PR: G2 judge lane (plan paragraph first). Serves: BR-3, BR-9.
