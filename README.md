@@ -17,7 +17,9 @@ Workload Identity Federation) — everything as code.
 ➡️ **Start here:** [`docs/00-START-HERE.md`](docs/00-START-HERE.md) — the two-minute tour,
 with reading paths for 5 minutes, 15 minutes, or a deep dive.
 
-## Status & roadmap (docs-first phase)
+## Status & roadmap
+
+Phase-by-phase plan with steps and done-criteria: [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 - [x] Business case with measurable requirements (BR-1…BR-7)
 - [x] Architecture diagrams (v1) + narrative with ADR map
