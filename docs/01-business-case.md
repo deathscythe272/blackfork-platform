@@ -1,8 +1,38 @@
 # Blackfork Systems — Business Case & Requirements
 
+> **In one line:** A fictional company's real-shaped problems, turned into nine measurable requirements that every diagram, decision, and pull request in this repo must cite.
+
+**You are here:** START HERE › Business Case
+**Audience:** 🟢 anyone · **Reads in:** ~8 min
+
 > **Fictional company.** Blackfork Systems is an invented customer used to drive this
 > portfolio the way real architecture work is driven: business problem first, technology
 > last. Any resemblance to real companies is coincidental.
+
+## The 30-second version
+
+Blackfork is a 180-person software company selling to defense contractors. Its
+three-person security team is buried: six weeks of every audit cycle goes to collecting
+screenshots by hand, and code changes wait six days for a security review. The obvious
+fix is to let AI agents do the collecting and the reviewing. But that creates a second
+problem: an auditor will not accept evidence from a robot nobody can vouch for, and an
+agent that reads outside text and can reach sensitive data is itself something an
+attacker can aim at. So the requirements come in two halves. The first half says what
+the automation must do: continuous evidence, fast reviews, ranked vulnerabilities. The
+second half says what the automation must prove about itself: that it is contained,
+tested against deliberate attacks, and measured before it is trusted.
+
+## The picture
+
+```mermaid
+flowchart LR
+  PAIN["Six pains<br><i>slow audits, slow reviews, blind automation</i>"] --> REQ["Nine requirements<br><i>what to do, what to prove</i>"]
+  REQ --> PROV["Provenance<br><i>evidence collected and cited</i>"]
+  REQ --> GATE["Gatehouse<br><i>every code change checked</i>"]
+  PROV --> ASSURE["Assurance<br><i>agents contained, tested, measured</i>"]
+  GATE --> ASSURE
+  ASSURE --> PROOF["Proof<br><i>signed packets, published results</i>"]
+```
 
 ## 1. Company snapshot
 
@@ -29,8 +59,18 @@
   triage is ad-hoc spreadsheet work.
 - **P5 — Point-in-time evidence.** Screenshots age instantly. Both the auditor and the
   prime are signaling expectations of *continuous* evidence.
+- **P6 — Automation nobody can vouch for.** A pilot that let a chat assistant summarize
+  scanner output was pulled after one week: nobody could say what it had read, what it
+  could reach, or whether a crafted log line could steer it. The auditor's first question
+  about any AI-produced evidence — *"why should I believe the robot?"* — has no answer
+  today, and an assistant that reads attacker-influenced text and can call tools is a
+  new attack surface the team has no way to test.
 
 ## 3. Business requirements
+
+The first seven say what the automation must **do**. The last two say what it must
+**prove about itself**. Both halves carry equal weight: an agent that does the job but
+cannot be shown safe fails BR-1 just as surely as one that does nothing.
 
 | ID | Requirement | Target / metric | Driver |
 |---|---|---|---|
@@ -41,6 +81,8 @@
 | **BR-5** | Collect evidence once, map to many frameworks (SOC 2 + 800-171) | 1 evidence base → 2 frameworks | Scalability |
 | **BR-6** | Rank vulnerability work by true exploitability, not raw CVE count | ≥90% triage-noise reduction | Risk |
 | **BR-7** | Every automated decision is explainable, logged, and reversible — the automation itself must survive audit | 100% of agent actions in audit log | Trust |
+| **BR-8** | **Agent safety.** The agents are treated as an attack surface: every trust boundary is threat-modeled, every threat maps to a mitigation and a test, and containment against prompt injection and tool abuse is demonstrated, not asserted | 100% of threats have a mitigation + test; 0 successful data exfiltration or unauthorized tool calls in the seeded adversarial set; results published | Safety |
+| **BR-9** | **Evaluation rigor.** No agent or judge is trusted on the strength of a demo: each is scored against golden and adversarial question sets before every release, and its cost, latency, and long-run behavior are profiled and published | Release blocked on eval regression; precision published per judge rubric item; workload profile published with charts | Confidence |
 
 ## 4. Constraints
 
@@ -53,12 +95,22 @@
 
 ## 5. Solution shape
 
+Two systems do the work. A third layer, shared by both, proves the work can be trusted.
+
 - **Provenance** — an evidence lakehouse plus GRC agents. Ingests security telemetry,
   stores it in governed tables, and runs agents that collect evidence, map it to
   controls, score risk, and draft audit packets. Answers **BR-1, BR-2, BR-5, BR-6, BR-7**.
-- **Gatehouse** — a merge-gate agent for GitHub. A deterministic lane blocks PRs missing
+- **Gatehouse** — a merge gate for GitHub. A deterministic lane blocks PRs missing
   required docs or violating codified security requirements; an LLM judge reviews design
-  quality against rubrics. Answers **BR-3, BR-4, BR-7**.
+  quality against rubrics, and earns the right to block only once its accuracy is
+  measured. Answers **BR-3, BR-4, BR-7**.
+- **Assurance** — the safety and evaluation machinery both systems run under. One
+  governed door for all data access, with identity, policy, and audit on every call.
+  Guardrails on every agent's input and output. A threat model of the agent runtime
+  itself, with a test per threat. Deliberate injection and tool-abuse attempts seeded
+  into the eval sets, with results published. Every agent traced and profiled. Answers
+  **BR-7, BR-8, BR-9** — and it is the part of the platform that makes the other two
+  believable.
 
 ## 6. Requirements traceability
 
@@ -69,13 +121,16 @@
 | BR-4 | Docs-as-code enforcement | Presence checks, PR template, CODEOWNERS | Coverage report per service |
 | BR-5 | Multi-framework mapping | controls-mcp (OSCAL catalogs) + Control Mapper agent | One evidence row cited by two frameworks |
 | BR-6 | Exploitability triage | NVIDIA vulnerability-analysis blueprint output as an ingest source | Ranked findings table |
-| BR-7 | Agent governance | MCP auth gateway, OPA decisions, audit table, Guardrails, Garak report, eval harness | Immutable audit log + published eval scores |
+| BR-7 | Agent governance | MCP auth gateway, OPA decisions, audit table | Immutable audit log; every call traceable to identity + policy decision |
+| BR-8 | Agent safety | Agent-runtime threat model, parameterized tools, NeMo Guardrails, seeded injection evals, Garak red-team runs | Threat table with a passing test per row; published containment results |
+| BR-9 | Evaluation rigor | Golden + adversarial eval sets per agent, planted-flaw judge evals, OpenTelemetry + workload profiling | Eval scores gating release; precision per rubric item; workload profile with charts |
 | BR-1 | All of the above | End-to-end platform | Generated audit packet, human-signed |
 
 ## 7. Component glossary & learning path
 
 Read top to bottom — the order mirrors how data moves through the system, and it's the
-suggested order for learning each tool.
+suggested order for learning each tool. The last layer is the one the safety and
+evaluation requirements (BR-8, BR-9) live in.
 
 ### Layer 1 — Sources
 | Component | Plain English | Learn it by |
@@ -115,15 +170,16 @@ suggested order for learning each tool.
 | NeMo Retriever + Milvus | Embedding/reranking models plus a vector database for semantic search | Embed 10 docs, run one similarity query |
 | A2A protocol | A standard for agents to call *other agents* across a network boundary, with auth | Run NAT's A2A example with two processes |
 
-### Cross-cutting
+### Layer 6 — Assurance (safety and evaluation)
 | Component | Plain English | Learn it by |
 |---|---|---|
-| NeMo Guardrails | Filters and constrains what goes into and out of an LLM | Add one input rail to a hello-world config |
-| OpenTelemetry | Standard tracing: every agent step becomes an inspectable span | View one NAT run's trace in Phoenix or Jaeger |
-| Prometheus + Grafana | Metrics collection and dashboards | Graph one pipeline metric |
+| NeMo Guardrails | Filters and constrains what goes into and out of an LLM — the first line against prompt injection | Add one input rail to a hello-world config |
+| Agent-runtime threat model (STRIDE, pytm) | A written list of how the agents themselves could be attacked, each with a mitigation and a test | Model one agent + one tool, read the generated threats |
+| Eval harness (golden + adversarial sets) | Fixed question sets that score an agent after every change — including questions designed to make it misbehave | Write five golden questions and two hostile ones for one agent |
 | Garak | NVIDIA's open-source LLM vulnerability scanner — red-teams your own agents | Run one probe set against a hosted model |
+| OpenTelemetry + NAT profiling | Standard tracing and per-run accounting: every agent step becomes an inspectable span with tokens and latency | View one NAT run's trace in Phoenix or Jaeger |
+| Prometheus + Grafana | Metrics collection and dashboards | Graph one pipeline metric |
 | Conftest / Semgrep | Run Rego policies / code patterns as CI checks | Fail a CI job with one rule on a YAML file |
-| pytm (STRIDE) | Threat-modeling-as-code: describe a system, generate its threat list | Model one service, read the generated threats |
 | GitHub required status checks | The mechanism that lets a bot actually block a merge | Make one Action required on a test repo |
 
 ## 8. How this repo tells the story
@@ -132,13 +188,36 @@ suggested order for learning each tool.
 docs/
   00-START-HERE.md           ← the two-minute tour
   01-business-case.md        ← this file (the "why")
-  02-architecture/           ← diagrams + narrative (the "what")
+  02-architecture/           ← diagrams, narrative, and the agent-runtime threat model (the "what")
   10-foundation/             ← IaC, CI/CD, taxonomy
   20-provenance/  30-gatehouse/
   40-adrs/                   ← numbered decisions, each citing BR IDs (the "how")
+  analysis/                  ← measured results: eval scores, workload profiles (the "proof of proof")
+  ROADMAP.md                 ← the phased build plan
 src/                         ← the build (the proof)
 ```
 
 Every ADR and every PR description cites the requirement it serves ("Implements BR-3"),
 so the git history itself demonstrates working backwards from business need to running
-code.
+code. The safety and evaluation requirements get the same treatment: a threat without a
+test, or an agent without a published score, is a gap the docs are required to show
+rather than hide.
+
+## Why it's built this way
+
+The requirements are split into "do" and "prove" on purpose. P1 through P5 are the pains
+any compliance-automation pitch would list, and BR-1 through BR-7 answer them. P6 is
+the pain that appears the moment the answer is "use AI agents": the agents read text an
+attacker can influence, they can reach sensitive data through tools, and the people who
+must accept their output cannot see inside them. BR-8 and BR-9 exist so that this second
+problem is a requirement with a metric, not a caveat in a slide. That is also why the
+company is fictional: every number, constraint, and failure can be shown publicly and
+traced honestly, with no NDA-shaped holes (see `00-START-HERE.md`).
+
+## Go deeper
+
+**Next:** `02-architecture/context.md` — who is involved and where the two systems sit.
+
+- `02-architecture/architecture-narrative.md` — the what and why of every stage
+- `ROADMAP.md` — the phased plan, each phase citing the requirements above
+- `40-adrs/README.md` — the decisions, each citing a BR
