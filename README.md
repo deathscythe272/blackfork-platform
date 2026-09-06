@@ -1,14 +1,19 @@
 # Blackfork Platform
 
 **An agentic security & compliance platform, built as a portfolio project** — from
-business problem → requirements → architecture → working code.
+business problem → requirements → architecture → working code, with the AI agents
+themselves treated as an attack surface to be threat-modeled, tested, and measured.
 
-Two systems for a fictional company (Blackfork Systems):
+Two systems for a fictional company (Blackfork Systems), and one layer they share:
 
 - **Provenance** — an evidence lakehouse + GRC agent team: security telemetry in,
   continuously collected, control-mapped, human-signed audit evidence out.
-- **Gatehouse** — an AI merge gate: deterministic policy checks that block, plus a
-  measured LLM judge for design quality, on every pull request of this very repo.
+- **Gatehouse** — an AI merge gate: deterministic policy checks that block, plus an
+  LLM judge for design quality that earns blocking power only through measured
+  precision, on every pull request of this very repo.
+- **Assurance** — one guarded door for all agent data access, guardrails on every
+  agent, a threat model of the agent runtime, deliberate injection attempts seeded into
+  the evals, and published workload profiles.
 
 **Stack:** NVIDIA NeMo Agent Toolkit · NIM · NeMo Guardrails · Garak · MCP · A2A ·
 OPA/Rego · Apache Iceberg · DuckDB · Dagster · OSCAL · GCP (Terraform, Cloud Run,
@@ -21,11 +26,13 @@ with reading paths for 5 minutes, 15 minutes, or a deep dive.
 
 Phase-by-phase plan with steps and done-criteria: [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
-- [x] Business case with measurable requirements (BR-1…BR-7)
-- [x] Architecture diagrams (v1) + narrative with ADR map
+- [x] Business case with measurable requirements (BR-1…BR-9), including agent safety
+      and evaluation rigor
+- [x] Architecture pages — context, Provenance flow, Gatehouse flow — each read left to
+      right with a numbered walkthrough, plus the narrative with ADR map
 - [x] Documentation standard + Foundation docs (F1)
 - [x] CI enforces the docs standard on every PR — Gatehouse's first deterministic gate
-- [ ] Diagram rework for linear readability (v2)
+- [x] Phased roadmap with done-criteria per phase
 - [ ] ADR-001: the MCP auth-gateway decision
 - [ ] V1 vertical slice: one agent end-to-end locally (agent + evidence-mcp + auth
       gateway + Guardrails + one golden eval + OTel trace)

@@ -72,12 +72,11 @@ like. Steps are pull-request sized; each PR cites the requirement it serves.
 
 ## The details
 
-### Phase 1 — Legibility (Serves: BR-4, BR-7)
+### Phase 1 — Legibility (Serves: BR-4, BR-7) — diagrams done, ADR-001 open
 
-1. PR `docs/diagrams-v2`: context diagram cut to seven nodes; Provenance flow split
-   into four sequential diagrams; Gatehouse sequence trimmed to the primary path;
-   "How it works" and "Go deeper" added to all three; v1 banners removed; broken
-   cross-references in the narrative fixed.
+1. Done: context, Provenance flow, and Gatehouse flow rebuilt as left-to-right parts
+   with a numbered walkthrough and next-page link on each; narrative cross-references
+   fixed.
 2. Extend `scripts/check_docs_standard.py` to require "How it works" on template docs,
    so walkthrough-matches-diagram is enforced rather than hoped for.
 3. PR ADR-001: the MCP auth gateway decision — context, options, decision,
@@ -107,7 +106,7 @@ index and the narrative.
 **Done when:** one command runs the golden question through the gateway, the audit
 table shows the call, the eval passes, and the trace exists.
 
-### Phase 3 — Agent-runtime threat model, T1 (Serves: BR-7)
+### Phase 3 — Agent-runtime threat model, T1 (Serves: BR-8)
 
 1. PR `docs/agent-threat-model`: `docs/02-architecture/agent-threat-model.md` per the
    template, with a seven-node trust-boundary diagram.
@@ -121,7 +120,7 @@ table shows the call, the eval passes, and the trace exists.
 **Done when:** every threat row has a mitigation and a test ID; gaps are stated, not
 hidden.
 
-### Phase 4 — Gatehouse G2, G3, G3+ (Serves: BR-3, BR-4, BR-7)
+### Phase 4 — Gatehouse G2, G3, G3+ (Serves: BR-3, BR-4, BR-8, BR-9)
 
 1. PR G2 judge lane: a NAT workflow that scores a PR diff against a versioned rubric
    and posts an advisory comment. Never blocks yet.
@@ -138,7 +137,7 @@ hidden.
 **Done when:** the judge runs on every PR of this repo, the eval table is in the docs,
 and at least one rubric item has earned blocking status with the numbers shown.
 
-### Phase 5 — Agent workload profiling, W1 (Serves: BR-3, C4)
+### Phase 5 — Agent workload profiling, W1 (Serves: BR-9, C4)
 
 1. OpenTelemetry plus NAT profiling on the Phase 2 agent and the Phase 4 judge.
 2. A repeatable profiling script that runs the golden and adversarial eval sets N times
@@ -205,7 +204,7 @@ git history rather than silent.
 ## Go deeper
 
 - `00-START-HERE.md` — the two-minute tour
-- `01-business-case.md` — BR-1…BR-7 and C1…C4, which every phase cites
+- `01-business-case.md` — BR-1…BR-9 and C1…C4, which every phase cites
 - `02-architecture/architecture-narrative.md` — what and why per stage, ADR map
 - `40-adrs/README.md` — the planned decision records referenced above
 - `../CLAUDE.md` — the working contract: rules, fixed stack, current queue

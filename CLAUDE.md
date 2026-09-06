@@ -22,7 +22,8 @@ screenshared as much as run.
 ## Read before doing anything
 
 1. `docs/00-START-HERE.md` — two-minute tour
-2. `docs/01-business-case.md` — BR-1…BR-7 and C1…C4; everything cites these
+2. `docs/01-business-case.md` — BR-1…BR-9 and C1…C4; everything cites these. BR-8
+   (agent safety) and BR-9 (evaluation rigor) are the ones the safety work items serve
 3. `docs/02-architecture/architecture-narrative.md` — what + why per stage, design
    principles, ADR map
 4. `docs/DOCS-STANDARD.md` — doc template + diagram rules (CI-enforced)
@@ -103,19 +104,21 @@ diagrams v2 → ADR-001 → **V1 vertical slice** → T1 threat model → G2 jud
 G3 incl. injection evals → W1 profiling → F2/F3 Terraform + CI → P1–P4 widen →
 ADR-008 appendix → satellites (patterns repo; upstream PRs to NVIDIA repos as habit).
 
-## Current state (2026-09-04)
+## Current state (2026-09-06)
 
-Ten commits on `main` plus this contract PR; docs-first phase complete; docs-standard
-CI gate live; `20-provenance/` and `30-gatehouse/` stubbed; no ADRs written yet; no
-infra code yet. No GitHub remote yet — `gh` CLI installed but unauthenticated; branch
-protection + required check to be enabled once the repo is pushed.
+Docs-first phase complete and re-aimed: business case carries BR-8/BR-9, START HERE
+and the narrative lead with the assurance layer, the three architecture pages read
+left to right in parts with walkthroughs, and `docs/ROADMAP.md` holds the phased plan.
+Docs-standard CI gate live; `20-provenance/` and `30-gatehouse/` stubbed; no ADRs
+written yet; no infra code yet. Public docs describe the safety and evaluation
+emphasis without naming job requisitions. First push to GitHub pending; branch
+protection + required check to be enabled once pushed.
 
 ## Immediate queue
 
-1. This PR: add `docs/ROADMAP.md`, the phased build plan (Serves: BR-4). The re-aim
-   contract PR merged 2026-09-04.
-2. PR: diagram v2 rework to meet the diagram rules (Serves: BR-4) — remove the "v1"
-   notes as each is replaced; fix stale cross-references in the narrative.
-3. PR: ADR-001 — the MCP auth gateway decision (include a STRIDE sketch of the
-   gateway as T1's seed).
-4. PR: V1 vertical slice (plan paragraph first — it exceeds an hour).
+1. Push to GitHub; enable branch protection with the docs-standard check required.
+2. PR: ADR-001 — the MCP auth gateway decision (include a STRIDE sketch of the
+   gateway as T1's seed). Serves: BR-7, BR-8.
+3. PR: V1 vertical slice (plan paragraph first — it exceeds an hour).
+4. PR: extend `check_docs_standard.py` to require "How it works" once the standard
+   and business-case pages carry one.
