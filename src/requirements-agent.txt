@@ -1,0 +1,5 @@
+nvidia-nat[langchain,mcp,opentelemetry]==1.8.0
+nemoguardrails==0.24.0
+langchain-nvidia-ai-endpoints
+PyJWT==2.13.0
+pyyaml

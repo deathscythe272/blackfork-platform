@@ -1,0 +1,73 @@
+# V1 vertical slice, all local, zero cloud cost. Serves: BR-7, BR-8, BR-9, C4, C5.
+#
+# Two networks are the point:
+#   core  (internal, no internet)  evidence-mcp, opa, gateway
+#   edge  (internet allowed)       gateway, otel-collector, agent
+# The agent can reach the gateway and the collector and the model endpoint. It has
+# no route to evidence-mcp or OPA. The gateway is the only bridge (ADR-001).
+#
+# Secrets come from .env (gitignored), written by scripts/demo.py:
+#   NVIDIA_API_KEY, GATEWAY_SIGNING_KEY, GATEWAY_TOKEN
+
+name: blackfork-v1
+
+services:
+  opa:
+    image: openpolicyagent/opa:1.4.2
+    command: ["run", "--server", "--addr", ":8181", "--log-level", "error", "/policy"]
+    volumes:
+      - ./src/provenance/gateway/policy:/policy:ro
+    networks: [core]
+    labels: {plane: assurance, system: provenance, env: dev, serves-br: "BR-7,BR-8"}
+
+  evidence-mcp:
+    build: {context: ./src, dockerfile: Dockerfile.services}
+    command: ["python", "-m", "provenance.evidence_mcp.server"]
+    environment:
+      EVIDENCE_DB: /data/evidence.duckdb
+    volumes:
+      - ./data:/data:ro
+    networks: [core]
+    labels: {plane: context, system: provenance, env: dev, serves-br: "BR-2,BR-7"}
+
+  gateway:
+    build: {context: ./src, dockerfile: Dockerfile.services}
+    command: ["python", "-m", "provenance.gateway.server"]
+    environment:
+      GATEWAY_SIGNING_KEY: ${GATEWAY_SIGNING_KEY}
+      OPA_URL: http://opa:8181
+      EVIDENCE_MCP_URL: http://evidence-mcp:8001/mcp
+      AUDIT_LOG: /audit/audit.jsonl
+    volumes:
+      - ./audit:/audit
+    depends_on: [opa, evidence-mcp]
+    ports: ["8000:8000"]
+    networks: [core, edge]
+    labels: {plane: context, system: provenance, env: dev, serves-br: "BR-7,BR-8"}
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.121.0
+    command: ["--config", "/etc/otelcol/config.yaml"]
+    volumes:
+      - ./src/provenance/otel/collector.yaml:/etc/otelcol/config.yaml:ro
+      - ./traces:/traces
+    ports: ["4318:4318"]
+    networks: [edge]
+    labels: {plane: assurance, system: provenance, env: dev, serves-br: "BR-9"}
+
+  agent:
+    build: {context: ./src, dockerfile: Dockerfile.agent}
+    profiles: [job]  # started explicitly: docker compose run --rm agent ...
+    environment:
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY}
+      GATEWAY_TOKEN: ${GATEWAY_TOKEN}
+      GATEWAY_URL: http://gateway:8000/mcp
+      OTEL_ENDPOINT: http://otel-collector:4318/v1/traces
+    depends_on: [gateway, otel-collector]
+    networks: [edge]
+    labels: {plane: agent, system: provenance, env: dev, serves-br: "BR-7,BR-8,BR-9"}
+
+networks:
+  core:
+    internal: true
+  edge: {}

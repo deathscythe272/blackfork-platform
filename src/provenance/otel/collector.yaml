@@ -1,0 +1,22 @@
+# OpenTelemetry Collector for the V1 slice: receive OTLP from the agent, keep a
+# readable copy on disk. Serves: BR-9 (every agent step is an inspectable span).
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+processors:
+  batch: {}
+exporters:
+  file:
+    path: /traces/traces.jsonl
+  debug:
+    verbosity: basic
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [file, debug]

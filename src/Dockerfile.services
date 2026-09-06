@@ -1,0 +1,7 @@
+# evidence-mcp and the gateway share one small image; Compose picks the module.
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements-services.txt .
+RUN pip install --no-cache-dir -r requirements-services.txt
+COPY provenance ./provenance
+ENV PYTHONPATH=/app PYTHONUNBUFFERED=1

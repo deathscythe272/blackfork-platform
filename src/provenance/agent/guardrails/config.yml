@@ -1,0 +1,28 @@
+# NeMo Guardrails for the Evidence Collector, V1 slice.
+#
+# Two rails, one each way. The input rail refuses requests that try to change the
+# agent's assignment or rules before the agent ever sees them. The output rail
+# refuses answers that leak another system's evidence or drop citations. Both are
+# "self check" rails: the rail's own model call scores the text against the policy
+# in prompts.yml. The production upgrade is a dedicated content-safety NIM
+# (nvidia/llama-3.1-nemotron-safety-guard-8b-v3) in the content_safety slot.
+#
+# Serves: BR-8 (prompt injection, jailbreaks). The key comes from NVIDIA_API_KEY.
+
+models:
+  - type: main
+    engine: nim
+    model: nvidia/nemotron-3.5-lightning-30b-a3b
+    parameters:
+      temperature: 0.0
+      max_tokens: 256
+      chat_template_kwargs:
+        enable_thinking: false
+
+rails:
+  input:
+    flows:
+      - self check input
+  output:
+    flows:
+      - self check output
