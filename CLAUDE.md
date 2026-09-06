@@ -54,7 +54,9 @@ screenshared as much as run.
 
 - **Agents:** NVIDIA NeMo Agent Toolkit (`nvidia-nat`). Inference via hosted NIM
   endpoints (free dev tier); self-hosted NIM containers are the CUI path (ADR-008).
-  NeMo Guardrails wraps agent I/O; Garak red-teams our own agents; NeMo Retriever +
+  NeMo Guardrails wraps agent I/O; Garak red-teams our own agents and NeMo Auditor
+  scores their outputs; command-running agents (Pipeline Steward) execute in a sandbox
+  (OpenShell where available, locked container otherwise); NeMo Retriever +
   Milvus for semantic search.
 - **Access:** MCP is the *only* data door, behind a custom auth gateway — identity +
   OPA decision + audit write on every call (ADR-001, ADR-003). Risk Analyst runs as a
@@ -83,16 +85,19 @@ screenshared as much as run.
 
 - **T1 — Agent-runtime threat model.** STRIDE the agent platform itself (prompt
   injection, jailbreaks, tool-based data exfiltration, unsafe tool invocation,
-  model/skill supply-chain risk) as `docs/02-architecture/agent-threat-model.md` per
-  the docs standard; every threat maps to its mitigation (gateway, OPA, parameterized
-  tools, Guardrails, audit) AND to a planned test.
+  model/skill supply-chain risk, sandbox escape for command-running agents) as
+  `docs/02-architecture/agent-threat-model.md` per the docs standard; every threat maps
+  to its mitigation (gateway, OPA, parameterized tools, Guardrails, sandbox, audit) AND
+  to a planned test.
 - **G3+ — Seeded injection evals.** Extend Gatehouse trust machinery with deliberate
   prompt-injection and tool-abuse attempts in the eval sets; publish results so
   containment is a measured claim, not an assertion.
-- **W1 — Agent workload profiling.** Instrument the agents via OpenTelemetry + NAT
-  profiling; publish `docs/analysis/agent-workload-profile.md` with measured token
-  counts, tool-call counts, latency distributions, and long-horizon behavior, charts
-  committed.
+- **W1 — Workload profiling, two workloads.** (a) Our agents via OpenTelemetry + NAT
+  profiling → `docs/analysis/agent-workload-profile.md`: token counts, tool-call
+  counts, latency distributions, long-horizon behavior, charts committed. (b) The
+  coding-agent harness that builds this repo → `docs/analysis/coding-agent-harness-profile.md`:
+  per-turn tokens, context growth, tool-call mix, retries, where inference time goes;
+  method stated so it repeats on another harness.
 - **ADR-008 appendix.** Confidential / air-gapped deployment pattern, explicitly
   labeled design-only (no GPU confidential computing on free tier).
 

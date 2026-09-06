@@ -116,7 +116,11 @@ architecting around them *is* the job.
 Collector gathers proof per control (10); the Control Mapper links evidence to controls
 and drafts implementation statements (11); the Risk Analyst — running as a *separate
 service* reached over the A2A protocol with its own authentication — scores and
-prioritizes (12); the Report Writer assembles the packet (13).
+prioritizes (12); the Report Writer assembles the packet (13). Step 12 and the
+exploitability verdicts from Stage 1 together are the platform's investigation
+workflow: a raw finding goes in, and a ranked verdict with its reasoning comes out,
+which is the automated half of what a security analyst does when a scanner lights up
+(BR-6).
 
 **Why this way.** Four narrow agents instead of one capable generalist because narrow
 agents are testable (each gets its own eval set), debuggable (each gets its own traces),
@@ -142,7 +146,7 @@ from, which feeds the eval sets that make the agents measurably better.
 
 ---
 
-## The always-on eight
+## The always-on nine
 
 These are not steps in the journey (they sit in the details table of `provenance-flow.md`); they are the conditions under which the journey is
 allowed to happen.
@@ -157,6 +161,7 @@ allowed to happen.
 | **OpenTelemetry → Grafana** | You cannot optimize or debug what you cannot see. Per-step latency and cost is how "supports real-time workloads" becomes a measured claim instead of a hope. |
 | **Eval harness** | LLM behavior drifts with every model and prompt change. Golden question sets turn "seems fine" into a score — regression testing for judgment. |
 | **Garak red-team** | A security platform that has never been attacked is untested. We run NVIDIA's LLM vulnerability scanner against our own agents and publish the findings — and fixes. |
+| **NeMo Auditor** | Garak asks "can it be broken?"; NeMo Auditor asks "how safe is what it says?" Scoring agent outputs against safety categories gives the second number, and both are published together (BR-8). |
 
 ---
 
@@ -179,9 +184,9 @@ Provenance as evidence — the gate is also a sensor.
 ## What could go wrong — and how we prove it can't
 
 Everything above describes agents that read scanner output, log lines, pull-request
-diffs, and policy documents, and that can call tools which reach governed data. That is
-an attack surface, and it gets the same treatment as any other production system
-(BR-8, BR-9). Five threat classes drive the design; each maps to the mitigation already
+diffs, and policy documents, that can call tools which reach governed data, and in one
+case can run commands. That is an attack surface, and it gets the same treatment as any
+other production system (BR-8, BR-9). Six threat classes drive the design; each maps to the mitigation already
 in the architecture and to the test that proves the mitigation works.
 
 | Threat to the agents | Where it enters | Mitigation in the design | How it is proven |
@@ -190,6 +195,7 @@ in the architecture and to the test that proves the mitigation works.
 | **Jailbreaks** — the agent is talked out of its role or rules | Any user- or feed-supplied text | Guardrails' dialog rails; agents draft and never decide (C3); OPA decides what a call may do regardless of what the model asks for | Garak probe sets run against our own agents, findings and fixes published |
 | **Tool-based data exfiltration** — the agent is steered into pulling data it should not, or sending it somewhere it should not | Any tool call | One door: every call passes the auth gateway with identity, an OPA decision, and an audit row; parameterized tools only, no model-written queries; no outbound tools beyond the packet path | Adversarial eval cases attempting cross-`system_id` reads; the audit table is the assertion |
 | **Unsafe tool invocation** — the wrong tool, wrong arguments, or a tool used out of order | Agent reasoning errors or injected steering | Tool schemas are the security boundary; OPA policy per tool and identity; the Risk Analyst sits behind its own A2A auth so one compromised agent cannot reach another's tools | Golden evals assert exact tool-call sequences; traces show every call |
+| **Sandbox escape** — an agent that runs commands (the Pipeline Steward) reaches the host, ambient credentials, or the open network | Any command-running agent | Command-running agents execute inside a sandbox with no host filesystem, no ambient credentials, and an egress allow-list; OpenShell is the NVIDIA-native runtime, a locked container the free-tier stand-in | Escape attempts in the Steward's adversarial eval set; the sandbox's denied-egress log is the assertion |
 | **Model and skill supply chain** — a swapped model, a poisoned prompt file, a tampered dependency | Deployment and repo | Pinned model versions per environment; prompts and rails are code reviewed through Gatehouse; self-hosted NIM as the CUI path (ADR-008) | Eval scores re-run on every model or prompt change; regression blocks release |
 
 The full threat model, written per trust boundary with STRIDE, is

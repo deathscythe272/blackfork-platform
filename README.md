@@ -15,7 +15,7 @@ Two systems for a fictional company (Blackfork Systems), and one layer they shar
   agent, a threat model of the agent runtime, deliberate injection attempts seeded into
   the evals, and published workload profiles.
 
-**Stack:** NVIDIA NeMo Agent Toolkit · NIM · NeMo Guardrails · Garak · MCP · A2A ·
+**Stack:** NVIDIA NeMo Agent Toolkit · NIM · NeMo Guardrails · Garak · NeMo Auditor · MCP · A2A ·
 OPA/Rego · Apache Iceberg · DuckDB · Dagster · OSCAL · GCP (Terraform, Cloud Run,
 Workload Identity Federation) — everything as code.
 
@@ -36,10 +36,11 @@ Phase-by-phase plan with steps and done-criteria: [`docs/ROADMAP.md`](docs/ROADM
 - [ ] ADR-001: the MCP auth-gateway decision
 - [ ] V1 vertical slice: one agent end-to-end locally (agent + evidence-mcp + auth
       gateway + Guardrails + one golden eval + OTel trace)
-- [ ] T1: agent-runtime threat model — STRIDE the agent platform itself
+- [ ] T1: agent-runtime threat model — STRIDE the agent platform itself, including
+      sandboxed execution for command-running agents
 - [ ] Gatehouse: judge lane (G2) + trust machinery with seeded injection evals (G3)
-- [ ] W1: agent workload profile — measured tokens, tool calls, latency,
-      long-horizon behavior
+- [ ] W1: workload profiles — our agents (tokens, tool calls, latency, long-horizon
+      behavior) and the coding-agent harness that builds this repo
 - [ ] Foundation IaC: Terraform modules, WIF keyless CI (F2–F3)
 - [ ] Provenance: widen the planes (P1–P4) + Pipeline Steward (P5)
 - [ ] ADR-008 appendix: confidential/air-gapped deployment pattern (design-only)

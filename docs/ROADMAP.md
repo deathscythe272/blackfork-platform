@@ -100,7 +100,11 @@ index and the narrative.
    non-zero on failure.
 7. Observability: OpenTelemetry tracing to a local collector, one trace screenshot
    committed.
-8. Docs: `docs/20-provenance/v1-slice.md` per the standard, with a
+8. Sandbox seed: the agent runs in its own container whose only network egress is the
+   gateway, the trace collector, and the model endpoint. Nothing else is reachable, so
+   the gateway is the agent's whole world. This is the boundary the Pipeline Steward's
+   command sandbox (Phase 7) builds on.
+9. Docs: `docs/20-provenance/v1-slice.md` per the standard, with a
    run-it-in-five-minutes section.
 
 **Done when:** one command runs the golden question through the gateway, the audit
@@ -111,8 +115,13 @@ table shows the call, the eval passes, and the trace exists.
 1. PR `docs/agent-threat-model`: `docs/02-architecture/agent-threat-model.md` per the
    template, with a seven-node trust-boundary diagram.
 2. STRIDE table per boundary: user→agent, agent→gateway, gateway→MCP, agent→model,
-   repo→agent (skills and prompts). Threats include prompt injection, jailbreaks,
-   tool-based exfiltration, unsafe tool invocation, model/skill supply chain.
+   repo→agent (skills and prompts), and agent→host for any agent that runs commands.
+   Threats include prompt injection, jailbreaks, tool-based exfiltration, unsafe tool
+   invocation, model/skill supply chain, and sandbox escape.
+   The agent→host boundary states the sandbox requirement for command-running agents
+   (no host filesystem, no ambient credentials, egress allow-list) and names OpenShell
+   as the NVIDIA-native runtime for it, with a plain locked container as the
+   free-tier stand-in.
 3. Three columns per threat: mitigating component (gateway, OPA, parameterized tools,
    Guardrails, audit), existing control or stated gap, planned test ID.
 4. Update ADR-001's consequences and the narrative to point here.
@@ -130,14 +139,18 @@ hidden.
    and a published precision/recall table per rubric item.
 4. PR G3+ seeded injection evals: adversarial cases added to the eval set — injection
    inside diffs and docs aimed at the judge, tool-abuse attempts against the Phase 2
-   agent, and a Garak run against both. Results published; Phase 3 test IDs closed.
+   agent, a Garak probe run against both, and a NeMo Auditor safety evaluation of the
+   agents' outputs. Results published side by side; Phase 3 test IDs closed.
 5. Promote any rubric item whose measured precision clears the ADR-005 threshold to
    blocking.
 
 **Done when:** the judge runs on every PR of this repo, the eval table is in the docs,
 and at least one rubric item has earned blocking status with the numbers shown.
 
-### Phase 5 — Agent workload profiling, W1 (Serves: BR-9, C4)
+### Phase 5 — Workload profiling, W1 (Serves: BR-9, C4)
+
+Two workloads get profiled: the agents this repo builds, and the coding-agent harness
+that builds this repo.
 
 1. OpenTelemetry plus NAT profiling on the Phase 2 agent and the Phase 4 judge.
 2. A repeatable profiling script that runs the golden and adversarial eval sets N times
@@ -145,11 +158,17 @@ and at least one rubric item has earned blocking status with the numbers shown.
 3. `docs/analysis/agent-workload-profile.md` with committed charts: tokens per task,
    tool calls per task, p50/p95 latency, and a long-horizon run showing drift or
    stability.
-4. A findings section stating what the numbers changed in the design (tool-count
-   limits, prompt-size caps, or similar).
+4. Harness workload analysis: instrument coding-agent sessions on this repo (the repo
+   is built with one, so the raw material exists) and measure per turn: input and
+   output tokens, context growth, tool-call mix, retries and re-reads, and where
+   inference time goes across a session. Published as
+   `docs/analysis/coding-agent-harness-profile.md` with committed charts and the
+   collection method stated so it can be repeated on another harness.
+5. A findings section in each doc stating what the numbers changed in the design
+   (tool-count limits, prompt-size caps, context-management rules, or similar).
 
-**Done when:** charts are in the repo and the doc names at least one decision the data
-drove.
+**Done when:** both profiles have charts in the repo and each names at least one
+decision the data drove.
 
 ### Phase 6 — Cloud substrate and CI/CD, F2 and F3 (Serves: BR-5, C4)
 
@@ -171,11 +190,15 @@ answers the Phase 2 eval.
 2. P2 context plane: `controls-mcp` with OSCAL catalogs; gateway hardened per Phase 3
    findings. ADR-003.
 3. P3 agent plane: Control Mapper, Report Writer, and Risk Analyst as a separate A2A
-   service. ADR-004, and ADR-007 on human sign-off.
-4. P4 assurance plane: NeMo Retriever with Milvus, scheduled Garak runs, and an eval
-   harness that re-scores every agent on every change.
+   service. The Risk Analyst plus the exploitability verdicts form the platform's
+   investigation-automation workflow: finding in, ranked and explained verdict out.
+   ADR-004, and ADR-007 on human sign-off.
+4. P4 assurance plane: NeMo Retriever with Milvus, scheduled Garak and NeMo Auditor
+   runs, and an eval harness that re-scores every agent on every change.
 5. P5 Pipeline Steward: the on-failure agent that diagnoses a broken Dagster job and
-   opens a fix PR, itself gated by Gatehouse.
+   opens a fix PR, itself gated by Gatehouse. It runs commands, so it runs inside a
+   sandbox per the Phase 3 agent→host boundary: OpenShell where available, a locked
+   container otherwise, with the escape tests from T1 in its eval set.
 
 **Done when:** one real Security Onion alert becomes a cited line in a draft packet with
 a human approval step in the loop.

@@ -115,7 +115,8 @@ Two systems do the work. A third layer, shared by both, proves the work can be t
   measured. Answers **BR-3, BR-4, BR-7**.
 - **Assurance** — the safety and evaluation machinery both systems run under. One
   governed door for all data access, with identity, policy, and audit on every call.
-  Guardrails on every agent's input and output. A threat model of the agent runtime
+  Guardrails on every agent's input and output. A sandbox around any agent that runs
+  commands. A threat model of the agent runtime
   itself, with a test per threat. Deliberate injection and tool-abuse attempts seeded
   into the eval sets, with results published. Every agent traced and profiled. Answers
   **BR-7, BR-8, BR-9** — and it is the part of the platform that makes the other two
@@ -129,9 +130,9 @@ Two systems do the work. A third layer, shared by both, proves the work can be t
 | BR-3 | Two-lane PR gate | Gatehouse deterministic checks + LLM judge | Public PR history + latency metric |
 | BR-4 | Docs-as-code enforcement | Presence checks, PR template, CODEOWNERS | Coverage report per service |
 | BR-5 | Multi-framework mapping | controls-mcp (OSCAL catalogs) + Control Mapper agent | One evidence row cited by two frameworks |
-| BR-6 | Exploitability triage | NVIDIA vulnerability-analysis blueprint output as an ingest source | Ranked findings table |
+| BR-6 | Investigation automation: exploitability triage | NVIDIA vulnerability-analysis blueprint verdicts as an ingest source + Risk Analyst agent | Ranked findings table, each with an explained verdict |
 | BR-7 | Agent governance | MCP auth gateway, OPA decisions, audit table | Immutable audit log; every call traceable to identity + policy decision |
-| BR-8 | Agent safety | Agent-runtime threat model, parameterized tools, NeMo Guardrails, seeded injection evals, Garak red-team runs | Threat table with a passing test per row; published containment results |
+| BR-8 | Agent safety | Agent-runtime threat model, parameterized tools, sandboxed execution for command-running agents, NeMo Guardrails, seeded injection evals, Garak and NeMo Auditor runs | Threat table with a passing test per row; published containment results |
 | BR-9 | Evaluation rigor | Golden + adversarial eval sets per agent, planted-flaw judge evals, OpenTelemetry + workload profiling | Eval scores gating release; precision per rubric item; workload profile with charts |
 | BR-1 | All of the above | End-to-end platform | Generated audit packet, human-signed |
 
@@ -186,6 +187,8 @@ evaluation requirements (BR-8, BR-9) live in.
 | Agent-runtime threat model (STRIDE, pytm) | A written list of how the agents themselves could be attacked, each with a mitigation and a test | Model one agent + one tool, read the generated threats |
 | Eval harness (golden + adversarial sets) | Fixed question sets that score an agent after every change — including questions designed to make it misbehave | Write five golden questions and two hostile ones for one agent |
 | Garak | NVIDIA's open-source LLM vulnerability scanner — red-teams your own agents | Run one probe set against a hosted model |
+| NeMo Auditor | NVIDIA's safety-evaluation tool: scores agent outputs against safety categories, the measured complement to Garak's attacks | Audit one agent's eval outputs, read the category scores |
+| Sandboxed execution (OpenShell) | A locked runtime for agents that run commands: no host filesystem, no ambient credentials, egress allow-list. OpenShell is the NVIDIA-native option; a plain locked container is the free-tier stand-in | Run one shell-using agent in a container with no network and watch it fail safely |
 | OpenTelemetry + NAT profiling | Standard tracing and per-run accounting: every agent step becomes an inspectable span with tokens and latency | View one NAT run's trace in Phoenix or Jaeger |
 | Prometheus + Grafana | Metrics collection and dashboards | Graph one pipeline metric |
 | Conftest / Semgrep | Run Rego policies / code patterns as CI checks | Fail a CI job with one rule on a YAML file |
