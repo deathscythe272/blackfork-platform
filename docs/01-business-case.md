@@ -34,6 +34,15 @@ flowchart LR
   ASSURE --> PROOF["Proof<br><i>signed packets, published results</i>"]
 ```
 
+## How it works
+
+The eight sections below follow the picture left to right. Sections 1 and 2 are the
+company and its pains. Sections 3 and 4 are the requirements and the constraints they
+must respect. Section 5 is the two systems and the assurance layer they share. Section 6
+ties every requirement to the component that answers it and the artifact that proves
+it. Section 7 is a plain-English glossary of every component named, in the order data
+moves through them. Section 8 is how this repo itself is the proof.
+
 ## 1. Company snapshot
 
 | | |

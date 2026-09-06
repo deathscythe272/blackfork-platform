@@ -25,7 +25,12 @@ trusted.
 
 ---
 
-## Stage 1 — Sources (step 1, five feeds)
+## How it works
+
+Six stages, in the order the Provenance flow draws them. Each says what happens and
+then why it is built that way.
+
+### Stage 1 — Sources (step 1, five feeds)
 
 **What happens.** Five feeds land raw security facts: network detections from Security
 Onion (Zeek + Suricata), the cloud's own account of who did what (GCP audit logs),
@@ -43,7 +48,7 @@ free and open tooling (C4). The blueprint deserves special mention: we ingest it
 judgment is signal (BR-6) — and because composing with a vendor's proven agent workflow
 beats rebuilding it. Buy the commodity; build the differentiator.
 
-## Stage 2 — Pipelines (steps 2, 4, 6)
+### Stage 2 — Pipelines (steps 2, 4, 6)
 
 **What happens.** Dagster runs scheduled ingest jobs (2). Presidio strips personal data
 before anything is stored long-term (4). Asset checks act as a quality gate that stops
@@ -63,7 +68,7 @@ The steward is an agent because a three-person security team can't babysit pipel
 pushing fixes, because reversibility and human review are requirements (BR-7), not
 courtesies.
 
-## Stage 3 — Lakehouse (steps 3, 5, 7)
+### Stage 3 — Lakehouse (steps 3, 5, 7)
 
 **What happens.** Data lands raw in Bronze (3), cleaned and redacted in Silver (5), and
 is served as narrow, documented Gold views — evidence, assets, findings, control
@@ -81,7 +86,7 @@ more accurate and more governable against small, stable, documented schemas than
 sprawling raw tables. Shaping context for the consumer is a design act — this is what
 "agent-ready data" means in practice.
 
-## Stage 4 — MCP access layer (steps 8–9)
+### Stage 4 — MCP access layer (steps 8–9)
 
 **What happens.** Two MCP servers expose the platform's knowledge: `evidence-mcp` offers
 safe, parameterized queries over Gold views only (8); `controls-mcp` serves NIST
@@ -105,7 +110,7 @@ than accept an open door, we put a thin, boring, auditable layer in front of it.
 gap-and-response is documented as ADR-001, because recognizing a framework's limits and
 architecting around them *is* the job.
 
-## Stage 5 — Agents (steps 10–13)
+### Stage 5 — Agents (steps 10–13)
 
 **What happens.** Four NeMo Agent Toolkit workflows run in sequence: the Evidence
 Collector gathers proof per control (10); the Control Mapper links evidence to controls
@@ -123,7 +128,7 @@ scoring may be owned by a different team on different infrastructure, and the pl
 must prove agents can cooperate across *trust* boundaries, not just across function
 calls in one process. And all four agents draft; none decide. Judgment stays human (C3).
 
-## Stage 6 — Output (step 14)
+### Stage 6 — Output (step 14)
 
 **What happens.** A draft audit packet and SSP sections arrive for human review. Every
 claim carries a citation to its evidence row. Nothing ships without a person's approval.
