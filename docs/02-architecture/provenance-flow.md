@@ -90,7 +90,9 @@ flowchart LR
 11. **Control Mapper.** Links each piece of evidence to the controls it satisfies and
     drafts the implementation statements.
 12. **Risk Analyst.** Runs as a separate service with its own authentication, reached
-    over the A2A protocol, and scores and prioritizes findings.
+    over the A2A protocol, and scores and prioritizes findings. With the exploitability
+    verdicts from step 1 it forms the investigation workflow: raw finding in, ranked
+    and explained verdict out.
 13. **Report Writer.** Assembles the audit packet and system security plan draft. Every
     claim carries a citation to its evidence row.
 14. **Human review.** A person reads, corrects, and signs. Nothing leaves without a
@@ -109,6 +111,8 @@ under which steps 10 to 13 are allowed to run.
 | OpenTelemetry | Every agent step becomes a span with tokens, tool calls, and latency, feeding the workload profile (BR-9) |
 | Eval harness | Golden and adversarial question sets that re-score each agent after every change; a regression blocks release (BR-9) |
 | Garak | NVIDIA's LLM vulnerability scanner, run against our own agents on a schedule, findings published (BR-8) |
+| NeMo Auditor | Scores agent outputs against safety categories; published alongside the Garak findings so attack results and output safety are read together (BR-8) |
+| Sandbox | The Pipeline Steward runs commands, so it runs in a locked container with no host filesystem, no ambient credentials, and an egress allow-list (OpenShell where available) (BR-8) |
 
 **What the gateway checks.** Identity comes from the caller's service credential. The
 policy decision comes from OPA, evaluating Rego rules that say which identity may call

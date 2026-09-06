@@ -17,7 +17,9 @@ screenshots by hand, and code changes wait six days for a security review. The o
 fix is to let AI agents do the collecting and the reviewing. But that creates a second
 problem: an auditor will not accept evidence from a robot nobody can vouch for, and an
 agent that reads outside text and can reach sensitive data is itself something an
-attacker can aim at. So the requirements come in two halves. The first half says what
+attacker can aim at. And the company already runs AI it has never measured: most
+engineering teams use coding agents, with no numbers on cost or behavior and no limits
+on what those agents can touch. So the requirements come in two halves. The first half says what
 the automation must do: continuous evidence, fast reviews, ranked vulnerabilities. The
 second half says what the automation must prove about itself: that it is contained,
 tested against deliberate attacks, and measured before it is trusted.
@@ -26,7 +28,7 @@ tested against deliberate attacks, and measured before it is trusted.
 
 ```mermaid
 flowchart LR
-  PAIN["Six pains<br><i>slow audits, slow reviews, blind automation</i>"] --> REQ["Nine requirements<br><i>what to do, what to prove</i>"]
+  PAIN["Seven pains<br><i>slow audits, slow reviews, unmeasured AI</i>"] --> REQ["Nine requirements<br><i>what to do, what to prove</i>"]
   REQ --> PROV["Provenance<br><i>evidence collected and cited</i>"]
   REQ --> GATE["Gatehouse<br><i>every code change checked</i>"]
   PROV --> ASSURE["Assurance<br><i>agents contained, tested, measured</i>"]
@@ -74,6 +76,12 @@ moves through them. Section 8 is how this repo itself is the proof.
   about any AI-produced evidence — *"why should I believe the robot?"* — has no answer
   today, and an assistant that reads attacker-influenced text and can call tools is a
   new attack surface the team has no way to test.
+- **P7 — AI already in the building, unmeasured.** Six of nine engineering teams use
+  coding agents day to day, adopted team by team with no shared numbers. Nobody can say
+  what a working session costs, how the tools behave on long tasks, or which one to
+  standardize on. Finance has asked for usage data before the next renewal, and the
+  security lead has asked a harder question: one of those agents ran a "cleanup"
+  command on a shared build box last month, and nothing stopped it.
 
 ## 3. Business requirements
 
@@ -88,10 +96,10 @@ cannot be shown safe fails BR-1 just as surely as one that does nothing.
 | **BR-3** | Security feedback on every PR, humans only on flagged high-risk changes | ≤30 min for standard changes, SLA ≥95% | Velocity |
 | **BR-4** | Every production service has a current architecture diagram + threat model, enforced at merge | 100% coverage | Quality |
 | **BR-5** | Collect evidence once, map to many frameworks (SOC 2 + 800-171) | 1 evidence base → 2 frameworks | Scalability |
-| **BR-6** | Rank vulnerability work by true exploitability, not raw CVE count | ≥90% triage-noise reduction | Risk |
+| **BR-6** | Turn scanner findings into ranked, explained verdicts, so a person starts from an investigation already done rather than a raw CVE count | ≥90% triage-noise reduction; every ranked finding carries its reasoning | Risk |
 | **BR-7** | Every automated decision is explainable, logged, and reversible — the automation itself must survive audit | 100% of agent actions in audit log | Trust |
-| **BR-8** | **Agent safety.** The agents are treated as an attack surface: every trust boundary is threat-modeled, every threat maps to a mitigation and a test, and containment against prompt injection and tool abuse is demonstrated, not asserted | 100% of threats have a mitigation + test; 0 successful data exfiltration or unauthorized tool calls in the seeded adversarial set; results published | Safety |
-| **BR-9** | **Evaluation rigor.** No agent or judge is trusted on the strength of a demo: each is scored against golden and adversarial question sets before every release, and its cost, latency, and long-run behavior are profiled and published | Release blocked on eval regression; precision published per judge rubric item; workload profile published with charts | Confidence |
+| **BR-8** | **Agent safety.** The agents are treated as an attack surface: every trust boundary is threat-modeled, every threat maps to a mitigation and a test, containment against prompt injection and tool abuse is demonstrated, not asserted, any agent that runs commands does so inside a sandbox, and what the agents produce is scored for safety, not only attacked | 100% of threats have a mitigation + test; 0 successful data exfiltration, unauthorized tool calls, or sandbox escapes in the seeded adversarial set; attack results and output-safety scores published together | Safety |
+| **BR-9** | **Evaluation rigor.** No agent is trusted on the strength of a demo, whether built here or bought: each agent and judge is scored against golden and adversarial question sets before every release, and the cost, latency, and long-run behavior of every agent the company runs, including the coding agents engineering already uses, are profiled and published | Release blocked on eval regression; precision published per judge rubric item; workload profiles published with charts for our agents and for the coding-agent tooling in use | Confidence |
 
 ## 4. Constraints
 
@@ -101,6 +109,9 @@ cannot be shown safe fails BR-1 just as surely as one that does nothing.
 - **C3** — Auditors and assessors require human-readable trails and human sign-off on
   every packet. Agents draft; people approve.
 - **C4** — Cloud budget is flat; prefer open, commodity components.
+- **C5** — Change control applies to agents exactly as it applies to people. Anything
+  that runs commands on company infrastructure runs isolated, reversible, and logged; an
+  agent gets no standing access a contractor would not get.
 
 ## 5. Solution shape
 
@@ -115,7 +126,8 @@ Two systems do the work. A third layer, shared by both, proves the work can be t
   measured. Answers **BR-3, BR-4, BR-7**.
 - **Assurance** — the safety and evaluation machinery both systems run under. One
   governed door for all data access, with identity, policy, and audit on every call.
-  Guardrails on every agent's input and output. A threat model of the agent runtime
+  Guardrails on every agent's input and output. A sandbox around any agent that runs
+  commands. A threat model of the agent runtime
   itself, with a test per threat. Deliberate injection and tool-abuse attempts seeded
   into the eval sets, with results published. Every agent traced and profiled. Answers
   **BR-7, BR-8, BR-9** — and it is the part of the platform that makes the other two
@@ -129,9 +141,9 @@ Two systems do the work. A third layer, shared by both, proves the work can be t
 | BR-3 | Two-lane PR gate | Gatehouse deterministic checks + LLM judge | Public PR history + latency metric |
 | BR-4 | Docs-as-code enforcement | Presence checks, PR template, CODEOWNERS | Coverage report per service |
 | BR-5 | Multi-framework mapping | controls-mcp (OSCAL catalogs) + Control Mapper agent | One evidence row cited by two frameworks |
-| BR-6 | Exploitability triage | NVIDIA vulnerability-analysis blueprint output as an ingest source | Ranked findings table |
+| BR-6 | Investigation automation: exploitability triage | NVIDIA vulnerability-analysis blueprint verdicts as an ingest source + Risk Analyst agent | Ranked findings table, each with an explained verdict |
 | BR-7 | Agent governance | MCP auth gateway, OPA decisions, audit table | Immutable audit log; every call traceable to identity + policy decision |
-| BR-8 | Agent safety | Agent-runtime threat model, parameterized tools, NeMo Guardrails, seeded injection evals, Garak red-team runs | Threat table with a passing test per row; published containment results |
+| BR-8 | Agent safety | Agent-runtime threat model, parameterized tools, sandboxed execution for command-running agents, NeMo Guardrails, seeded injection evals, Garak and NeMo Auditor runs | Threat table with a passing test per row; published containment results |
 | BR-9 | Evaluation rigor | Golden + adversarial eval sets per agent, planted-flaw judge evals, OpenTelemetry + workload profiling | Eval scores gating release; precision per rubric item; workload profile with charts |
 | BR-1 | All of the above | End-to-end platform | Generated audit packet, human-signed |
 
@@ -186,6 +198,8 @@ evaluation requirements (BR-8, BR-9) live in.
 | Agent-runtime threat model (STRIDE, pytm) | A written list of how the agents themselves could be attacked, each with a mitigation and a test | Model one agent + one tool, read the generated threats |
 | Eval harness (golden + adversarial sets) | Fixed question sets that score an agent after every change — including questions designed to make it misbehave | Write five golden questions and two hostile ones for one agent |
 | Garak | NVIDIA's open-source LLM vulnerability scanner — red-teams your own agents | Run one probe set against a hosted model |
+| NeMo Auditor | NVIDIA's safety-evaluation tool: scores agent outputs against safety categories, the measured complement to Garak's attacks | Audit one agent's eval outputs, read the category scores |
+| Sandboxed execution (OpenShell) | A locked runtime for agents that run commands: no host filesystem, no ambient credentials, egress allow-list. OpenShell is the NVIDIA-native option; a plain locked container is the free-tier stand-in | Run one shell-using agent in a container with no network and watch it fail safely |
 | OpenTelemetry + NAT profiling | Standard tracing and per-run accounting: every agent step becomes an inspectable span with tokens and latency | View one NAT run's trace in Phoenix or Jaeger |
 | Prometheus + Grafana | Metrics collection and dashboards | Graph one pipeline metric |
 | Conftest / Semgrep | Run Rego policies / code patterns as CI checks | Fail a CI job with one rule on a YAML file |
@@ -219,8 +233,10 @@ any compliance-automation pitch would list, and BR-1 through BR-7 answer them. P
 the pain that appears the moment the answer is "use AI agents": the agents read text an
 attacker can influence, they can reach sensitive data through tools, and the people who
 must accept their output cannot see inside them. BR-8 and BR-9 exist so that this second
-problem is a requirement with a metric, not a caveat in a slide. That is also why the
-company is fictional: every number, constraint, and failure can be shown publicly and
+problem is a requirement with a metric, not a caveat in a slide. P7 and C5 add the
+piece most plans skip: the company is already running AI it did not build, and the
+rules for agents that act on infrastructure have to be written down before the first
+one is trusted. That is also why the company is fictional: every number, constraint, and failure can be shown publicly and
 traced honestly, with no NDA-shaped holes (see `00-START-HERE.md`).
 
 ## Go deeper
