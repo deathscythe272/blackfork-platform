@@ -13,3 +13,9 @@ node_modules/
 .env
 .env.*
 .DS_Store
+# provenance slice: generated data, logs, traces, local env
+data/*.duckdb
+audit/
+traces/
+.env
+*.log
