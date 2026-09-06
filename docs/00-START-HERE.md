@@ -66,8 +66,8 @@ Read in this order; every page ends with a link to the next one.
   `02-architecture/gatehouse-pr-flow.md`.
 - **Going deep?** `02-architecture/architecture-narrative.md` for the why of every
   stage, then `ROADMAP.md` for how it gets built and proven, then `40-adrs/` for the
-  decision trail. The agent-runtime threat model and the measured results land in
-  `02-architecture/agent-threat-model.md` and `analysis/` as the roadmap reaches them.
+  decision trail. The agent-runtime threat model and the measured results will live in
+  `02-architecture/agent-threat-model.md` and `analysis/` once they exist.
 
 ## The numbers this is accountable to
 

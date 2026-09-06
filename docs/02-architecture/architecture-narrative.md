@@ -25,7 +25,7 @@ trusted.
 
 ---
 
-## Stage 1 — Sources (steps 1a–1e)
+## Stage 1 — Sources (step 1, five feeds)
 
 **What happens.** Five feeds land raw security facts: network detections from Security
 Onion (Zeek + Suricata), the cloud's own account of who did what (GCP audit logs),
@@ -84,8 +84,8 @@ sprawling raw tables. Shaping context for the consumer is a design act — this 
 ## Stage 4 — MCP access layer (steps 8–9)
 
 **What happens.** Two MCP servers expose the platform's knowledge: `evidence-mcp` offers
-safe, parameterized queries over Gold views only (8a); `controls-mcp` serves NIST
-800-171 and SOC 2 catalogs in machine-readable OSCAL (8b). Every request from every
+safe, parameterized queries over Gold views only (8); `controls-mcp` serves NIST
+800-171 and SOC 2 catalogs in machine-readable OSCAL (also 8). Every request from every
 agent passes through a custom auth gateway (9) that verifies identity, obtains an OPA
 policy decision, and writes the call to the audit table.
 
@@ -137,9 +137,9 @@ from, which feeds the eval sets that make the agents measurably better.
 
 ---
 
-## The always-on eight (◆)
+## The always-on eight
 
-These aren't steps in the journey; they're the conditions under which the journey is
+These are not steps in the journey (they sit in the details table of `provenance-flow.md`); they are the conditions under which the journey is
 allowed to happen.
 
 | Component | Why it exists |
@@ -181,17 +181,17 @@ in the architecture and to the test that proves the mitigation works.
 
 | Threat to the agents | Where it enters | Mitigation in the design | How it is proven |
 |---|---|---|---|
-| **Prompt injection** — a log line, diff, or document carries instructions the agent follows | Every source feed; every PR the judge reads | NeMo Guardrails on input and output; narrow Gold views so agents read shaped data, not raw text; the judge sees diffs as data, never as instructions | Seeded injection cases in every eval set, results published (roadmap phase 4) |
+| **Prompt injection** — a log line, diff, or document carries instructions the agent follows | Every source feed; every PR the judge reads | NeMo Guardrails on input and output; narrow Gold views so agents read shaped data, not raw text; the judge sees diffs as data, never as instructions | Seeded injection cases in every eval set, results published |
 | **Jailbreaks** — the agent is talked out of its role or rules | Any user- or feed-supplied text | Guardrails' dialog rails; agents draft and never decide (C3); OPA decides what a call may do regardless of what the model asks for | Garak probe sets run against our own agents, findings and fixes published |
 | **Tool-based data exfiltration** — the agent is steered into pulling data it should not, or sending it somewhere it should not | Any tool call | One door: every call passes the auth gateway with identity, an OPA decision, and an audit row; parameterized tools only, no model-written queries; no outbound tools beyond the packet path | Adversarial eval cases attempting cross-`system_id` reads; the audit table is the assertion |
 | **Unsafe tool invocation** — the wrong tool, wrong arguments, or a tool used out of order | Agent reasoning errors or injected steering | Tool schemas are the security boundary; OPA policy per tool and identity; the Risk Analyst sits behind its own A2A auth so one compromised agent cannot reach another's tools | Golden evals assert exact tool-call sequences; traces show every call |
 | **Model and skill supply chain** — a swapped model, a poisoned prompt file, a tampered dependency | Deployment and repo | Pinned model versions per environment; prompts and rails are code reviewed through Gatehouse; self-hosted NIM as the CUI path (ADR-008) | Eval scores re-run on every model or prompt change; regression blocks release |
 
 The full threat model, written per trust boundary with STRIDE, is
-`agent-threat-model.md` (roadmap phase 3). The measured side — eval scores, the judge's
-precision per rubric item, and the workload profile of tokens, tool calls, and latency —
-lands under `../analysis/` as the roadmap reaches it. Until then, every row above is a
-design claim, and the docs say so.
+`agent-threat-model.md`. The measured side — eval scores, the judge's precision per
+rubric item, and the workload profile of tokens, tool calls, and latency — lives under
+`../analysis/`. Where a test has not run yet, the row above is a commitment, not a
+result, and the page for it says so plainly.
 
 ---
 
@@ -241,5 +241,5 @@ citing the requirement it serves.
 
 - `context.md` · `provenance-flow.md` · `gatehouse-pr-flow.md` — the three pictures
   this narrative walks through
-- `agent-threat-model.md` — the per-boundary threat model (roadmap phase 3)
+- `agent-threat-model.md` — the per-boundary threat model
 - `../40-adrs/README.md` — the decision records listed above
