@@ -1,18 +1,27 @@
 # Architecture Narrative — The Life of One Piece of Evidence, and Why
 
-> Companion to the diagrams in `docs/02-architecture/`. Read this alongside
-> `03-provenance-architecture` — the step numbers here match the numbers on the diagram.
-> Requirements (BR-x) and constraints (C-x) refer to `01-blackfork-business-case.md`.
+> **In one line:** Stage by stage, what happens to one piece of evidence and why each stage is built the way it is — including how the agents doing the work are kept safe and proven trustworthy.
 
-## The story in one paragraph
+**You are here:** START HERE › Architecture › Narrative
+**Audience:** 🟡 engineer · **Reads in:** ~12 min
 
-A Suricata alert fires on the Security Onion sensor. Fourteen steps later, a sentence in
-a draft System Security Plan cites that alert — by row, with a timestamp — as evidence
-that a monitoring control is operating. Everything between those two moments is designed
-around one bet: **chain of custody**. Every claim in the final packet can be walked
-backward through Gold, Silver, and Bronze to an untouched original record, and every
-automated action along the way is itself logged, policy-checked, and reviewable. The
-system doesn't ask an auditor to trust an AI; it hands them a trail.
+> Companion to the three pictures in `docs/02-architecture/`: `context.md`,
+> `provenance-flow.md`, and `gatehouse-pr-flow.md`. The stage numbers here follow the
+> Provenance flow. Requirements (BR-x) and constraints (C-x) refer to
+> `../01-business-case.md`.
+
+## The 30-second version
+
+A network sensor raises an alert. Fourteen steps later, a sentence in a draft security
+plan cites that alert, by row and timestamp, as evidence that a monitoring control is
+working. Everything between those two moments is designed around one bet: chain of
+custody. Every claim in the final packet can be walked backward to an untouched original
+record, and every automated action along the way is itself logged, policy-checked, and
+reviewable. The system does not ask an auditor to trust an AI; it hands them a trail.
+And because the AI agents doing this work read text an attacker could influence and can
+reach sensitive data through tools, the same discipline is turned on the agents
+themselves: they are threat-modeled, attacked on purpose, and measured before they are
+trusted.
 
 ---
 
@@ -162,7 +171,31 @@ Provenance as evidence — the gate is also a sensor.
 
 ---
 
-## Design principles (the why, compressed)
+## What could go wrong — and how we prove it can't
+
+Everything above describes agents that read scanner output, log lines, pull-request
+diffs, and policy documents, and that can call tools which reach governed data. That is
+an attack surface, and it gets the same treatment as any other production system
+(BR-8, BR-9). Five threat classes drive the design; each maps to the mitigation already
+in the architecture and to the test that proves the mitigation works.
+
+| Threat to the agents | Where it enters | Mitigation in the design | How it is proven |
+|---|---|---|---|
+| **Prompt injection** — a log line, diff, or document carries instructions the agent follows | Every source feed; every PR the judge reads | NeMo Guardrails on input and output; narrow Gold views so agents read shaped data, not raw text; the judge sees diffs as data, never as instructions | Seeded injection cases in every eval set, results published (roadmap phase 4) |
+| **Jailbreaks** — the agent is talked out of its role or rules | Any user- or feed-supplied text | Guardrails' dialog rails; agents draft and never decide (C3); OPA decides what a call may do regardless of what the model asks for | Garak probe sets run against our own agents, findings and fixes published |
+| **Tool-based data exfiltration** — the agent is steered into pulling data it should not, or sending it somewhere it should not | Any tool call | One door: every call passes the auth gateway with identity, an OPA decision, and an audit row; parameterized tools only, no model-written queries; no outbound tools beyond the packet path | Adversarial eval cases attempting cross-`system_id` reads; the audit table is the assertion |
+| **Unsafe tool invocation** — the wrong tool, wrong arguments, or a tool used out of order | Agent reasoning errors or injected steering | Tool schemas are the security boundary; OPA policy per tool and identity; the Risk Analyst sits behind its own A2A auth so one compromised agent cannot reach another's tools | Golden evals assert exact tool-call sequences; traces show every call |
+| **Model and skill supply chain** — a swapped model, a poisoned prompt file, a tampered dependency | Deployment and repo | Pinned model versions per environment; prompts and rails are code reviewed through Gatehouse; self-hosted NIM as the CUI path (ADR-008) | Eval scores re-run on every model or prompt change; regression blocks release |
+
+The full threat model, written per trust boundary with STRIDE, is
+`agent-threat-model.md` (roadmap phase 3). The measured side — eval scores, the judge's
+precision per rubric item, and the workload profile of tokens, tool calls, and latency —
+lands under `../analysis/` as the roadmap reaches it. Until then, every row above is a
+design claim, and the docs say so.
+
+---
+
+## Why it's built this way — the design principles
 
 1. **Evidence over assertion.** Every claim traces to a system of record; screenshots
    are not evidence.
@@ -178,6 +211,9 @@ Provenance as evidence — the gate is also a sensor.
 7. **Rent the commodity, build the differentiator.** Hosted models, open-source
    infrastructure — custom effort goes only where it creates proof: the gateway, the
    policies, the evals.
+8. **Attack it yourself; measure before trusting.** The agents are an attack surface
+   and a workload. They get a threat model, seeded attacks, and published numbers before
+   they get authority (BR-8, BR-9).
 
 ---
 
@@ -188,11 +224,22 @@ citing the requirement it serves.
 
 | ADR | Decision to record | Serves |
 |---|---|---|
-| ADR-001 | Custom auth/audit gateway in front of the MCP server (framework lacks server-side auth) | BR-7 |
+| ADR-001 | Custom auth/audit gateway in front of the MCP server (framework lacks server-side auth) | BR-7, BR-8 |
 | ADR-002 | Iceberg lakehouse with bronze/silver/gold over a proprietary warehouse | BR-2, C4 |
-| ADR-003 | MCP as the sole data path; parameterized tools, never model-written SQL | BR-7 |
-| ADR-004 | Four narrow agents; Risk Analyst isolated behind A2A with its own auth | BR-3 (velocity via testability), JD-critical |
-| ADR-005 | Gatehouse two-lane design; advisory-to-blocking promotion by measured precision | BR-3, BR-4 |
+| ADR-003 | MCP as the sole data path; parameterized tools, never model-written SQL | BR-7, BR-8 |
+| ADR-004 | Four narrow agents; Risk Analyst isolated behind A2A with its own auth | BR-3 (velocity via testability), BR-8 (blast-radius containment) |
+| ADR-005 | Gatehouse two-lane design; advisory-to-blocking promotion by measured precision | BR-3, BR-4, BR-9 |
 | ADR-006 | Redaction before storage; data minimization as the primary PII control | BR-7, C2 |
 | ADR-007 | Human sign-off required on all outbound packets | C3, BR-7 |
 | ADR-008 | Hosted NIM for dev, self-hosted NIM containers as the CUI path | C2, C4 |
+
+---
+
+## Go deeper
+
+**Next:** `../ROADMAP.md` — the phased plan for building and proving all of the above.
+
+- `context.md` · `provenance-flow.md` · `gatehouse-pr-flow.md` — the three pictures
+  this narrative walks through
+- `agent-threat-model.md` — the per-boundary threat model (roadmap phase 3)
+- `../40-adrs/README.md` — the decision records listed above
