@@ -31,9 +31,8 @@ screenshared as much as run.
 ## Non-negotiable working rules
 
 - **PR-only flow.** All work on feature branches; never push to `main` directly. Every
-  PR fills the template and cites the BR it serves. Until a GitHub remote exists, PR
-  discipline is kept locally: feature branch + `--no-ff` merge commit standing in for
-  the PR.
+  PR fills the template and cites the BR it serves. Remote: `deathscythe272/blackfork-platform`;
+  `main` is protected and the docs-standard check is required, admins included.
 - **Conventional commits**, small and scoped: `type(scope): message`. Never backdate,
   rewrite published history, or fabricate activity — the honest iterative record is part
   of the portfolio.
@@ -108,16 +107,13 @@ ADR-008 appendix → satellites (patterns repo; upstream PRs to NVIDIA repos as 
 Docs-first phase complete and re-aimed: business case carries BR-8/BR-9, START HERE
 and the narrative lead with the assurance layer, the three architecture pages read
 left to right in parts with walkthroughs, and `docs/ROADMAP.md` holds the phased plan.
-Docs-standard CI gate live; `20-provenance/` and `30-gatehouse/` stubbed; no ADRs
-written yet; no infra code yet. Public docs describe the safety and evaluation
-emphasis without naming job requisitions. First push to GitHub pending; branch
-protection + required check to be enabled once pushed.
+Docs-standard CI gate live and required on protected `main`; `20-provenance/` and
+`30-gatehouse/` stubbed; ADR-001 (gateway) accepted with a STRIDE seed for T1; no infra
+code yet. Public docs describe the safety and evaluation emphasis without naming job
+requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. Push to GitHub; enable branch protection with the docs-standard check required.
-2. PR: ADR-001 — the MCP auth gateway decision (include a STRIDE sketch of the
-   gateway as T1's seed). Serves: BR-7, BR-8.
-3. PR: V1 vertical slice (plan paragraph first — it exceeds an hour).
-4. PR: extend `check_docs_standard.py` to require "How it works" once the standard
-   and business-case pages carry one.
+1. PR: V1 vertical slice (plan paragraph first — it exceeds an hour). Serves: BR-3, BR-7.
+2. PR: T1 agent-runtime threat model, grown from ADR-001's STRIDE seed. Serves: BR-8.
+3. PR: ADR-003 (MCP-only, parameterized tools) as the slice makes it concrete.

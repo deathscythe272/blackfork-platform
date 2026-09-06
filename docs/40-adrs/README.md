@@ -5,7 +5,7 @@ narrative's "where the whys become ADRs" map):
 
 | ADR | Decision | Serves |
 |---|---|---|
-| 001 | Custom auth/audit gateway in front of the MCP server | BR-7, BR-8 |
+| [001](ADR-001-mcp-auth-gateway.md) | Custom auth/audit gateway in front of the MCP server — **accepted** | BR-7, BR-8 |
 | 002 | Iceberg lakehouse (bronze/silver/gold) over proprietary warehouse | BR-2, C4 |
 | 003 | MCP as the sole data path; parameterized tools, no model-written SQL | BR-7, BR-8 |
 | 004 | Four narrow agents; Risk Analyst isolated behind A2A | BR-3 |
