@@ -25,7 +25,7 @@ trusted.
 
 ---
 
-## Stage 1 — Sources (steps 1a–1e)
+## Stage 1 — Sources (step 1, five feeds)
 
 **What happens.** Five feeds land raw security facts: network detections from Security
 Onion (Zeek + Suricata), the cloud's own account of who did what (GCP audit logs),
@@ -84,8 +84,8 @@ sprawling raw tables. Shaping context for the consumer is a design act — this 
 ## Stage 4 — MCP access layer (steps 8–9)
 
 **What happens.** Two MCP servers expose the platform's knowledge: `evidence-mcp` offers
-safe, parameterized queries over Gold views only (8a); `controls-mcp` serves NIST
-800-171 and SOC 2 catalogs in machine-readable OSCAL (8b). Every request from every
+safe, parameterized queries over Gold views only (8); `controls-mcp` serves NIST
+800-171 and SOC 2 catalogs in machine-readable OSCAL (also 8). Every request from every
 agent passes through a custom auth gateway (9) that verifies identity, obtains an OPA
 policy decision, and writes the call to the audit table.
 
@@ -137,9 +137,9 @@ from, which feeds the eval sets that make the agents measurably better.
 
 ---
 
-## The always-on eight (◆)
+## The always-on eight
 
-These aren't steps in the journey; they're the conditions under which the journey is
+These are not steps in the journey (they sit in the details table of `provenance-flow.md`); they are the conditions under which the journey is
 allowed to happen.
 
 | Component | Why it exists |
