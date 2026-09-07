@@ -102,19 +102,36 @@ def is_test_data(path: str) -> bool:
     return bool(_TEST_DATA.search(path))
 
 
+_URL = re.compile(r"https?://[^\s\"')]+")
+_ENV_VAR = re.compile(r"\b[A-Z][A-Z0-9_]*_(?:URL|ENDPOINT|HOST|KEY|TOKEN|SECRET|PASSWORD)\b")
+_COMPOSE_SERVICE = re.compile(r"^  ([a-z0-9][a-z0-9_-]*):\s*$")
+_OUTBOUND = re.compile(r"\b(?:httpx|requests|aiohttp|urllib)\.(?:post|get|put|request|urlopen)\(")
+
+
+def boundary_signals(path: str, line: str) -> list[tuple[str, str]]:
+    """(kind, token) for each trust-boundary signal on one added line. The token is the
+    URL, variable name, service name, call, or decorator that carries the signal, so a
+    line that only moves or reformats an existing token can be told from a new one."""
+    out = []
+    if not _PLACEHOLDER.search(line):
+        out += [("url", m.group(0)) for m in _URL.finditer(line)]
+    out += [("credential-or-endpoint env var", m.group(0)) for m in _ENV_VAR.finditer(line)]
+    if path.endswith(("docker-compose.yml", "compose.yml", "compose.yaml")):
+        m = _COMPOSE_SERVICE.match(line)
+        if m:
+            out.append(("compose service", m.group(1)))
+    out += [("outbound call", m.group(0)) for m in _OUTBOUND.finditer(line)]
+    if TOOL_DECORATOR.match(line):
+        out.append(("tool", "@mcp.tool"))
+    return out
+
+
 def boundary_kinds(path: str, line: str) -> list[str]:
     """What kind of trust-boundary change one added line represents, if any."""
     kinds = []
-    if re.search(r"https?://", line) and not _PLACEHOLDER.search(line):
-        kinds.append("url")
-    if re.search(r"\b[A-Z][A-Z0-9_]*_(URL|ENDPOINT|HOST|KEY|TOKEN|SECRET|PASSWORD)\b", line):
-        kinds.append("credential-or-endpoint env var")
-    if path.endswith(("docker-compose.yml", "compose.yml", "compose.yaml")) and re.match(r"^  [a-z0-9][a-z0-9_-]*:\s*$", line):
-        kinds.append("compose service")
-    if re.search(r"\b(httpx|requests|aiohttp|urllib)\.(post|get|put|request|urlopen)\(", line):
-        kinds.append("outbound call")
-    if TOOL_DECORATOR.match(line):
-        kinds.append("tool")
+    for kind, _ in boundary_signals(path, line):
+        if kind not in kinds:
+            kinds.append(kind)
     return kinds
 
 
@@ -131,23 +148,47 @@ def tool_rule(paths: list[str], added: list[tuple[str, int, str]]) -> list[str]:
     return fails
 
 
-def boundary_rule(paths: list[str], added: list[tuple[str, int, str]]) -> list[str]:
-    """R9, lane 1: a trust-boundary change comes with a threat-model change in the same pull request."""
+def boundary_rule(paths: list[str], added: list[tuple[str, int, str]],
+                  removed: list[tuple[str, str]] | None = None) -> list[str]:
+    """R9, lane 1: a trust-boundary change comes with a threat-model change in the same pull request.
+
+    `removed` is (path, text) for the removed lines of the same diff. A signal whose token
+    (the URL, variable name, service name, call, or decorator) also appears in a removed
+    line of the same file is a move or a reformat, not a new boundary, and is ignored.
+    """
+    gone = "\n".join(t for _, t in (removed or []))
+    gone_by_file: dict[str, str] = {}
+    for p, t in removed or []:
+        gone_by_file[p] = gone_by_file.get(p, "") + "\n" + t
     hits = []
     for p, n, t in added:
         if is_test_data(p):
             continue
-        kinds = boundary_kinds(p, t)
+        kinds = []
+        for kind, token in boundary_signals(p, t):
+            if kind == "tool" and TOOL_DECORATOR.search(gone_by_file.get(p, "")):
+                continue  # a decorator that was also removed from this file: moved, not added
+            if kind != "tool" and token in gone_by_file.get(p, ""):
+                continue  # the same URL, variable, service, or call was removed: moved, not added
+            if kind not in kinds:
+                kinds.append(kind)
         if p.endswith(".md") and kinds == ["url"]:
             continue  # a hyperlink on a docs page is a citation, not a trust boundary
         if kinds:
             hits.append((p, n, kinds))
+    del gone
     if not hits:
         return []
     if THREAT_MODEL in paths:
         return []
     where = "; ".join(f"{p}:{n} ({', '.join(k)})" for p, n, k in hits[:6])
     return [f"trust-boundary change with no change to {THREAT_MODEL} in this pull request: {where}"]
+
+
+def removed_lines_from_patch(path: str, patch: str) -> list[tuple[str, str]]:
+    """(path, text) for every removed line in a unified diff of one file."""
+    return [(path, line[1:]) for line in patch.splitlines()
+            if line.startswith("-") and not line.startswith("---")]
 
 
 def added_lines_from_patch(path: str, patch: str) -> list[tuple[str, int, str]]:

@@ -70,11 +70,12 @@ def lane1_verdicts(bundle: dict) -> dict[str, bool]:
     r7_fail = any(rules.diagram_rules(text, path) for path, text in full.items())
     r8_fail = any(rules.walkthrough_rule(text, path) for path, text in full.items())
     paths = [f["path"] for f in bundle["changed_files"]]
-    added = []
+    added, removed = [], []
     for f in bundle.get("raw_changed_files") or bundle["changed_files"]:
         added += rules.added_lines_from_patch(f["path"], f.get("patch") or "")
+        removed += rules.removed_lines_from_patch(f["path"], f.get("patch") or "")
     r6_fail = bool(rules.tool_rule(paths, added))
-    r9_fail = bool(rules.boundary_rule(paths, added))
+    r9_fail = bool(rules.boundary_rule(paths, added, removed))
     return {"R3": r3_fail, "R7": r7_fail, "R8": r8_fail, "R6": r6_fail, "R9": r9_fail}
 
 

@@ -140,6 +140,25 @@ def test_boundary_rule_skips_docs_hyperlinks_and_test_data():
     assert rules.boundary_rule([real[0][0], rules.THREAT_MODEL], real) == []
 
 
+def test_boundary_rule_ignores_moved_or_reformatted_tokens():
+    """A URL or variable that was also removed from the same file is a move, not a new boundary."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("lane1_rules", gather.REPO_ROOT / "scripts" / "lane1_rules.py")
+    rules = importlib.util.module_from_spec(spec); spec.loader.exec_module(rules)
+    path = "src/gatehouse/gatehouse/judge/cli.py"
+    added = [(path, 45, '            .replace("__NIM_BASE_URL__", os.environ.get("NIM_BASE_URL", "https://integrate.api.nvidia.com/v1"))')]
+    removed = [(path, '        "__NIM_BASE_URL__", os.environ.get("NIM_BASE_URL", "https://integrate.api.nvidia.com/v1"))')]
+    assert rules.boundary_rule([path], added, removed) == []
+    assert len(rules.boundary_rule([path], added, [])) == 1  # the same line with nothing removed is new
+    new_url = [(path, 46, '        base = "https://other.example.net/v1"')]
+    assert len(rules.boundary_rule([path], new_url, removed)) == 0  # placeholder word "example" excludes it
+    new_url = [(path, 46, '        base = "https://api.othervendor.net/v1"')]
+    assert len(rules.boundary_rule([path], new_url, removed)) == 1
+    patch = "@@ -1,2 +1,2 @@\n-old = os.environ.get(\"NIM_BASE_URL\")\n+new = os.environ.get(\"NIM_BASE_URL\")\n"
+    assert rules.removed_lines_from_patch(path, patch) == [(path, 'old = os.environ.get("NIM_BASE_URL")')]
+    assert rules.added_lines_from_patch(path, patch) == [(path, 1, 'new = os.environ.get("NIM_BASE_URL")')]
+
+
 def test_judge_scores_only_lane2_items():
     rubric = yaml.safe_load(RUBRIC)
     ids = [i["id"] for i in prompt.judged_items(rubric)]
