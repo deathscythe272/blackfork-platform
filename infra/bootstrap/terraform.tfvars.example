@@ -1,3 +1,4 @@
 project_id        = "<your-project-id>"
 region            = "us-east4"
 github_repository = "<owner>/<repo>"
+billing_account   = "<XXXXXX-XXXXXX-XXXXXX, or leave empty for no budget alert>"

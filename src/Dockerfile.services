@@ -5,3 +5,6 @@ COPY requirements-services.txt .
 RUN pip install --no-cache-dir -r requirements-services.txt
 COPY provenance ./provenance
 ENV PYTHONPATH=/app PYTHONUNBUFFERED=1
+# The fixture evidence (thirteen synthetic rows) is baked in read-only so the evidence
+# server needs no disk in the cloud. Phase 7 replaces this with lakehouse reads.
+RUN python -m provenance.fixtures.build_fixture --out /data/evidence.duckdb && chmod 444 /data/evidence.duckdb

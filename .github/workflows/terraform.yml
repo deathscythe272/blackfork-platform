@@ -71,9 +71,15 @@ jobs:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_PLAN_SERVICE_ACCOUNT }}
 
+      - uses: google-github-actions/setup-gcloud@v2
+
       - name: Plan the dev environment
         id: plan
         run: |
+          # A pull request plans against the images main last deployed, so the plan shows
+          # only what this change would do. The apply job writes that tag beside the state.
+          export TF_VAR_image_tag="$(gcloud storage cat "gs://${{ vars.TF_STATE_BUCKET }}/envs/dev/deployed-image-tag")"
+          echo "planning against images tagged $TF_VAR_image_tag"
           terraform -chdir=infra/envs/dev init \
             -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
             -backend-config="prefix=envs/dev" >/dev/null
@@ -134,8 +140,22 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v2
 
+      - name: Build and push the services and policy images
+        id: images
+        run: |
+          tag="${GITHUB_SHA::12}"
+          registry="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/blackfork"
+          gcloud auth configure-docker "${{ vars.GCP_REGION }}-docker.pkg.dev" --quiet
+          docker build -f src/Dockerfile.services -t "$registry/services:$tag" src
+          docker build -f src/Dockerfile.opa      -t "$registry/opa:$tag"      src
+          docker push "$registry/services:$tag"
+          docker push "$registry/opa:$tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
       - name: Plan then apply the dev environment
         id: apply
+        env:
+          TF_VAR_image_tag: ${{ steps.images.outputs.tag }}
         run: |
           terraform -chdir=infra/envs/dev init \
             -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
@@ -156,4 +176,5 @@ jobs:
           }, indent=2))
           PY
           gcloud storage cp apply-record.json "gs://${{ vars.TF_STATE_BUCKET }}/envs/dev/applies/${GITHUB_RUN_ID}-${GITHUB_SHA::12}.json"
-          echo "T1-CI-04: apply record written beside the state"
+          printf '%s' "${{ steps.images.outputs.tag }}" | gcloud storage cp - "gs://${{ vars.TF_STATE_BUCKET }}/envs/dev/deployed-image-tag"
+          echo "T1-CI-04: apply record written beside the state; deployed image tag ${{ steps.images.outputs.tag }}"

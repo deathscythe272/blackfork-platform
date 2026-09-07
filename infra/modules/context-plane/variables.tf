@@ -24,6 +24,21 @@ variable "labels" {
   default     = {}
 }
 
+variable "image_registry" {
+  description = "Artifact Registry path images are pulled from, e.g. us-east4-docker.pkg.dev/<project>/blackfork."
+  type        = string
+}
+
+variable "image_tag" {
+  description = "Tag of the services and policy images to run. CI sets the commit it built; a plan reads the deployed tag from the state bucket."
+  type        = string
+}
+
+variable "platform_events_topic" {
+  description = "Data-plane topic the gateway publishes audit rows to."
+  type        = string
+}
+
 variable "lakehouse_bucket" {
   description = "Data-plane bucket the evidence server may read."
   type        = string

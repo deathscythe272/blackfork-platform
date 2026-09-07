@@ -31,12 +31,15 @@ module "data" {
 }
 
 module "context" {
-  source           = "../../modules/context-plane"
-  project_id       = var.project_id
-  region           = var.region
-  env              = var.env
-  labels           = local.labels
-  lakehouse_bucket = module.data.lakehouse_bucket
+  source                = "../../modules/context-plane"
+  project_id            = var.project_id
+  region                = var.region
+  env                   = var.env
+  labels                = local.labels
+  lakehouse_bucket      = module.data.lakehouse_bucket
+  platform_events_topic = module.data.platform_events_topic
+  image_registry        = "${var.region}-docker.pkg.dev/${var.project_id}/blackfork"
+  image_tag             = var.image_tag
 }
 
 module "agent" {
