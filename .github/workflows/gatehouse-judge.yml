@@ -1,0 +1,75 @@
+# Gatehouse lane 2: the judge. Advisory on every pull request; re-runs when a
+# maintainer replies with a /gatehouse dismiss command so the finding table and the
+# check run stay current. Posts with the built-in Actions token: no stored credential
+# beyond the model key. Serves: BR-3, BR-9.
+name: gatehouse-judge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+concurrency:
+  group: gatehouse-judge-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  judge:
+    # On comments, only run for PR comments that carry a dismiss command.
+    if: >-
+      github.event_name == 'pull_request' ||
+      (github.event.issue.pull_request && contains(github.event.comment.body, '/gatehouse dismiss'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Resolve pull request head
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+            echo "sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            n=${{ github.event.issue.number }}
+            echo "number=$n" >> "$GITHUB_OUTPUT"
+            echo "sha=$(gh api repos/${{ github.repository }}/pulls/$n --jq .head.sha)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr.outputs.sha }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install the judge
+        run: pip install -q -e src/gatehouse
+
+      - name: Judge the pull request and post the verdict
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          mkdir -p traces
+          python -m gatehouse.judge.cli --from-event --post --out verdict.json
+
+      - name: Keep the verdict and trace as run artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gatehouse-judge-${{ steps.pr.outputs.number }}-${{ github.run_id }}
+          path: |
+            verdict.json
+            traces/judge-traces.jsonl
+          if-no-files-found: ignore

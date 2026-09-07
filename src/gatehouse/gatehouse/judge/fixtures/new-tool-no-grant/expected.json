@@ -1,0 +1,5 @@
+{
+  "kind": "planted",
+  "should_fail": ["R4", "R6"],
+  "note": "A new agent tool with no Rego grant and no eval case (R6), and a new tool boundary with no threat-model change and a body that waves it off (R4). The free-text LIKE also interpolates user text into SQL, which a careful judge may flag under R6's spirit but is not required to."
+}

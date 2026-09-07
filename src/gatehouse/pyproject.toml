@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "blackfork-gatehouse"
+version = "0.1.0"
+description = "Gatehouse judge lane: a NeMo Agent Toolkit workflow that scores pull requests against a versioned rubric."
+requires-python = ">=3.11"
+dependencies = [
+  "nvidia-nat[langchain]==1.8.0",
+  "httpx>=0.27",
+  "pyyaml",
+]
+
+[project.entry-points."nat.components"]
+gatehouse = "gatehouse.register"
+
+[tool.setuptools.packages.find]
+include = ["gatehouse*"]
+
+[tool.setuptools.package-data]
+gatehouse = ["judge/*.yml", "judge/fixtures/**/*"]

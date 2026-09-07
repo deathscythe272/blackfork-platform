@@ -39,7 +39,8 @@ Phase-by-phase plan with steps and done-criteria: [`docs/ROADMAP.md`](docs/ROADM
       ([docs/20-provenance/v1-slice.md](docs/20-provenance/v1-slice.md))
 - [x] T1: agent-runtime threat model — seven boundaries, every threat with a control
       and a test ID, gaps named ([docs/02-architecture/agent-threat-model.md](docs/02-architecture/agent-threat-model.md))
-- [ ] Gatehouse: judge lane (G2) + trust machinery with seeded injection evals (G3)
+- [ ] Gatehouse: judge lane (G2, advisory, running on every PR) + trust machinery with
+      seeded injection evals (G3)
 - [ ] W1: workload profiles — our agents (tokens, tool calls, latency, long-horizon
       behavior) and the coding-agent harness that builds this repo
 - [ ] Foundation IaC: Terraform modules, WIF keyless CI (F2–F3)

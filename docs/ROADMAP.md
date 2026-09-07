@@ -135,8 +135,9 @@ hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
 
 ### Phase 4 — Gatehouse G2, G3, G3+ (Serves: BR-3, BR-4, BR-8, BR-9)
 
-1. PR G2 judge lane: a NAT workflow that scores a PR diff against a versioned rubric
-   and posts an advisory comment. Never blocks yet.
+1. Done: G2 judge lane, a NAT workflow that scores a PR bundle against rubric v1 and
+   posts one advisory comment per pull request, with a fixed-or-dismissed loop and a
+   `gatehouse/judge` check run. Never blocks yet. See `30-gatehouse/judge-lane.md`.
 2. PR ADR-005: two lanes; advisory→blocking promotion by measured precision;
    fail-open versus fail-closed rules.
 3. PR G3 planted-flaw evals: synthetic PRs with known design flaws, a scoring script,

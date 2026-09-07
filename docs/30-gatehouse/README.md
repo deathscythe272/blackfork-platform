@@ -1,6 +1,7 @@
 # Gatehouse — Docs In Progress
 
-The gate already exists in embryo: `scripts/check_docs_standard.py` runs as a required
-check (G1 seed). This section will hold the deterministic lane, the non-deterministic
-judge, and the trust machinery (chunks G1–G3). Flow: `../02-architecture/gatehouse-pr-flow.md`;
-build order: `../ROADMAP.md`, phase 4.
+Lane 1 runs today as a required check: `scripts/check_docs_standard.py` (G1 seed).
+Lane 2, the judge, is documented in `judge-lane.md`: an advisory reviewer on every pull
+request with a six-item rubric and a fixed-or-dismissed loop. The trust machinery that
+lets the judge block (ADR-005, planted-flaw evals, seeded attacks) follows. Flow:
+`../02-architecture/gatehouse-pr-flow.md`; build order: `../ROADMAP.md`, phase 4.
