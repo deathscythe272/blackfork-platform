@@ -17,6 +17,7 @@ import json
 import os
 import pathlib
 import sys
+import time
 
 from gatehouse.judge import gather, post
 
@@ -25,12 +26,24 @@ CONFIG = HERE / "config.yml"
 RUBRIC = HERE / "rubric.yml"
 
 
+_CALLS = 0
+
+
 def _rendered_config() -> pathlib.Path:
     """The config with the model base URL filled from NIM_BASE_URL (default: NVIDIA's endpoint)."""
     import tempfile
 
-    text = CONFIG.read_text(encoding="utf-8").replace(
-        "__NIM_BASE_URL__", os.environ.get("NIM_BASE_URL", "https://integrate.api.nvidia.com/v1"))
+    # One trace file per judge call. The toolkit's file exporter registers its output path
+    # for the life of the process, and a call that fails (rate limit, unparseable answer)
+    # leaks that registration; a shared path then fails every later call in the same
+    # process with a path conflict. That fault, not the endpoint, caused most of the
+    # failed runs in precision passes 5 and 6.
+    global _CALLS
+    _CALLS += 1
+    trace = f"traces/judge-{time.strftime('%Y%m%d-%H%M%S')}-{os.getpid()}-{_CALLS}.jsonl"
+    text = (CONFIG.read_text(encoding="utf-8")
+            .replace("__NIM_BASE_URL__", os.environ.get("NIM_BASE_URL", "https://integrate.api.nvidia.com/v1"))
+            .replace("__TRACE_PATH__", trace))
     tmp = tempfile.NamedTemporaryFile("w", suffix=".yml", delete=False, encoding="utf-8")
     tmp.write(text); tmp.close()
     return pathlib.Path(tmp.name)

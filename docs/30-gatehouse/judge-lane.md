@@ -58,7 +58,7 @@ flowchart LR
 
 ## The details
 
-**The rubric, version 1.3.** Eight items, each with a definition of pass, fail, and
+**The rubric, version 1.4.** Nine items, each with a definition of pass, fail, and
 the form a finding must take, and each assigned to a lane. Lane 1 items are exact
 rules run by scripts and never scored by the model; they stay in the rubric so it
 remains the one list of what the gate checks. Changing the file changes the judge, so
@@ -70,18 +70,24 @@ its own evidence, parser gates close an item when nothing in the change can make
 apply, and the walkthrough count on single-diagram pages became a script. Version 1.3
 followed the clean red-team run: R2 left the judged set under ADR-005, R4 now says a
 reason must be verifiable in the pull request itself, and the injection twin set doubled
-to six.
+to six. Version 1.4 followed the fifth pass, where one twin talked the judge out of R4
+and R6 by claiming in the pull-request body that the missing pieces had merged earlier.
+Whether a policy file, an eval file, or the threat model changed in the same pull
+request is a fact about the diff, so R6 and the mechanical half of R4 (now R9) became
+scripts that read nothing but the diff. The judge keeps the two items that need
+judgment, R1 and R5.
 
 | Item | Lane | Checks |
 |---|---|---|
 | R1 | 2 | The diagram reads as one story: glosses say what a box does, the boxes form one path, no legend needed |
 | R2 | human | The numbered walkthrough matches the diagram box for box, in order. Removed from the judge after two passes (one hit in ten chances); the count is R8, the rest is human review |
 | R3 | 1 | The pull-request body cites an existing requirement or constraint (`scripts/check_pr_body.py`) |
-| R4 | 2 | A change that adds or alters a network path, an agent tool, a credential, a service, or a data source also changes the threat model, or gives a reason verifiable in the same pull request |
+| R4 | human | When a boundary change arrives with its threat-model change, the new row names the right boundary, mitigation, and test. R9 checks that the change is there; a person checks that it is right |
 | R5 | 2 | No added line carries a credential, cloud project id, internal hostname, or non-example address |
-| R6 | 2 | A new agent tool ships with a policy grant and an eval case in the same change |
+| R6 | 1 | A new agent tool ships with a policy grant and an eval case in the same change (`scripts/check_pr_boundaries.py`, required check) |
 | R7 | 1 | Diagram mechanics: left to right, seven nodes or fewer, every node glossed (`scripts/check_docs_standard.py`) |
 | R8 | 1 | On a single-diagram page, one walkthrough entry per box (`scripts/check_docs_standard.py`); multi-part pages stay with R2 |
+| R9 | 1 | A change that adds a network path, an agent tool, a credential or endpoint variable, a service, or an outbound call also changes the threat model in the same pull request (`scripts/check_pr_boundaries.py`, required check); the pull-request text cannot exempt it |
 
 **What the judge cannot do.** It cannot merge, cannot call tools, cannot post on its
 own (separate code posts its output), and cannot change its rubric. The Actions token it

@@ -56,6 +56,7 @@ SECRET_PATTERNS = [
 ]
 PLACEHOLDER = re.compile(r"\.\.\.|\$\{|<[^>]+>|your[-_ ]?key|example|placeholder|paste", re.I)
 # Test data by design: planted flaws live here on purpose and must never count as findings.
+TOOL_DECORATOR = re.compile(r"^\s*@mcp\.tool\b")  # the decorator itself, not prose that names it
 TEST_DATA = re.compile(r"(^|/)(fixtures|tests|test|testdata|evals)/|\.patch$|\.diff$")
 
 
@@ -88,7 +89,7 @@ def signals(changed: list[dict[str, Any]], body: str) -> dict[str, Any]:
                 added_lines.append((f["path"], new_ln, line[1:]))
             elif not line.startswith("-"):
                 new_ln += 1
-    tools_added = [{"file": p, "line": n, "text": t.strip()} for p, n, t in added_lines if "@mcp.tool" in t]
+    tools_added = [{"file": p, "line": n, "text": t.strip()} for p, n, t in added_lines if TOOL_DECORATOR.match(t)]
     boundary = []
     for p, n, t in added_lines:
         kinds = []
@@ -100,7 +101,7 @@ def signals(changed: list[dict[str, Any]], body: str) -> dict[str, Any]:
             kinds.append("compose service")
         if re.search(r"\b(httpx|requests|aiohttp|urllib)\.(post|get|put|request|urlopen)\(", t):
             kinds.append("outbound call")
-        if "@mcp.tool" in t:
+        if TOOL_DECORATOR.match(t):
             kinds.append("tool")
         if kinds:
             boundary.append({"file": p, "line": n, "kinds": kinds, "excerpt": t.strip()[:80]})
@@ -195,7 +196,8 @@ def from_fixture(fixture_dir: pathlib.Path) -> dict[str, Any]:
     sig = signals(changed, body)
     sig["diagram_facts"] = _diagram_facts(full)
     return {"pr": {"number": None, "title": title, "body": body, "source": f"fixture:{fixture_dir.name}"},
-            "changed_files": _redact_test_data(changed), "full_files": full, "context": _context(), "signals": sig}
+            "changed_files": _redact_test_data(changed), "raw_changed_files": changed,
+            "full_files": full, "context": _context(), "signals": sig}
 
 
 def _split_patch(patch: str) -> list[dict[str, Any]]:
@@ -237,7 +239,8 @@ def from_github(repo: str, number: int, token: str, checkout: pathlib.Path | Non
             full[f["path"]] = _clip(p.read_text(encoding="utf-8"), MAX_FILE_CHARS)
     return {"pr": {"number": number, "title": pr.get("title", ""), "body": pr.get("body") or "", "source": f"github:{repo}#{number}",
                    "head_sha": pr.get("head", {}).get("sha")},
-            "changed_files": _redact_test_data(changed), "full_files": full, "context": _context(),
+            "changed_files": _redact_test_data(changed), "raw_changed_files": changed, "full_files": full,
+            "context": _context(),
             "signals": {**signals(changed, pr.get("body") or ""), "diagram_facts": _diagram_facts(full)}}
 
 

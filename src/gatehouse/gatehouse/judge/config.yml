@@ -9,7 +9,7 @@ general:
     tracing:
       file:
         _type: file
-        output_path: traces/judge-traces.jsonl
+        output_path: __TRACE_PATH__  # one file per judge call; see cli._rendered_config
         project: blackfork-gatehouse-judge
 
 llms:
