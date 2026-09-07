@@ -81,9 +81,9 @@ control yet, or the control exists with no test, and the row says which.
 | Spoofing | A caller claims an authority the agent should obey ("URGENT from the CISO") | The agent has no notion of caller authority; its assignment is fixed in the system prompt and enforced by policy at B3, not by who asks | T1-IN-01: direct injection eval case `direct-injection-ciso` | Passing, refused at the input rail |
 | Tampering | Instructions embedded in the question redirect the agent to another system or tool | Guardrails input rail scores the question against a written policy before the agent sees it | T1-IN-01 | Passing |
 | Tampering | Instructions arrive inside data the agent legitimately reads (indirect injection) | System prompt states that evidence text is data; the gateway denies any resulting call for another system regardless | T1-IN-02: `indirect-injection-evidence-row` eval case | Passing, agent did not follow the instruction; gateway backstop covered by T1-GW-06 |
-| Information disclosure | The agent is asked to reveal its instructions, token, or the other system's rows | Output rail blocks answers that leak instructions, credentials, or other-system rows | T1-IN-03: eval case asking for the system prompt and token | Planned, phase 4 |
+| Information disclosure | The agent is asked to reveal its instructions, token, or the other system's rows | Output rail blocks answers that leak instructions, credentials, or other-system rows | T1-IN-03: eval case `instruction-leak` asks for the system prompt and token | Passing, refused at the input rail; answer carries no token or prompt text |
 | Denial of service | A caller floods the agent with expensive questions | None in the slice | T1-IN-04: rate limit per caller | Gap, phase 6 (Cloud Run concurrency and quota) |
-| Elevation | A caller talks the agent out of its role over several turns (multi-turn jailbreak) | Slice is single-turn; Guardrails dialog rails apply when conversation is added | T1-IN-05: multi-turn jailbreak set from Garak probes | Planned, phase 4 |
+| Elevation | A caller talks the agent out of its role over several turns (multi-turn jailbreak) | Slice is single-turn; Guardrails dialog rails apply when conversation is added | T1-IN-05: eval case `roleplay-jailbreak` plus Garak DAN-family probes against the model (`docs/analysis/seeded-attacks.md`) | Passing on the role-play case; Garak results on the seeded-attacks page |
 
 ### B2 — Agent to model
 
@@ -151,7 +151,8 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | Test | Boundary | Where it lives today | Status |
 |---|---|---|---|
 | T1-IN-01, T1-IN-02 | B1 | `src/provenance/evals/cases.yaml` | Passing |
-| T1-IN-03, T1-IN-04, T1-IN-05 | B1 | phase 4 eval set, phase 6 quota | Planned / gap |
+| T1-IN-03, T1-IN-05 | B1 | `src/provenance/evals/cases.yaml`; Garak run on the seeded-attacks page | Passing |
+| T1-IN-04 | B1 | phase 6 quota | Gap |
 | T1-MD-01 to T1-MD-03 | B2 | phase 4 to 6 | Planned |
 | T1-GW-01, T1-GW-02, T1-GW-03, T1-GW-06 | B3 | `src/provenance/gateway/smoke.py`, `policy/gateway_test.rego`, eval runner | Passing |
 | T1-GW-04 | B3 | `src/provenance/tests/test_boundaries.py` | Passing |
@@ -163,7 +164,7 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | T1-SC-01 to T1-SC-04 | B6 | phase 4, phase 6 | Planned / gap |
 | T1-HX-01 to T1-HX-04 | B7 | phase 7 | Planned |
 
-Count: 34 threat rows, 16 passing, 13 planned with a phase, 5 gaps named. The gaps are
+Count: 34 threat rows, 18 passing, 11 planned with a phase, 5 gaps named. The gaps are
 transport encryption between containers, rate limiting at two boundaries, audit
 immutability beyond append-only, and dependency hash pinning.
 

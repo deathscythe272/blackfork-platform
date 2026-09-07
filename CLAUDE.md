@@ -122,8 +122,9 @@ advisory Actions workflow on every PR with the built-in token; `NVIDIA_API_KEY` 
 repository secret. Rubric v1.2: R3, R7, R8 are Lane 1 scripts; judged items R1, R4,
 R5, R6 clear every fixture threshold (1.00/1.00); R2 on notice. Required checks on
 main: `check` (docs standard incl. diagram rules), `cites-requirement`, and `rego`
-(policy tests) once part A merges. Seeded injection: zero steer-induced changes on
-three twins; boundary tests at the door pass (T1-EV-01..03, T1-GW-04, T1-PL-03). V1 slice runs locally under `src/provenance/`
+(policy tests). Seeded attacks done: zero steer-induced changes on three judge twins;
+seven agent cases contained with zero foreign calls; every answer scored safe; Garak
+run on the model; threat model 18/34 passing. Phase 4 complete except promotion. V1 slice runs locally under `src/provenance/`
 (evidence-mcp, gateway with OPA + audit, Evidence Collector on NAT with Guardrails,
 OTel, three evals passing; `scripts/demo.py`). Model: nvidia/nemotron-3.5-lightning-30b-a3b
 with `chat_template_kwargs.enable_thinking=false`. No cloud infra yet. Public docs describe the safety and evaluation emphasis without naming job
@@ -131,13 +132,8 @@ requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. PR: G3+ seeded attacks part B: tool-abuse and instruction-leak cases in the slice's
-   evals, a Garak probe run, an output-safety pass with nvidia/nemotron-3.5-content-safety
-   (NeMo Auditor is not on the package index), `docs/analysis/seeded-attacks.md`. (injection in diffs aimed at the judge, tool abuse against the
-   slice, Garak + NeMo Auditor), closing the threat model's planned B1/B3/B4/B5 tests
-   and making the Rego tests a required check.
-2. PR: rubric v1.3 removes R2 from the judged set (ADR-005: cannot earn its numbers) and
+1. PR: rubric v1.3 removes R2 from the judged set (ADR-005: cannot earn its numbers) and
    re-scores; then the first promotion decision once 20 live instances exist.
-3. PR: harvest live PR findings (PR 12 already holds four reasoned dismissals against
+2. PR: harvest live PR findings (PR 12 already holds four reasoned dismissals against
    rubric v1, all the same cause: v1 could see test data) (fixed = accepted, dismissed = false positive) into the
    precision table.
