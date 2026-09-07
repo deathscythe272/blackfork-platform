@@ -42,9 +42,9 @@ flowchart LR
 3. **Evidence Collector.** A ReAct workflow on NeMo Agent Toolkit calling a hosted
    Nemotron model. Its system prompt pins it to one system and says that text inside
    evidence rows is data, not instructions. Its only tools are the three the gateway
-   exposes, discovered over MCP, with its service token in every request.
+   exposes, discovered over the Model Context Protocol (MCP), with its service token in every request.
 4. **Gateway.** For each tool call: verify the signed token and resolve the identity;
-   let the tool schema reject malformed arguments; ask OPA whether this identity may call
+   let the tool schema reject malformed arguments; ask the policy engine (Open Policy Agent, OPA) whether this identity may call
    this tool for this `system_id`; append the decision to the audit log, denials
    included; forward only if allowed. Any failure in that chain fails the call.
 5. **evidence-mcp.** Three parameterized queries over the DuckDB fixture, every one
@@ -90,7 +90,7 @@ filesystem and credential isolation and an egress allow-list.
 **What the gateway smoke test asserts**, without any model in the loop: an allowed
 call returns rows; a call for another system is denied by policy; a forged token is
 rejected before policy runs; all three produce audit rows in that order. This covers
-T1-GW-01 and T1-GW-06 from ADR-001's STRIDE sketch and runs in under a second:
+T1-GW-01 and T1-GW-06 from the gateway decision record's (ADR-001) STRIDE threat sketch (the six-part checklist) and runs in under a second:
 `python -m provenance.gateway.smoke`. The Rego policy has seven unit tests:
 `docker run --rm -v "$PWD/src/provenance/gateway/policy:/policy" openpolicyagent/opa:1.4.2 test /policy`.
 

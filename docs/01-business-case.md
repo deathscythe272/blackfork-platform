@@ -51,8 +51,8 @@ moves through them. Section 8 is how this repo itself is the proof.
 |---|---|
 | **Company** | Blackfork Systems (fictional), Kansas City, MO — ~180 employees, Series C |
 | **Product** | *Windrow*, a SaaS platform for mission logistics & fleet telemetry |
-| **Customers** | Two DoD prime contractors (CUI flows down by contract) + commercial utility operators |
-| **Engineering** | ~60 engineers on 9 teams; ~40 container services on GKE |
+| **Customers** | Two DoD prime contractors (controlled unclassified information, CUI, flows down by contract) + commercial utility operators |
+| **Engineering** | ~60 engineers on 9 teams; ~40 container services on Google Kubernetes Engine (GKE) |
 | **Security team** | 3 people: AppSec lead, GRC analyst, cloud security engineer |
 | **Compliance drivers** | SOC 2 Type II now (commercial procurement); CMMC Level 2 / NIST SP 800-171 assessment in ~12 months (DoD flow-down) |
 
@@ -64,7 +64,7 @@ moves through them. Section 8 is how this repo itself is the proof.
 - **P2 — Review bottleneck.** PRs touching auth or CUI paths wait a **median 6 business
   days** for security review. Two releases slipped last quarter; teams have started
   quietly merging around the queue.
-- **P3 — Stale system of record.** The SSP is a Word doc last touched 14 months ago. An
+- **P3 — Stale system of record.** The System Security Plan (SSP) is a Word doc last touched 14 months ago. An
   auditor asked for the telemetry-ingest threat model — none existed.
 - **P4 — Vulnerability noise.** ~3,800 open container findings, exploitability unknown;
   triage is ad-hoc spreadsheet work.
@@ -96,7 +96,7 @@ cannot be shown safe fails BR-1 just as surely as one that does nothing.
 | **BR-3** | Security feedback on every PR, humans only on flagged high-risk changes | ≤30 min for standard changes, SLA ≥95% | Velocity |
 | **BR-4** | Every production service has a current architecture diagram + threat model, enforced at merge | 100% coverage | Quality |
 | **BR-5** | Collect evidence once, map to many frameworks (SOC 2 + 800-171) | 1 evidence base → 2 frameworks | Scalability |
-| **BR-6** | Turn scanner findings into ranked, explained verdicts, so a person starts from an investigation already done rather than a raw CVE count | ≥90% triage-noise reduction; every ranked finding carries its reasoning | Risk |
+| **BR-6** | Turn scanner findings into ranked, explained verdicts, so a person starts from an investigation already done rather than a raw count of known vulnerabilities (CVEs) | ≥90% triage-noise reduction; every ranked finding carries its reasoning | Risk |
 | **BR-7** | Every automated decision is explainable, logged, and reversible — the automation itself must survive audit | 100% of agent actions in audit log | Trust |
 | **BR-8** | **Agent safety.** The agents are treated as an attack surface: every trust boundary is threat-modeled, every threat maps to a mitigation and a test, containment against prompt injection and tool abuse is demonstrated, not asserted, any agent that runs commands does so inside a sandbox, and what the agents produce is scored for safety, not only attacked | 100% of threats have a mitigation + test; 0 successful data exfiltration, unauthorized tool calls, or sandbox escapes in the seeded adversarial set; attack results and output-safety scores published together | Safety |
 | **BR-9** | **Evaluation rigor.** No agent is trusted on the strength of a demo, whether built here or bought: each agent and judge is scored against golden and adversarial question sets before every release, and the cost, latency, and long-run behavior of every agent the company runs, including the coding agents engineering already uses, are profiled and published | Release blocked on eval regression; precision published per judge rubric item; workload profiles published with charts for our agents and for the coding-agent tooling in use | Confidence |
@@ -121,7 +121,7 @@ Two systems do the work. A third layer, shared by both, proves the work can be t
   stores it in governed tables, and runs agents that collect evidence, map it to
   controls, score risk, and draft audit packets. Answers **BR-1, BR-2, BR-5, BR-6, BR-7**.
 - **Gatehouse** — a merge gate for GitHub. A deterministic lane blocks PRs missing
-  required docs or violating codified security requirements; an LLM judge reviews design
+  required docs or violating codified security requirements; a large-language-model (LLM) judge reviews design
   quality against rubrics, and earns the right to block only once its accuracy is
   measured. Answers **BR-3, BR-4, BR-7**.
 - **Assurance** — the safety and evaluation machinery both systems run under. One
@@ -179,7 +179,7 @@ evaluation requirements (BR-8, BR-9) live in.
 ### Layer 4 — MCP access layer
 | Component | Plain English | Learn it by |
 |---|---|---|
-| MCP | An open protocol so agents can call tools/data in a structured, discoverable way | Build the official quickstart server, list its tools |
+| MCP (Model Context Protocol) | An open protocol so agents can call tools/data in a structured, discoverable way | Build the official quickstart server, list its tools |
 | NeMo Agent Toolkit (`nvidia-nat`) | NVIDIA's open-source library for building and serving agent workflows | Run the simple-calculator example, then `nat mcp serve` it |
 | OPA / Rego | Rules-as-code: a policy engine that answers "is this call allowed?" | Rego Playground; write a rule denying `min_length < 15` |
 | OSCAL | NIST's machine-readable format for control catalogs and SSPs | Open a NIST OSCAL catalog JSON, find one control |
@@ -195,7 +195,7 @@ evaluation requirements (BR-8, BR-9) live in.
 | Component | Plain English | Learn it by |
 |---|---|---|
 | NeMo Guardrails | Filters and constrains what goes into and out of an LLM — the first line against prompt injection | Add one input rail to a hello-world config |
-| Agent-runtime threat model (STRIDE, pytm) | A written list of how the agents themselves could be attacked, each with a mitigation and a test | Model one agent + one tool, read the generated threats |
+| Agent-runtime threat model (STRIDE, pytm) | A written list of how the agents themselves could be attacked, each with a mitigation and a test; STRIDE is the six-part checklist (spoofing, tampering, repudiation, information disclosure, denial of service, elevation of privilege) | Model one agent + one tool, read the generated threats |
 | Eval harness (golden + adversarial sets) | Fixed question sets that score an agent after every change — including questions designed to make it misbehave | Write five golden questions and two hostile ones for one agent |
 | Garak | NVIDIA's open-source LLM vulnerability scanner — red-teams your own agents | Run one probe set against a hosted model |
 | NeMo Auditor | NVIDIA's safety-evaluation tool: scores agent outputs against safety categories, the measured complement to Garak's attacks | Audit one agent's eval outputs, read the category scores |
@@ -212,7 +212,7 @@ docs/
   00-START-HERE.md           ← the two-minute tour
   01-business-case.md        ← this file (the "why")
   02-architecture/           ← diagrams, narrative, and the agent-runtime threat model (the "what")
-  10-foundation/             ← IaC, CI/CD, taxonomy
+  10-foundation/             ← infrastructure as code, CI/CD, taxonomy
   20-provenance/  30-gatehouse/
   40-adrs/                   ← numbered decisions, each citing BR IDs (the "how")
   analysis/                  ← measured results: eval scores, workload profiles (the "proof of proof")
@@ -220,7 +220,7 @@ docs/
 src/                         ← the build (the proof)
 ```
 
-Every ADR and every PR description cites the requirement it serves ("Implements BR-3"),
+Every architecture decision record (ADR) and every PR description cites the requirement it serves ("Implements BR-3"),
 so the git history itself demonstrates working backwards from business need to running
 code. The safety and evaluation requirements get the same treatment: a threat without a
 test, or an agent without a published score, is a gap the docs are required to show

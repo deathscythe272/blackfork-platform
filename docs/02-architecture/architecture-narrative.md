@@ -34,7 +34,7 @@ then why it is built that way.
 
 **What happens.** Five feeds land raw security facts: network detections from Security
 Onion (Zeek + Suricata), the cloud's own account of who did what (GCP audit logs),
-software risk from container scanners (Trivy/Grype CVE findings plus SBOMs), the
+software risk from container scanners (Trivy/Grype findings of known vulnerabilities, CVEs, plus software bills of materials, SBOMs), the
 deployed-infrastructure truth (Terraform state), and adjudicated exploitability verdicts
 from the NVIDIA vulnerability-analysis blueprint.
 
@@ -88,11 +88,11 @@ sprawling raw tables. Shaping context for the consumer is a design act — this 
 
 ### Stage 4 — MCP access layer (steps 8–9)
 
-**What happens.** Two MCP servers expose the platform's knowledge: `evidence-mcp` offers
+**What happens.** Two Model Context Protocol (MCP) servers expose the platform's knowledge: `evidence-mcp` offers
 safe, parameterized queries over Gold views only (8); `controls-mcp` serves NIST
 800-171 and SOC 2 catalogs in machine-readable OSCAL (also 8). Every request from every
-agent passes through a custom auth gateway (9) that verifies identity, obtains an OPA
-policy decision, and writes the call to the audit table.
+agent passes through a custom auth gateway (9) that verifies identity, obtains a policy
+decision from Open Policy Agent (OPA), and writes the call to the audit table.
 
 **Why this way.** MCP is the *only* door on purpose: if agents can reach data through
 side channels, governance is theater. One protocol creates one choke point where
@@ -115,7 +115,7 @@ architecting around them *is* the job.
 **What happens.** Four NeMo Agent Toolkit workflows run in sequence: the Evidence
 Collector gathers proof per control (10); the Control Mapper links evidence to controls
 and drafts implementation statements (11); the Risk Analyst — running as a *separate
-service* reached over the A2A protocol with its own authentication — scores and
+service* reached over the agent-to-agent (A2A) protocol with its own authentication — scores and
 prioritizes (12); the Report Writer assembles the packet (13). Step 12 and the
 exploitability verdicts from Stage 1 together are the platform's investigation
 workflow: a raw finding goes in, and a ranked verdict with its reasoning comes out,
@@ -134,7 +134,7 @@ calls in one process. And all four agents draft; none decide. Judgment stays hum
 
 ### Stage 6 — Output (step 14)
 
-**What happens.** A draft audit packet and SSP sections arrive for human review. Every
+**What happens.** A draft audit packet and System Security Plan (SSP) sections arrive for human review. Every
 claim carries a citation to its evidence row. Nothing ships without a person's approval.
 
 **Why this way.** Per-claim citations are the entire point of the system: an assertion
@@ -153,13 +153,13 @@ allowed to happen.
 
 | Component | Why it exists |
 |---|---|
-| **NVIDIA NIM endpoints** | Reasoning is rented, not built. Hosted endpoints are free at dev scale, and the same models ship as self-hostable containers — which is the required path the moment CUI enters the boundary (C2). Hosted↔self-hosted is a config change, not a redesign. |
+| **NVIDIA NIM endpoints** | Reasoning is rented, not built. Hosted endpoints are free at dev scale, and the same models ship as self-hostable containers — which is the required path the moment controlled unclassified information (CUI) enters the boundary (C2). Hosted↔self-hosted is a config change, not a redesign. |
 | **NeMo Retriever + Milvus** | SQL answers "what is"; semantic search answers "what's *related*." Mapping evidence to controls needs both — a control's language rarely matches a log's language. |
 | **NeMo Guardrails** | Agents read text produced by scanners, logs, and external advisories — that is untrusted input. Rails filter both directions, shrinking the prompt-injection surface. |
 | **OPA policies (Rego)** | Policy lives as versioned, testable code *outside* the agents, so the security team changes the rules without redeploying anything — and every decision is reproducible. |
 | **Audit table** | The automation must produce evidence about itself. "Why should we trust the robot's evidence?" is the first assessor question; an immutable action log is the answer (BR-7). |
 | **OpenTelemetry → Grafana** | You cannot optimize or debug what you cannot see. Per-step latency and cost is how "supports real-time workloads" becomes a measured claim instead of a hope. |
-| **Eval harness** | LLM behavior drifts with every model and prompt change. Golden question sets turn "seems fine" into a score — regression testing for judgment. |
+| **Eval harness** | Large-language-model (LLM) behavior drifts with every model and prompt change. Golden question sets turn "seems fine" into a score — regression testing for judgment. |
 | **Garak red-team** | A security platform that has never been attacked is untested. We run NVIDIA's LLM vulnerability scanner against our own agents and publish the findings — and fixes. |
 | **NeMo Auditor** | Garak asks "can it be broken?"; NeMo Auditor asks "how safe is what it says?" Scoring agent outputs against safety categories gives the second number, and both are published together (BR-8). |
 
@@ -171,7 +171,7 @@ Gatehouse gates this repository's own pull requests with two lanes. Lane 1 is
 deterministic and blocking: presence rules (code changed → diagram and threat model must
 change too, BR-4) and policy-as-code (e.g., password minimum length ≥ 15 per NIST SP
 800-63B rev. 4), each failure citing the exact rule and standard. Lane 2 is an LLM judge
-scoring design quality against a versioned rubric — STRIDE coverage, trust boundaries,
+scoring design quality against a versioned rubric — STRIDE coverage (the six-part threat checklist), trust boundaries,
 data-flow completeness — and it is *advisory until measured*: every rubric item is
 graded against a planted-flaw eval set, and only checks whose precision earns it get
 promoted to blocking. **Why:** never ask a model to do a parser's job, never ask a

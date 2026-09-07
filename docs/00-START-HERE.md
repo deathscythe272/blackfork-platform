@@ -63,7 +63,8 @@ Read in this order; every page ends with a link to the next one.
   nine requirements).
 - **Have 15 minutes?** Add the three architecture pictures in reading order:
   `02-architecture/context.md`, `02-architecture/provenance-flow.md`,
-  `02-architecture/gatehouse-pr-flow.md`.
+  `02-architecture/gatehouse-pr-flow.md`, then `02-architecture/end-state.md` for
+  every piece of the finished platform on one map.
 - **Going deep?** `02-architecture/architecture-narrative.md` for the why of every
   stage, then `ROADMAP.md` for how it gets built and proven, then `40-adrs/` for the
   decision trail. The agent-runtime threat model and the measured results will live in
@@ -108,7 +109,7 @@ docs/
   DOCS-STANDARD.md          how to read everything here
   01-business-case.md       the fictional company, pains, requirements
   02-architecture/          diagrams, architecture narrative, agent-runtime threat model
-  10-foundation/            what both systems stand on (IaC, CI/CD, taxonomy)
+  10-foundation/            what both systems stand on (infrastructure as code, CI/CD, taxonomy)
   20-provenance/            the evidence factory, one doc per plane
   30-gatehouse/             the PR gate, one doc per lane
   40-adrs/                  numbered decisions with their reasoning

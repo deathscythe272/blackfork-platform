@@ -80,8 +80,9 @@ flowchart LR
    pushes a fix itself.
 7. **Gold views.** Small, documented tables built for agents: evidence, assets,
    findings, control status. Every row carries the system it describes.
-8. **Two MCP servers.** The evidence server exposes fixed, parameterized queries over
-   Gold views only; the controls server serves the NIST 800-171 and SOC 2 catalogs in
+8. **Two MCP servers.** MCP is the Model Context Protocol, the open standard for letting
+   an agent call tools. The evidence server exposes fixed, parameterized queries over
+   Gold views only; the controls server serves the NIST SP 800-171 and SOC 2 rulebooks in
    machine-readable form. There is no other way for an agent to reach data.
 9. **Auth gateway.** Every call from every agent passes through it. The gateway verifies
    who is calling, asks the policy engine whether this caller may make this call, and
@@ -90,7 +91,7 @@ flowchart LR
 11. **Control Mapper.** Links each piece of evidence to the controls it satisfies and
     drafts the implementation statements.
 12. **Risk Analyst.** Runs as a separate service with its own authentication, reached
-    over the A2A protocol, and scores and prioritizes findings. With the exploitability
+    over the agent-to-agent (A2A) protocol, and scores and prioritizes findings. With the exploitability
     verdicts from step 1 it forms the investigation workflow: raw finding in, ranked
     and explained verdict out.
 13. **Report Writer.** Assembles the audit packet and system security plan draft. Every
@@ -105,12 +106,12 @@ under which steps 10 to 13 are allowed to run.
 
 | Component | Role in the flow |
 |---|---|
-| NVIDIA NIM endpoints | The hosted models the agents call for every reasoning task; the same models ship as self-hosted containers for the CUI path (ADR-008) |
+| NVIDIA NIM endpoints | The hosted models the agents call for every reasoning task; the same models ship as self-hosted containers for the controlled-unclassified-information (CUI) path (architecture decision record ADR-008) |
 | NeMo Guardrails | Filters each agent's input and output; the first line against prompt injection carried in log lines and documents (BR-8) |
 | NeMo Retriever + Milvus | Semantic search steps 10 and 11 use to find related policies, prior evidence, and control language |
 | OpenTelemetry | Every agent step becomes a span with tokens, tool calls, and latency, feeding the workload profile (BR-9) |
 | Eval harness | Golden and adversarial question sets that re-score each agent after every change; a regression blocks release (BR-9) |
-| Garak | NVIDIA's LLM vulnerability scanner, run against our own agents on a schedule, findings published (BR-8) |
+| Garak | NVIDIA's large-language-model (LLM) vulnerability scanner, run against our own agents on a schedule, findings published (BR-8) |
 | NeMo Auditor | Scores agent outputs against safety categories; published alongside the Garak findings so attack results and output safety are read together (BR-8) |
 | Sandbox | The Pipeline Steward runs commands, so it runs in a locked container with no host filesystem, no ambient credentials, and an egress allow-list (OpenShell where available) (BR-8) |
 
