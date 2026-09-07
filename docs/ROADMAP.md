@@ -90,7 +90,7 @@ index and the narrative.
 1. Data stub: a small gold-view fixture in DuckDB with a handful of evidence rows, each
    carrying `system_id`. No Dagster or Iceberg yet.
 2. `evidence-mcp`: an MCP server exposing two or three parameterized tools over the
-   fixture. No model-written SQL (ADR-003, planned).
+   fixture. No model-written SQL (ADR-003).
 3. Auth gateway: a small service in front of the MCP server — verify identity, ask the
    policy engine (OPA) for a decision, write an audit row, forward. Rego policy checked in.
 4. Agent: the Evidence Collector as a NeMo Agent Toolkit workflow calling a hosted NIM
