@@ -36,12 +36,14 @@ flowchart LR
 flowchart LR
   REPO["Repo and supply chain<br><i>prompts, rails, deps, model pin</i>"] -->|"B6"| AGENT["Agent<br><i>same agent as Part 1</i>"]
   AGENT -.->|"B7, agents that act"| HOST["Host<br><i>commands, files, network</i>"]
+  REPO -->|"B8"| CLOUD["Cloud project<br><i>records, identities, resources</i>"]
 ```
 
-Seven boundaries. B1 through B6 exist in the V1 slice today. B7 is drawn dashed because
+Eight boundaries. B1 through B6 exist in the V1 slice today. B7 is drawn dashed because
 no agent in the slice runs commands; it applies to the Pipeline Steward (roadmap phase
 7) and is modeled now so the sandbox is a requirement before the first such agent is
-built (C5).
+built (C5). B8 exists from roadmap phase 6: the repository's automation can change the
+cloud project, so what may become which identity is a boundary in its own right.
 
 ## How it works
 
@@ -62,6 +64,10 @@ built (C5).
    runtime.
 7. **B7, agent to host.** For an agent that runs commands, the boundary between the
    agent and the machine it runs on: filesystem, credentials, network.
+8. **B8, repository automation to cloud project.** A pipeline job proves who it is with
+   a signed token from GitHub and is handed a cloud identity in return. What that
+   identity may do, and which jobs may hold it, decides whether a pull request can
+   change the running platform.
 
 Each boundary gets a STRIDE pass below. STRIDE is the six-part checklist used in
 threat modeling: spoofing, tampering, repudiation, information disclosure, denial of
@@ -147,6 +153,15 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | Repudiation | A command run by an agent cannot be attributed | Every command logged with the agent identity, in the same audit path as tool calls | T1-HX-03 | Planned, phase 7 |
 | Denial of service | A runaway agent consumes host resources | Container CPU and memory limits; wall-clock limit per job | T1-HX-04 | Planned, phase 7 |
 
+### B8 — Repository automation to cloud project
+
+| STRIDE | Threat | Control in the design | Test | Status |
+|---|---|---|---|---|
+| Spoofing | A job from another repository, or a fork, obtains a deployer identity | The identity provider accepts a token only when its repository claim equals this repository; the condition is on the provider, before any binding | T1-CI-01: a token from another repository is refused at the provider | Planned, phase 6 step 2 |
+| Elevation | A pull request applies changes instead of planning them | Two deployers: any branch may become the plan identity (read only); only a token from `refs/heads/main` may become the apply identity | T1-CI-02: the pull-request workflow cannot obtain the apply identity | Planned, phase 6 step 2 |
+| Tampering | Terraform records altered or deleted so the next apply does the wrong thing | Versioned bucket with public access prevented at the bucket; only the two deployers and the operator may write | T1-CI-03: versioning and public-access prevention verified on the bucket | Passing (verified on the bucket after bootstrap apply) |
+| Repudiation | A change to the cloud cannot be traced to a merged pull request | Apply runs only on `main`, from a workflow whose run URL is recorded with the plan; no human holds the apply identity | T1-CI-04: every apply maps to a run and a merge commit | Planned, phase 6 step 2 |
+
 ### Test index
 
 | Test | Boundary | Where it lives today | Status |
@@ -165,8 +180,9 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | T1-EV-01 to T1-EV-03 | B5 | `test_boundaries.py` | Passing |
 | T1-SC-01 to T1-SC-04 | B6 | phase 4, phase 6 | Planned / gap |
 | T1-HX-01 to T1-HX-04 | B7 | phase 7 | Planned |
+| T1-CI-01 to T1-CI-04 | B8 | `infra/modules/delivery-plane/`; phase 6 step 2 | One passing, three planned |
 
-Count: 35 threat rows, 18 passing, 1 measured with mitigation upstream, 11 planned with a phase, 5 gaps named. The gaps are
+Count: 39 threat rows, 19 passing, 1 measured with mitigation upstream, 14 planned with a phase, 5 gaps named. The gaps are
 transport encryption between containers, rate limiting at two boundaries, audit
 immutability beyond append-only, and dependency hash pinning.
 

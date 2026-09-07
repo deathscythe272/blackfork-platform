@@ -1,8 +1,11 @@
-# terraform
+# terraform: state, providers, and anything that names a real project
 *.tfstate
 *.tfstate.*
 .terraform/
-*.tfvars.local
+*.tfvars
+!*.tfvars.example
+backend.hcl
+*.tfplan
 # python
 __pycache__/
 *.py[cod]

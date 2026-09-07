@@ -124,7 +124,7 @@ R5, R6 clear every fixture threshold (1.00/1.00); R2 on notice. Required checks 
 main: `check` (docs standard incl. diagram rules), `cites-requirement`, and `rego`
 (policy tests). Seeded attacks done: zero steer-induced changes on three judge twins;
 seven agent cases contained with zero foreign calls; every answer scored safe; Garak
-run on the model; threat model 18/34 passing. Phase 4 complete except promotion.
+run on the model; threat model 19/39 passing (B8 added in phase 6). Phase 4 complete except promotion.
 Phase 5 done: harness profile (914 turns, 43k→853k context) and agent profile via the
 logging proxy (`src/profiling/`); agent tool-call cap 6; Steward token budget 50k/job.
 Rubric v1.4: R6 and R9 (boundary change needs a threat-model change) are Lane 1 scripts
@@ -135,7 +135,7 @@ harness gives each judge call its own trace file (a leaked exporter path had bee
 failing later calls; pass 5's "timeouts" were mostly that). V1 slice runs locally under `src/provenance/`
 (evidence-mcp, gateway with OPA + audit, Evidence Collector on NAT with Guardrails,
 OTel, three evals passing; `scripts/demo.py`). Model: nvidia/nemotron-3.5-lightning-30b-a3b
-with `chat_template_kwargs.enable_thinking=false`. No cloud infra yet. Public docs describe the safety and evaluation emphasis without naming job
+with `chat_template_kwargs.enable_thinking=false`. Phase 6 F2 done: GCP project (by hand, billing linked) plus `infra/` bootstrap, plane modules, and the dev root; project id lives only in ignored tfvars and a repository variable. Public docs describe the safety and evaluation emphasis without naming job
 requisitions. Repo is public on GitHub.
 
 ## Immediate queue
@@ -147,5 +147,8 @@ requisitions. Repo is public on GitHub.
    ADR-005 threshold; R1 and R5 are the only candidates left in Lane 2.
 3. PR: judge retry waits longer on a rate limit (429) so run success measures the
    endpoint, not a two-second backoff; then re-score. Serves: BR-9.
-4. Phase 6 (GCP: Terraform, WIF, Cloud Run) once a project with billing exists, or
-   Phase 7's data plane locally first.
+4. PR F3: plan on pull request, apply on main, through the keyless identities; five
+   repository variables from the bootstrap outputs; T1-CI-01, 02, 04. Serves: BR-5, BR-7.
+5. PR: Cloud Run services for the gateway and evidence server, scale to zero, secret
+   from Secret Manager; the deployed gateway answers the phase 2 eval. Serves: BR-5.
+6. Phase 7 P1 data plane (Dagster, Iceberg on the lakehouse bucket, DuckDB, Presidio).
