@@ -203,9 +203,21 @@ answers the Phase 2 eval.
    opens a fix PR, itself gated by Gatehouse. It runs commands, so per C5 it runs
    inside a sandbox per the Phase 3 agent→host boundary: OpenShell where available, a locked
    container otherwise, with the escape tests from T1 in its eval set.
+6. P6 Cartographer agent (candidate): draws the platform's own topology and threat
+   diagrams from systems of record only (Terraform state, the deployed-service
+   inventory, a Cartography asset graph), never from what the model believes the
+   system looks like. Output is a pull request in the docs standard's shape, split
+   into seven-node parts. Before a person sees it, two reviews run: a deterministic
+   redaction lane (secrets, project IDs, internal hostnames, address ranges) and the
+   Gatehouse judge asking whether the drawing reveals attack-useful structure or a
+   boundary drawn wrong. Answers BR-4 by generation rather than by blocking, and P3
+   directly. Runs in the same sandbox as the Steward. Not started before Phase 4
+   exists, because the judge is its reviewer.
 
 **Done when:** one real Security Onion alert becomes a cited line in a draft packet with
-a human approval step in the loop.
+a human approval step in the loop. For P6: the platform's own context diagram is
+regenerated from state on a merge, passes the redaction lane and the judge, and a
+planted leak in a fixture (a fake project ID) is caught before the pull request opens.
 
 ### Phase 8 — Outward (Serves: C2)
 
