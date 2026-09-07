@@ -87,6 +87,15 @@ verdict on an unchanged fixture. Handing it the facts fixed both. The planted-fl
 in the next phase turns these single runs into rates, which is the only form of this
 claim that counts.
 
+**First live run, and the first real false positive.** The judge's own pull request
+added the fixture files above, which are diffs containing planted flaws. The parser
+read the added lines of those patch files, found `@mcp.tool()` and the synthetic key,
+and the judge reported four findings against real source paths that the pull request
+never touched. Test data had become findings. The fix was a rule in both the parser
+and the prompt: files under fixture, test, or eval directories, and patch files, are
+test data by design and never yield findings. The next push closed all four findings
+as fixed, on the record, which is the loop working as intended.
+
 **Running it yourself.**
 
 ```

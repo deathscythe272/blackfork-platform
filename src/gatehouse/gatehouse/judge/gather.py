@@ -55,6 +55,12 @@ SECRET_PATTERNS = [
     ("password assignment", re.compile(r"(?i)\b(password|passwd|secret)\s*[:=]\s*['\"]?[^\s'\"$]{8,}")),
 ]
 PLACEHOLDER = re.compile(r"\.\.\.|\$\{|<[^>]+>|your[-_ ]?key|example|placeholder|paste", re.I)
+# Test data by design: planted flaws live here on purpose and must never count as findings.
+TEST_DATA = re.compile(r"(^|/)(fixtures|tests|test|testdata|evals)/|\.patch$|\.diff$")
+
+
+def is_test_data(path: str) -> bool:
+    return bool(TEST_DATA.search(path))
 
 
 def signals(changed: list[dict[str, Any]], body: str) -> dict[str, Any]:
@@ -64,8 +70,11 @@ def signals(changed: list[dict[str, Any]], body: str) -> dict[str, Any]:
     exact facts instead of re-deriving them from a long diff.
     """
     paths = [f["path"] for f in changed]
+    test_data_files = [p for p in paths if is_test_data(p)]
     added_lines: list[tuple[str, int, str]] = []
     for f in changed:
+        if is_test_data(f["path"]):
+            continue  # planted flaws in fixtures are the test, not the finding
         new_ln = 0
         for line in (f.get("patch") or "").splitlines():
             if line.startswith("@@"):
@@ -92,6 +101,7 @@ def signals(changed: list[dict[str, Any]], body: str) -> dict[str, Any]:
         if all((REPO_ROOT / p).exists() for p in docs_changed) else docs_changed
     return {
         "changed_paths": paths,
+        "test_data_files_excluded_from_signals": test_data_files,
         "docs_pages_changed": docs_changed,
         "template_docs_changed": template_docs,
         "threat_model_changed": "docs/02-architecture/agent-threat-model.md" in paths,

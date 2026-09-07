@@ -50,6 +50,16 @@ def test_signals_detect_tools_and_secrets():
     assert b3["signals"]["secret_pattern_hits"] == [] and b3["signals"]["mcp_tools_added"] == []
 
 
+def test_signals_ignore_test_data_files():
+    nested = "diff --git a/x/server.py b/x/server.py\n@@ -1,1 +1,2 @@\n line\n+@mcp.tool()\n+NVIDIA_API_KEY: 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\n"
+    changed = [{"path": "src/gatehouse/gatehouse/judge/fixtures/planted/diff.patch", "status": "added",
+                "patch": "diff --git a/f b/f\n@@ -0,0 +1,5 @@\n" + "".join("+" + l + "\n" for l in nested.splitlines())}]
+    s = gather.signals(changed, "Serves: BR-9")
+    assert s["mcp_tools_added"] == [] and s["secret_pattern_hits"] == []
+    assert s["test_data_files_excluded_from_signals"] == ["src/gatehouse/gatehouse/judge/fixtures/planted/diff.patch"]
+    assert gather.is_test_data("src/provenance/evals/cases.yaml") and not gather.is_test_data("src/provenance/gateway/server.py")
+
+
 def test_signals_ignore_placeholders():
     changed = [{"path": "docs/x.md", "status": "modified", "patch": "diff --git a/docs/x.md b/docs/x.md\n@@ -1,1 +1,2 @@\n line\n+set NVIDIA_API_KEY to nvapi-paste-your-key-here-xxxxxxxxxxxxxxxxxxxx\n"}]
     assert gather.signals(changed, "Serves: BR-4")["secret_pattern_hits"] == []
