@@ -2,7 +2,7 @@
 
 Three tools, every one of them scoped by `system_id`. There is no free-form query
 tool on purpose: the shape of what an agent may ask is part of the security boundary
-(ADR-003, planned). This server is reachable only from the gateway (ADR-001); it does
+(ADR-003). This server is reachable only from the gateway (ADR-001); it does
 no authentication of its own because nothing but the gateway can reach its network.
 
 Serves: BR-2, BR-7, BR-8.

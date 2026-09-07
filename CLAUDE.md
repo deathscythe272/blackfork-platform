@@ -121,7 +121,8 @@ requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. PR: ADR-003 (MCP-only, parameterized tools), now concrete in the slice. Serves: BR-7, BR-8.
-2. PR: G2 judge lane (plan paragraph first). Serves: BR-3, BR-9.
-3. PR: phase-4 eval set closing the threat model's planned B1/B3/B4/B5 tests
-   (T1-IN-03, T1-GW-04, T1-PL-03, T1-EV-01..03) and Rego tests as a required check.
+1. PR: G2 judge lane + the fixed-or-dismissed loop, posting with the built-in Actions
+   token (decided 2026-09-07). Serves: BR-3, BR-9.
+2. PR: ADR-005 (two lanes, promotion by measured precision, fail-open/closed).
+3. PR: G3 planted-flaw evals, then G3+ seeded attacks closing the threat model's planned
+   B1/B3/B4/B5 tests and making the Rego tests a required check.
