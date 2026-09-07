@@ -72,7 +72,9 @@ credentials; the audit table lives in the lakehouse. The gateway only connects t
   database write. Budget: under 20 ms at the 95th percentile locally; the workload
   profile (BR-9) will measure it.
 - **Custom code we must maintain and defend.** The gateway is now part of the attack
-  surface and gets its own row in the threat model; the STRIDE sketch below is the seed.
+  surface and gets its own boundary (B3) in `../02-architecture/agent-threat-model.md`;
+  the STRIDE sketch below was its seed and the threat model now carries the status of
+  every test.
 - **Fail closed.** If OPA or the audit table is unreachable, calls fail. The platform
   prefers a stalled agent to an ungoverned one. This will surface as availability
   incidents in development, and that is accepted.

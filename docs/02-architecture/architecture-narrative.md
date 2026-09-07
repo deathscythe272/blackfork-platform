@@ -252,5 +252,6 @@ citing the requirement it serves.
 
 - `context.md` · `provenance-flow.md` · `gatehouse-pr-flow.md` — the three pictures
   this narrative walks through
-- `agent-threat-model.md` — the per-boundary threat model
+- `agent-threat-model.md` — the per-boundary threat model: seven boundaries, every
+  row with a control, a test ID, and its current status
 - `../40-adrs/README.md` — the decision records listed above
