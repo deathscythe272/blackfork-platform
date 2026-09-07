@@ -1,0 +1,49 @@
+diff --git a/docs/20-provenance/context-plane.md b/docs/20-provenance/context-plane.md
+new file mode 100644
+--- /dev/null
++++ b/docs/20-provenance/context-plane.md
+@@ -0,0 +1,44 @@
++# Context Plane
++
++> **In one line:** The one door agents use to reach data, and the three things that stand at it.
++
++**You are here:** START HERE › Provenance › Context Plane
++**Audience:** 🟡 engineer · **Reads in:** ~3 min
++
++## The 30-second version
++
++Agents never open the data tables. They ask through a door. Two servers offer a fixed
++set of questions, a gateway checks who is asking and whether the rules allow it, and
++every ask is written down before it is answered.
++
++## The picture
++
++```mermaid
++flowchart LR
++  GOLD["Gold views<br><i>agent-ready tables</i>"] --> EMCP["evidence-mcp<br><i>fixed evidence queries</i>"]
++  CMCP["controls-mcp<br><i>the rulebooks, machine-readable</i>"] --> GW
++  EMCP --> GW["Gateway<br><i>identity, policy, audit, forward</i>"]
++  GW --> OPA["Policy engine<br><i>allows or denies each call</i>"]
++  GW --> AUDIT["Audit log<br><i>every call, denials included</i>"]
++```
++
++## How it works
++
++1. **Gold views.** The small tables built for agents.
++2. **evidence-mcp.** Fixed, parameterized evidence queries scoped by system.
++3. **Gateway.** Verifies the token, asks the policy engine, writes the audit row, forwards.
++4. **Audit log.** Append-only; denials included.
++
++## The details
++
++The controls server serves the NIST SP 800-171 and SOC 2 catalogs in OSCAL. The policy
++engine is Open Policy Agent with Rego rules that default to deny.
++
++## Why it's built this way
++
++One door is what makes "every agent action is logged and policy-checked" a fact rather
++than a convention (BR-7, ADR-001, ADR-003).
++
++## Go deeper
++
++**Next:** `../02-architecture/agent-threat-model.md`.

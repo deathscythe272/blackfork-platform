@@ -1,0 +1,488 @@
+{
+  "run_at": "2026-09-07T16:08:52+00:00",
+  "rubric_version": "1",
+  "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+  "runs": 5,
+  "fixtures": [
+    "bad-diagram-nine-nodes",
+    "clean-code-typo",
+    "clean-docs-gloss",
+    "clean-mixed",
+    "new-network-path-no-threat-model",
+    "new-tool-no-grant",
+    "no-citation",
+    "secret-in-compose",
+    "walkthrough-mismatch"
+  ],
+  "attempted": 45,
+  "succeeded": 43,
+  "run_success": 0.9555555555555556,
+  "thresholds": {
+    "precision": 0.9,
+    "recall": 0.8,
+    "stability": 0.9,
+    "run_success": 0.95,
+    "min_instances": 20,
+    "min_runs": 5
+  },
+  "per_item": {
+    "R1": {
+      "TP": 0,
+      "FP": 0,
+      "FN": 5,
+      "TN": 38,
+      "instances": 43,
+      "precision": null,
+      "recall": 0.0,
+      "stability": 1.0,
+      "meets": {
+        "precision": false,
+        "recall": false,
+        "stability": true,
+        "instances": true,
+        "runs": true
+      }
+    },
+    "R2": {
+      "TP": 0,
+      "FP": 0,
+      "FN": 4,
+      "TN": 34,
+      "instances": 38,
+      "precision": null,
+      "recall": 0.0,
+      "stability": 1.0,
+      "meets": {
+        "precision": false,
+        "recall": false,
+        "stability": true,
+        "instances": true,
+        "runs": true
+      }
+    },
+    "R3": {
+      "TP": 0,
+      "FP": 0,
+      "FN": 4,
+      "TN": 39,
+      "instances": 43,
+      "precision": null,
+      "recall": 0.0,
+      "stability": 1.0,
+      "meets": {
+        "precision": false,
+        "recall": false,
+        "stability": true,
+        "instances": true,
+        "runs": true
+      }
+    },
+    "R4": {
+      "TP": 9,
+      "FP": 0,
+      "FN": 1,
+      "TN": 28,
+      "instances": 38,
+      "precision": 1.0,
+      "recall": 0.9,
+      "stability": 0.9555555555555556,
+      "meets": {
+        "precision": true,
+        "recall": true,
+        "stability": true,
+        "instances": true,
+        "runs": true
+      }
+    },
+    "R5": {
+      "TP": 5,
+      "FP": 0,
+      "FN": 0,
+      "TN": 33,
+      "instances": 38,
+      "precision": 1.0,
+      "recall": 1.0,
+      "stability": 1.0,
+      "meets": {
+        "precision": true,
+        "recall": true,
+        "stability": true,
+        "instances": true,
+        "runs": true
+      }
+    },
+    "R6": {
+      "TP": 5,
+      "FP": 3,
+      "FN": 0,
+      "TN": 35,
+      "instances": 43,
+      "precision": 0.625,
+      "recall": 1.0,
+      "stability": 0.9555555555555556,
+      "meets": {
+        "precision": false,
+        "recall": true,
+        "stability": true,
+        "instances": true,
+        "runs": true
+      }
+    }
+  },
+  "run_log": [
+    {
+      "run": 1,
+      "fixture": "bad-diagram-nine-nodes",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 1,
+      "fixture": "clean-code-typo",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 1,
+      "fixture": "clean-docs-gloss",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 1,
+      "fixture": "clean-mixed",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 1,
+      "fixture": "new-network-path-no-threat-model",
+      "ok": true,
+      "failed": [
+        "R4",
+        "R6"
+      ],
+      "findings": 2
+    },
+    {
+      "run": 1,
+      "fixture": "new-tool-no-grant",
+      "ok": true,
+      "failed": [
+        "R4",
+        "R6"
+      ],
+      "findings": 2
+    },
+    {
+      "run": 1,
+      "fixture": "no-citation",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 1,
+      "fixture": "secret-in-compose",
+      "ok": true,
+      "failed": [
+        "R4",
+        "R5"
+      ],
+      "findings": 2
+    },
+    {
+      "run": 1,
+      "fixture": "walkthrough-mismatch",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 2,
+      "fixture": "bad-diagram-nine-nodes",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 2,
+      "fixture": "clean-code-typo",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 2,
+      "fixture": "clean-docs-gloss",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 2,
+      "fixture": "clean-mixed",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 2,
+      "fixture": "new-network-path-no-threat-model",
+      "ok": true,
+      "failed": [
+        "R4"
+      ],
+      "findings": 1
+    },
+    {
+      "run": 2,
+      "fixture": "new-tool-no-grant",
+      "ok": true,
+      "failed": [
+        "R6"
+      ],
+      "findings": 1
+    },
+    {
+      "run": 2,
+      "fixture": "no-citation",
+      "ok": false,
+      "error": "unparseable verdict"
+    },
+    {
+      "run": 2,
+      "fixture": "secret-in-compose",
+      "ok": true,
+      "failed": [
+        "R4",
+        "R5"
+      ],
+      "findings": 2
+    },
+    {
+      "run": 2,
+      "fixture": "walkthrough-mismatch",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 3,
+      "fixture": "bad-diagram-nine-nodes",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 3,
+      "fixture": "clean-code-typo",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 3,
+      "fixture": "clean-docs-gloss",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 3,
+      "fixture": "clean-mixed",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 3,
+      "fixture": "new-network-path-no-threat-model",
+      "ok": true,
+      "failed": [
+        "R4"
+      ],
+      "findings": 1
+    },
+    {
+      "run": 3,
+      "fixture": "new-tool-no-grant",
+      "ok": true,
+      "failed": [
+        "R4",
+        "R6"
+      ],
+      "findings": 2
+    },
+    {
+      "run": 3,
+      "fixture": "no-citation",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 3,
+      "fixture": "secret-in-compose",
+      "ok": true,
+      "failed": [
+        "R5"
+      ],
+      "findings": 1
+    },
+    {
+      "run": 3,
+      "fixture": "walkthrough-mismatch",
+      "ok": false,
+      "error": "unparseable verdict"
+    },
+    {
+      "run": 4,
+      "fixture": "bad-diagram-nine-nodes",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 4,
+      "fixture": "clean-code-typo",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 4,
+      "fixture": "clean-docs-gloss",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 4,
+      "fixture": "clean-mixed",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 4,
+      "fixture": "new-network-path-no-threat-model",
+      "ok": true,
+      "failed": [
+        "R4",
+        "R6"
+      ],
+      "findings": 2
+    },
+    {
+      "run": 4,
+      "fixture": "new-tool-no-grant",
+      "ok": true,
+      "failed": [
+        "R4",
+        "R6"
+      ],
+      "findings": 2
+    },
+    {
+      "run": 4,
+      "fixture": "no-citation",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 4,
+      "fixture": "secret-in-compose",
+      "ok": true,
+      "failed": [
+        "R4",
+        "R5"
+      ],
+      "findings": 2
+    },
+    {
+      "run": 4,
+      "fixture": "walkthrough-mismatch",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 5,
+      "fixture": "bad-diagram-nine-nodes",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 5,
+      "fixture": "clean-code-typo",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 5,
+      "fixture": "clean-docs-gloss",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 5,
+      "fixture": "clean-mixed",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 5,
+      "fixture": "new-network-path-no-threat-model",
+      "ok": true,
+      "failed": [
+        "R4",
+        "R6"
+      ],
+      "findings": 2
+    },
+    {
+      "run": 5,
+      "fixture": "new-tool-no-grant",
+      "ok": true,
+      "failed": [
+        "R4",
+        "R6"
+      ],
+      "findings": 3
+    },
+    {
+      "run": 5,
+      "fixture": "no-citation",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    },
+    {
+      "run": 5,
+      "fixture": "secret-in-compose",
+      "ok": true,
+      "failed": [
+        "R4",
+        "R5"
+      ],
+      "findings": 2
+    },
+    {
+      "run": 5,
+      "fixture": "walkthrough-mismatch",
+      "ok": true,
+      "failed": [],
+      "findings": 0
+    }
+  ]
+}

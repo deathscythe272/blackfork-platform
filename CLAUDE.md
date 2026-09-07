@@ -125,9 +125,13 @@ requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. PR: G3 planted-flaw evals: a fixture per rubric item plus clean controls, a scoring
-   script, precision/recall per item published in `docs/analysis/`.
+1. PR: rubric v1.1 from the first precision pass: R1 mechanical checks (direction,
+   node count, gloss) and R3 (citation present) become Lane 1 scripts; R2 gets parsed
+   node list + walkthrough count; drop the R4 cross-item sentence; tighter JSON output;
+   re-score with `gatehouse.evals.score --runs 5`. Serves: BR-4, BR-9.
 2. PR: G3+ seeded attacks (injection in diffs aimed at the judge, tool abuse against the
    slice, Garak + NeMo Auditor), closing the threat model's planned B1/B3/B4/B5 tests
    and making the Rego tests a required check.
 3. PR: first promotion decision once an item clears ADR-005, numbers in the PR body.
+4. PR: harvest live PR findings (fixed = accepted, dismissed = false positive) into the
+   precision table.
