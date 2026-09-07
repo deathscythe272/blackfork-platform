@@ -1,100 +1,136 @@
 # Cloud Substrate — The GCP Footprint, Entirely in Code
 
-> **In one line:** Two disposable GCP projects, defined by Terraform modules that mirror
-> the platform's planes, reached by CI through keyless authentication.
+> **In one line:** One project made by hand, then everything inside it defined by
+> Terraform modules that mirror the platform's planes and reached by automation
+> through keyless identity.
 
 **You are here:** START HERE › Foundation › Cloud Substrate
-**Audience:** 🔴 deep dive · **Reads in:** ~6 min
+**Audience:** 🔴 deep dive · **Reads in:** ~7 min
 
 ## The 30-second version
 
-The platform runs on Google Cloud, but nobody ever configures Google Cloud by hand. A
-set of Terraform files describes every project, bucket, service, permission, and budget;
-a pipeline applies them when changes merge. The pipeline proves who it is to Google using
-short-lived tokens instead of a stored password-equivalent, so there is no powerful key
-to leak. Every resource carries labels saying which layer it belongs to, which business
-system's data it touches, and which environment it lives in.
+The platform runs on Google Cloud, and exactly one thing there is done by hand: creating
+the project and linking it to billing, because the code that describes everything else
+needs a place to keep its own records first. From then on, nobody configures the cloud
+by clicking. A bootstrap run from an engineer's laptop creates the storage for
+Terraform's records, an identity that GitHub's automation can prove it holds without any
+stored password, and a registry for container images. After that, the automation itself
+plans and applies every bucket, queue, identity, and permission. Every resource carries
+labels saying which layer it belongs to, which environment it lives in, and which
+business requirement justifies it. While nobody is using it, the whole footprint costs
+cents.
 
 ## The picture
 
 ```mermaid
 flowchart LR
-  A["terraform apply<br>one command per environment"] --> B["Projects<br>bf-dev / bf-demo"] --> C["Storage<br>GCS bucket = the lakehouse"] --> D["Runtime<br>Cloud Run services"] --> E["Guardrails<br>IAM, labels, budget alerts"]
-```
-
-And the authentication chain that makes CI keyless:
-
-```mermaid
-flowchart LR
-  F["Actions job starts<br>no stored credential"] --> G["GitHub issues the job an<br>OIDC identity token"] --> H["GCP Workload Identity<br>Federation verifies it"] --> I["Short-lived credentials<br>minted — nothing stored"] --> J["terraform runs<br>as a scoped service account"]
+  PROJECT["Project<br><i>made once by hand, billing linked</i>"] --> BOOT["Bootstrap<br><i>state bucket, keyless identity, registry</i>"]
+  BOOT --> MODULES["Plane modules<br><i>data, context, agent, assurance</i>"]
+  MODULES --> ENV["Environment root<br><i>dev today, demo later</i>"]
+  ENV --> RESOURCES["Resources<br><i>buckets, topic, identities, one secret</i>"]
+  RESOURCES --> LABELS["Labels<br><i>plane, system, env, serves-br</i>"]
 ```
 
 ## How it works
 
-1. **Projects.** Two GCP projects, `bf-dev` and `bf-demo`, created and owned by
-   Terraform. Same modules, different variable files — environment parity by
-   construction.
-2. **Storage.** One Google Cloud Storage (GCS) bucket per environment holds the Iceberg lakehouse (warehouse
-   path), plus a separate bucket for Terraform state with versioning enabled.
-3. **Runtime.** Cloud Run hosts every stateless service — the Model Context Protocol (MCP) servers, the auth
-   gateway, the agent-to-agent (A2A) Risk Analyst — because it scales to zero between demos.
-4. **Supporting services.** Artifact Registry stores container images; Secret Manager
-   holds the few real secrets (the NVIDIA API key); Pub/Sub carries platform events.
-5. **Guardrails.** IAM bindings are least-privilege per service account, every resource
-   is labeled (schema below), and budget alerts fire at 50/90/100% of a small cap.
+1. **Project.** Created once with the cloud command line, billing linked, the handful of
+   service APIs enabled. Its id never appears in the repository; it lives in ignored
+   variable files locally and in a repository variable for automation.
+2. **Bootstrap.** A small Terraform root run once from an engineer's machine. It creates
+   the versioned bucket that holds Terraform's records, the identity pool that trusts
+   tokens from this one GitHub repository, two deployer identities (one that can only
+   read and plan, one that can apply and only from the main branch), and the image
+   registry. Its own records stay on that machine; they hold only names.
+3. **Plane modules.** One Terraform module per plane, so the repository tree, the
+   architecture pages, and the cloud console slice the same way. Each declares its
+   inputs, its labels, and only resources that cost nothing while idle.
+4. **Environment root.** The `dev` root composes the modules and keeps its records in
+   the bootstrap bucket. Automation plans it on every pull request and applies it after
+   merge. A `demo` root will be the same modules with a different variable file.
+5. **Resources.** Today: a lakehouse bucket, a platform-events topic and its
+   subscription, one identity per service and agent, and an empty secret for the model
+   key whose value is added from a shell and never through code. The services that use
+   these identities arrive with the next steps of the roadmap.
+6. **Labels.** Every resource carries `plane`, `system`, `env`, and `serves-br`, so a
+   bill, a dashboard, or a search can be cut by layer, environment, or requirement.
 
 ## The details
 
-**Terraform layout mirrors the planes** — one module per plane, so the repo tree, the
-architecture docs, and the cloud console all slice the same way:
+**Layout.**
 
 ```
 infra/
+  bootstrap/           run once per project; local records; creates the delivery plane
   modules/
-    data-plane/        # lakehouse bucket, Pub/Sub topics, Dagster infra
-    context-plane/     # Cloud Run: mcp servers + gateway, service accounts
-    agent-plane/       # Cloud Run: agent services, A2A networking
-    assurance-plane/   # audit table, dashboards, alerting
-    delivery-plane/    # WIF pool/provider, Actions service accounts, registries
+    delivery-plane/    state bucket, identity pool and provider, deployers, registry
+    data-plane/        lakehouse bucket, platform-events topic
+    context-plane/     gateway and evidence-server identities, the model-key secret
+    agent-plane/       agent identities and what each may read
+    assurance-plane/   event reader identity and its subscription
   envs/
-    dev.tfvars
-    demo.tfvars
+    dev/               the root automation plans and applies; records in the state bucket
 ```
 
-**Workload Identity Federation (WIF), spelled out.** OIDC (OpenID Connect) lets GitHub
-give each Actions job a signed identity token naming the repo, branch, and workflow. A
-GCP Workload Identity Pool is configured to trust tokens from this repo only; Google's
-STS exchanges that token for short-lived credentials impersonating a deployer service
-account. Attribute conditions pin the trust to `repository == "<owner>/<repo>"` and, for
-apply, `ref == "refs/heads/main"` — so a fork or feature branch physically cannot deploy.
-No JSON key ever exists to rotate, leak, or commit.
+Anything that names a real project (`*.tfvars`, `backend.hcl`) is ignored by git; an
+`.example` twin beside each shows the shape.
 
-**Label schema** (enforced by a Terraform validation and a Gatehouse rule later):
+**Keyless identity, spelled out.** GitHub gives each Actions job a signed token naming
+the repository and the git reference it runs on. The identity pool's provider accepts a
+token only if its repository claim equals this repository; any other token is rejected
+before an identity is even considered. Two bindings then decide what an accepted token
+may become. A token from any branch of the repository may become the plan identity,
+which holds read-only project access plus write access to the records bucket for locks.
+Only a token whose repository and reference together equal this repository on
+`refs/heads/main` may become the apply identity. A fork or a feature branch cannot
+apply, not by policy that could drift but by the shape of the trust itself. No key file
+exists to rotate, leak, or commit.
+
+**What each identity may do.**
+
+| Identity | Reach | Why |
+|---|---|---|
+| Plan deployer | Read the project; read and lock the records | A pull request must show its effect and change nothing |
+| Apply deployer | Manage Cloud Run, identities and their bindings, registry, secrets, topics, buckets | An environment root creates all of these; narrowed as the planes settle |
+| Gateway | Nothing beyond its own identity yet | Token check, policy decision, audit write need no cloud permission of their own |
+| Evidence server | Read the lakehouse bucket | Fixed queries over evidence, read only (ADR-003) |
+| Evidence Collector | Read the model-key secret | The agent's only cloud permission; its data path is the gateway |
+| Assurance reader | Read the platform-events subscription | Gate decisions and pipeline results become evidence |
+
+**Label schema.**
 
 | Key | Values | Question it answers |
 |---|---|---|
 | `plane` | data / context / agent / assurance / delivery | Which layer of the platform is this? |
-| `system` | registry ID, e.g. `windrow-core` | Whose data/scope does it serve? |
+| `system` | `platform`, or a registered business system | Whose data or scope does it serve? |
 | `env` | dev / demo | Which copy is this? |
-| `serves-br` | br1…br7 | Which business requirement justifies it? |
+| `serves-br` | br1 to br9 | Which business requirement justifies it? |
 
-**Cost posture.** Idle ≈ a few dollars/month (storage + registries). Demo hours are
-dominated by Cloud Run request time and hosted model (NIM) usage (free dev tier). `terraform destroy`
-is a supported, tested path — disposability is a feature, and the demo script includes a
-timed cold rebuild.
+**Cost posture.** Idle: the records bucket and image storage, cents a month. Nothing
+declared so far runs while unused. Demo hours are Cloud Run request time and hosted
+model usage on the free tier. `terraform destroy` on the environment root is a supported
+path; the bootstrap root and the project stay.
+
+**What is by hand and why.** The project and its billing link, because a Terraform run
+needs somewhere to keep its records before it can create anything, and creating a
+project needs organization-level permissions this account does not have. The secret's
+value, because it must never pass through code, a plan output, or a log. Everything
+else is code.
 
 ## Why it's built this way
 
-Keyless CI removes the highest-value secret from the highest-risk location (BR-7).
-Plane-shaped modules make the taxonomy physical instead of aspirational — a reviewer can
-`grep` a plane, bill by it, or dashboard it (see `13-taxonomy.md`). Two identical-by-
-construction environments keep interview demos clean without maintaining anything twice.
-And scale-to-zero runtime plus tested destroy keeps a flexible budget honest (C4), while
-the `serves-br` label does something quietly unusual: it makes even the *bill* traceable
-to business requirements. Decision record: ADR-008 covers the hosted-vs-self-hosted
-inference path this substrate must support (C2).
+Keyless automation removes the highest-value secret from the highest-risk location, and
+the trust is shaped so that a compromised pull request can read but not change (BR-7,
+BR-8). Plane-shaped modules make the taxonomy physical instead of aspirational: a
+reviewer can search a plane, bill by it, or dashboard it (`13-taxonomy.md`). An
+environment root that is only a composition of modules keeps a second environment
+honest without maintaining anything twice (BR-5). And a footprint that costs cents
+while idle keeps a flexible budget true (C4), while the `serves-br` label does
+something quietly unusual: it makes even the bill traceable to business requirements.
+The threat model's B8 boundary records what this trust could get wrong and how each
+case is tested (`../02-architecture/agent-threat-model.md`).
 
 ## Go deeper
 
-- `12-cicd-pipelines.md` — how plan/apply and image builds actually run
+- `12-cicd-pipelines.md` — how plan on pull request and apply on main run
 - `13-taxonomy.md` — the full slicing model these labels implement
+- `../../infra/README.md` — the tree itself

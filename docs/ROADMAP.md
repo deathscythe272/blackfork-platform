@@ -231,10 +231,14 @@ that builds this repo.
 **Done when:** both profiles have charts in the repo and each names at least one
 decision the data drove. Met.
 
-### Phase 6 — Cloud substrate and CI/CD, F2 and F3 (Serves: BR-5, C4)
+### Phase 6 — Cloud substrate and CI/CD, F2 and F3 (Serves: BR-5, C4) — in progress
 
-1. PR F2 skeleton: Terraform modules mirroring the planes, `envs/dev.tfvars`, Workload
-   Identity Federation bootstrap, no resources with idle cost.
+1. Done: F2. One project made by hand with billing linked. `infra/` holds a bootstrap
+   root (records bucket, keyless identity pool locked to this repository, plan and
+   apply deployers, image registry), one module per plane, and the `dev` root that
+   composes them: lakehouse bucket, platform-events topic and subscription, one
+   identity per service and agent, an empty secret for the model key. Nothing with
+   idle cost. Threat model gains B8 with four rows. `docs/10-foundation/11-cloud-substrate.md`.
 2. PR F3: GitHub Actions — plan on PR, apply on `main` only. Requires the remote and
    branch protection to exist by now.
 3. PR: Cloud Run services for the gateway and MCP server, scale-to-zero, secrets from
