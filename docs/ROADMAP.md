@@ -166,10 +166,14 @@ hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
    14/14, run success 0.98; R2 still never fires on the subtle case and is on notice
    under ADR-005. Four judged items now clear the fixture thresholds; promotion waits
    on the seeded-attack step and 20 live instances.
-4. PR G3+ seeded injection evals: adversarial cases added to the eval set — injection
-   inside diffs and docs aimed at the judge, tool-abuse attempts against the Phase 2
-   agent, a Garak probe run against both, and a NeMo Auditor safety evaluation of the
-   agents' outputs. Results published side by side; Phase 3 test IDs closed.
+4. G3+ seeded attacks, in two parts. Part A, the judge and the door: three injection
+   twins (a code comment, a pull-request body, a "this is a placeholder" comment) with
+   steer-induced verdict changes counted per item; a second walkthrough-mismatch
+   fixture as R2's last chance; the Rego tests as a required check; boundary tests at
+   the door closing T1-EV-01..03, T1-GW-04, T1-PL-03. Part B, the agent and the model:
+   tool-abuse and instruction-leak cases in the slice's eval set, a Garak probe run,
+   an output-safety pass with NVIDIA's content-safety model (NeMo Auditor is not on
+   the package index), and an analysis page publishing all of it together.
 5. Promote any rubric item whose measured precision clears the ADR-005 threshold to
    blocking.
 

@@ -102,7 +102,7 @@ control yet, or the control exists with no test, and the row says which.
 | Spoofing | A forged or replayed token acts as the Evidence Collector | Signed tokens with issuer, audience, and expiry; unknown or invalid tokens are refused before policy runs | T1-GW-01: forged token rejected and audited (`smoke.py`) | Passing |
 | Tampering | Arguments altered in transit, or a tool name that does not exist | Tool schema validation by the Model Context Protocol (MCP) server layer; transport is plain HTTP inside a private Compose network today | T1-GW-02: off-schema calls refused | Passing for schema; **gap** for transport (no TLS between containers; phase 6 adds mutual TLS) |
 | Repudiation | A call cannot later be tied to an identity and a decision | Audit row per call, denies included, with identity, tool, arguments, decision, policy version, timestamp | T1-GW-03: every eval call appears in the audit log with its decision | Passing, asserted by the eval runner on every case |
-| Information disclosure | The gateway logs payloads or results | Gateway logs decisions, not results; audit rows carry arguments only | T1-GW-04: audit and server logs contain no result payloads | Planned, phase 4 |
+| Information disclosure | The gateway logs payloads or results | Gateway logs decisions, not results; audit rows carry arguments only | T1-GW-04: audit and server logs contain no result payloads (`src/provenance/tests/test_boundaries.py`) | Passing |
 | Denial of service | A looping agent floods the gateway | None in the slice beyond the agent's `max_tool_calls` | T1-GW-05: per-identity rate limit, other callers unaffected | Gap, phase 6 |
 | Elevation | A steered agent requests another system's data or an ungranted tool | Default-deny Rego; grants per identity per tool per `system_id`; no rule allows a call without a `system_id` | T1-GW-06: cross-system and unknown-tool calls denied (`smoke.py`, Rego tests, eval runner) | Passing |
 
@@ -110,20 +110,20 @@ control yet, or the control exists with no test, and the row says which.
 
 | STRIDE | Threat | Control in the design | Test | Status |
 |---|---|---|---|---|
-| Tampering | Policy files altered so a denied call becomes allowed | Policy is code in the repo, reviewed through Gatehouse; OPA mounts it read-only; decision carries the policy version into the audit row | T1-PL-01: Rego unit tests (7) run in CI on every PR | Passing locally; **planned** as a required CI check, phase 4 |
+| Tampering | Policy files altered so a denied call becomes allowed | Policy is code in the repo, reviewed through Gatehouse; OPA mounts it read-only; decision carries the policy version into the audit row | T1-PL-01: Rego unit tests (7) run in CI on every PR (`policy-tests` workflow) | Passing, required check |
 | Repudiation | Audit rows altered or deleted after the fact | Append-only file in the slice; the gateway fsyncs each row before forwarding | T1-PL-02: audit hash chain or write-once storage | Gap, phase 7 (audit table in the lakehouse with Iceberg snapshots) |
-| Information disclosure | Audit rows reveal sensitive arguments | Arguments are identifiers (`system_id`, `control_id`, `row_id`), never free text | T1-GW-04 | Planned |
-| Denial of service | OPA or the audit path is unavailable | Fail closed: the gateway refuses the call | T1-PL-03: stop OPA, confirm calls are refused and nothing is forwarded | Planned, phase 4 |
-| Elevation | A default-allow rule slips into policy | `default allow := false` plus a test that an unknown identity is denied | T1-PL-01 | Passing |
+| Information disclosure | Audit rows reveal sensitive arguments | Arguments are identifiers (`system_id`, `control_id`, `row_id`), never free text | T1-GW-04 | Passing |
+| Denial of service | OPA or the audit path is unavailable | Fail closed: the gateway refuses the call | T1-PL-03: stop OPA, confirm calls are refused and nothing is forwarded (`test_boundaries.py`) | Passing |
+| Elevation | A default-allow rule slips into policy | `default allow := false` plus a test that an unknown identity is denied | T1-PL-01 | Passing, required check |
 
 ### B5 — Gateway to evidence server
 
 | STRIDE | Threat | Control in the design | Test | Status |
 |---|---|---|---|---|
-| Spoofing | Something other than the gateway calls the evidence server | Evidence server sits on an internal network with no route from the agent or outside | T1-EV-01: from the agent container, the evidence server does not resolve | Passing, checked by hand in the slice; **planned** as an automated check, phase 4 |
-| Tampering | A query is shaped to read outside its scope | No free-form query tool; every tool takes `system_id` and filters on it inside the query | T1-EV-02: `get_evidence_row` with a row from another system returns nothing | Planned, phase 4 |
-| Information disclosure | The evidence server returns more than asked | Narrow Gold views; result limit capped at 50 | T1-EV-02 | Planned |
-| Elevation | The evidence server has write access to data | Read-only DuckDB connection; data volume mounted read-only | T1-EV-03: write attempt fails | Planned, phase 4 |
+| Spoofing | Something other than the gateway calls the evidence server | Evidence server sits on an internal network with no route from the agent or outside | T1-EV-01: from the agent container, the evidence server does not resolve (`test_boundaries.py`) | Passing, automated |
+| Tampering | A query is shaped to read outside its scope | No free-form query tool; every tool takes `system_id` and filters on it inside the query | T1-EV-02: `get_evidence_row` with a row from another system returns nothing (`test_boundaries.py`) | Passing |
+| Information disclosure | The evidence server returns more than asked | Narrow Gold views; result limit capped at 50 | T1-EV-02 | Passing |
+| Elevation | The evidence server has write access to data | Read-only DuckDB connection; data volume mounted read-only | T1-EV-03: write attempt fails (`test_boundaries.py`) | Passing |
 
 ### B6 — Repo and supply chain to agent
 
@@ -154,14 +154,16 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | T1-IN-03, T1-IN-04, T1-IN-05 | B1 | phase 4 eval set, phase 6 quota | Planned / gap |
 | T1-MD-01 to T1-MD-03 | B2 | phase 4 to 6 | Planned |
 | T1-GW-01, T1-GW-02, T1-GW-03, T1-GW-06 | B3 | `src/provenance/gateway/smoke.py`, `policy/gateway_test.rego`, eval runner | Passing |
-| T1-GW-04, T1-GW-05 | B3 | phase 4, phase 6 | Planned / gap |
-| T1-PL-01 | B4 | `policy/gateway_test.rego` | Passing locally, CI planned |
-| T1-PL-02, T1-PL-03 | B4 | phase 7, phase 4 | Gap / planned |
-| T1-EV-01 to T1-EV-03 | B5 | manual check in slice; phase 4 automation | Planned |
+| T1-GW-04 | B3 | `src/provenance/tests/test_boundaries.py` | Passing |
+| T1-GW-05 | B3 | phase 6 | Gap |
+| T1-PL-01 | B4 | `policy/gateway_test.rego`, `policy-tests` workflow | Passing, required check |
+| T1-PL-02 | B4 | phase 7 | Gap |
+| T1-PL-03 | B4 | `test_boundaries.py` | Passing |
+| T1-EV-01 to T1-EV-03 | B5 | `test_boundaries.py` | Passing |
 | T1-SC-01 to T1-SC-04 | B6 | phase 4, phase 6 | Planned / gap |
 | T1-HX-01 to T1-HX-04 | B7 | phase 7 | Planned |
 
-Count: 34 threat rows, 10 passing, 19 planned with a phase, 5 gaps named. The gaps are
+Count: 34 threat rows, 16 passing, 13 planned with a phase, 5 gaps named. The gaps are
 transport encryption between containers, rate limiting at two boundaries, audit
 immutability beyond append-only, and dependency hash pinning.
 

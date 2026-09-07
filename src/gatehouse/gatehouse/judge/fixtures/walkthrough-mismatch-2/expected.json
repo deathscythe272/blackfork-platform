@@ -1,0 +1,8 @@
+{
+  "kind": "planted",
+  "should_fail": [
+    "R2"
+  ],
+  "may_fail": [],
+  "note": "Five boxes, five entries, so R8 passes on the count. But the entries are out of order (the writer first, the collector second), one entry describes a box that is not drawn (semantic search), and one drawn box (Control Mapper) has no entry. R2 must fail; R1 must pass. R2's last chance under ADR-005."
+}

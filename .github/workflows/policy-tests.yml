@@ -1,0 +1,18 @@
+# Gatehouse Lane 1: the gateway's Rego policy must pass its unit tests on every pull
+# request. Policy is code; a default-allow slipping in is caught here before it reaches
+# the door. Serves: BR-7, BR-8 (threat model T1-PL-01).
+name: policy-tests
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  rego:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: open-policy-agent/setup-opa@v2
+        with:
+          version: "1.4.2"
+      - name: Run the gateway policy tests
+        run: opa test src/provenance/gateway/policy -v
