@@ -130,8 +130,8 @@ container; results in `src/provenance/evals/results/latest.json`; see
 4. Update ADR-001's consequences and the narrative to point here.
 
 **Done when:** every threat row has a mitigation and a test ID; gaps are stated, not
-hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 33 rows,
-9 passing, 20 planned with a phase, 4 named gaps.
+hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
+10 passing, 19 planned with a phase, 5 named gaps.
 
 ### Phase 4 — Gatehouse G2, G3, G3+ (Serves: BR-3, BR-4, BR-8, BR-9)
 

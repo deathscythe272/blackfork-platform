@@ -19,6 +19,8 @@ so. Nothing here is asserted without a test or a labeled gap.
 
 ## The picture
 
+**Part 1 — Runtime boundaries.** Every one of these is crossed on every question.
+
 ```mermaid
 flowchart LR
   USER["Caller<br><i>eval runner or person</i>"] -->|"B1"| AGENT["Agent<br><i>one job, one system, three tools</i>"]
@@ -26,7 +28,13 @@ flowchart LR
   AGENT -->|"B3"| GW["Gateway<br><i>token, policy, audit, forward</i>"]
   GW -->|"B4"| POLICY["OPA and audit log<br><i>decides and records</i>"]
   GW -->|"B5"| MCP["evidence-mcp<br><i>fixed queries over data</i>"]
-  REPO["Repo and supply chain<br><i>prompts, rails, deps, model pin</i>"] -->|"B6"| AGENT
+```
+
+**Part 2 — Build-time and host boundaries.** Crossed before the agent starts, or only by agents that act.
+
+```mermaid
+flowchart LR
+  REPO["Repo and supply chain<br><i>prompts, rails, deps, model pin</i>"] -->|"B6"| AGENT["Agent<br><i>same agent as Part 1</i>"]
   AGENT -.->|"B7, agents that act"| HOST["Host<br><i>commands, files, network</i>"]
 ```
 
@@ -151,7 +159,7 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | T1-SC-01 to T1-SC-04 | B6 | phase 4, phase 6 | Planned / gap |
 | T1-HX-01 to T1-HX-04 | B7 | phase 7 | Planned |
 
-Count: 33 threat rows, 9 passing, 20 planned with a phase, 4 gaps named. The gaps are
+Count: 34 threat rows, 10 passing, 19 planned with a phase, 5 gaps named. The gaps are
 transport encryption between containers, rate limiting at two boundaries, audit
 immutability beyond append-only, and dependency hash pinning.
 
