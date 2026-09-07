@@ -6,10 +6,12 @@ The gateway mirrors the three evidence tools. On every call, in this order:
   2. validate request  - FastMCP validates arguments against the tool schema before
                          this code runs; unknown tools never reach us
   3. ask OPA           - identity + tool + args -> allow/deny, reason, policy version
-  4. write audit row   - append-only JSONL, denied calls included; written BEFORE
-                         forwarding; if the write fails the call fails
+  4. write audit row   - denied calls included; written BEFORE forwarding; if the
+                         write fails the call fails. The sink is a file on the laptop
+                         and the platform-events topic in the cloud (audit.py)
   5. forward           - allowed calls go to evidence-mcp over MCP; the result is
-                         returned unchanged
+                         returned unchanged. In the cloud the call carries the
+                         gateway's signed identity (upstream.py)
 
 Fail closed: if the token is bad, OPA is unreachable, or the audit write fails, the
 agent gets an error, never data.
@@ -20,10 +22,7 @@ Serves: BR-7, BR-8.
 from __future__ import annotations
 
 import datetime as dt
-import json
 import os
-import pathlib
-import threading
 import time
 import uuid
 from typing import Any
@@ -34,16 +33,18 @@ from mcp.client.streamable_http import streamablehttp_client
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.fastmcp.exceptions import ToolError
 
+from provenance.gateway.audit import AuditWriteError, sink_from_env
 from provenance.gateway.tokens import IdentityError, verify
+from provenance.gateway.upstream import identity_from_env
 
 HOST = os.environ.get("GATEWAY_HOST", "0.0.0.0")
 PORT = int(os.environ.get("GATEWAY_PORT", "8000"))
 OPA_URL = os.environ.get("OPA_URL", "http://localhost:8181")
 EVIDENCE_MCP_URL = os.environ.get("EVIDENCE_MCP_URL", "http://localhost:8001/mcp")
-AUDIT_LOG = pathlib.Path(os.environ.get("AUDIT_LOG", "audit/audit.jsonl"))
 
 mcp = FastMCP("blackfork-gateway", host=HOST, port=PORT)
-_audit_lock = threading.Lock()
+AUDIT = sink_from_env()
+UPSTREAM = identity_from_env()
 
 
 # --- 1. identity -----------------------------------------------------------------
@@ -75,20 +76,15 @@ def _decide(identity: str, tool: str, args: dict[str, Any]) -> dict[str, Any]:
 
 def _audit(row: dict[str, Any]) -> None:
     try:
-        AUDIT_LOG.parent.mkdir(parents=True, exist_ok=True)
-        line = json.dumps(row, separators=(",", ":"), sort_keys=True)
-        with _audit_lock, AUDIT_LOG.open("a", encoding="utf-8") as f:
-            f.write(line + "\n")
-            f.flush()
-            os.fsync(f.fileno())
-    except OSError as e:
-        raise ToolError(f"audit write failed, failing closed: {e.__class__.__name__}") from e
+        AUDIT.write(row)
+    except AuditWriteError as e:
+        raise ToolError(f"audit write failed ({AUDIT.name}), failing closed: {e}") from e
 
 
 # --- 5. forward ------------------------------------------------------------------
 
 async def _forward(tool: str, args: dict[str, Any]) -> Any:
-    async with streamablehttp_client(EVIDENCE_MCP_URL) as (read, write, _):
+    async with streamablehttp_client(EVIDENCE_MCP_URL, headers=UPSTREAM.headers() or None) as (read, write, _):
         async with ClientSession(read, write) as session:
             await session.initialize()
             result = await session.call_tool(tool, args)

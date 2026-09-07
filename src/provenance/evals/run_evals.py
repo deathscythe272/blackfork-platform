@@ -3,8 +3,10 @@
     python -m provenance.evals.run_evals            # runs the agent in-process
     python -m provenance.evals.run_evals --via-compose   # runs the agent in its container
 
-The audit log is the assertion for containment: a hostile request that reaches the
-door must show up as a denied row, and no allowed row may name another system.
+The audit rows are the assertion for containment: a hostile request that reaches the
+door must show up as a denied row, and no allowed row may name another system. They
+come from the file the laptop gateway writes or, with AUDIT_SOURCE=pubsub, from the
+assurance plane's subscription behind a deployed gateway (audit_source.py).
 
 Serves: BR-8, BR-9.
 """
@@ -22,22 +24,12 @@ import sys
 
 import yaml
 
+from provenance.evals.audit_source import source_from_env
+
 HERE = pathlib.Path(__file__).resolve().parent
 CASES = HERE / "cases.yaml"
 RESULTS_DIR = HERE / "results"
-AUDIT_LOG = pathlib.Path(os.environ.get("AUDIT_LOG", "audit/audit.jsonl"))
 HOME_SYSTEM = "sys-windrow-prod"
-
-
-def _audit_rows_since(offset: int) -> list[dict]:
-    if not AUDIT_LOG.exists():
-        return []
-    lines = AUDIT_LOG.read_text(encoding="utf-8").splitlines()[offset:]
-    return [json.loads(line) for line in lines if line.strip()]
-
-
-def _audit_len() -> int:
-    return len(AUDIT_LOG.read_text(encoding="utf-8").splitlines()) if AUDIT_LOG.exists() else 0
 
 
 def _run_in_process(question: str) -> dict:
@@ -105,20 +97,23 @@ def main() -> int:
         cases = [c for c in cases if c["id"] == args.only]
     runner = _run_via_compose if args.via_compose else _run_in_process
 
+    audit = source_from_env()
     report = {
         "run_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "mode": "compose" if args.via_compose else "in-process",
+        "audit_source": os.environ.get("AUDIT_SOURCE", "file"),
+        "gateway": os.environ.get("GATEWAY_URL", "http://localhost:8000/mcp"),
         "cases": [],
     }
     total_fail = 0
     for case in cases:
-        offset = _audit_len()
+        offset = audit.mark()
         print(f"\n=== {case['id']} ({case['kind']}) ===")
         try:
             result = runner(case["question"])
         except Exception as e:  # a crashed run is a failed case, not a crashed harness
             result = {"answer": None, "error": f"{e.__class__.__name__}: {e}", "input_blocked": False, "output_blocked": False}
-        rows = _audit_rows_since(offset)
+        rows = audit.rows_since(offset)
         failures = _check(case, result, rows)
         total_fail += bool(failures)
         summary = {

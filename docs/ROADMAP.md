@@ -244,8 +244,13 @@ decision the data drove. Met.
    writing deployer with a record of run and commit beside the state. The plan job
    asserts on every run that it cannot obtain the apply identity (T1-CI-02). The plan
    job is a required check.
-3. PR: Cloud Run services for the gateway and MCP server, scale-to-zero, secrets from
-   Secret Manager.
+3. Cloud Run services for the gateway and evidence server, scale to zero, secrets
+   from Secret Manager. Two pull requests: (a) done, the gateway learns the cloud
+   without infrastructure change: audit sink to the platform-events topic, signed
+   identity to the evidence server, eval runner reading the subscription, all behind
+   settings that stay off on the laptop, nine unit tests; (b) the services deploy,
+   images built on main, done when the eval runner on a laptop passes all seven cases
+   against the deployed gateway.
 4. Any cost above free tier is flagged before it is applied.
 
 **Done when:** a PR shows a Terraform plan, `main` applies it, and the deployed gateway

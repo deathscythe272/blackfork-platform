@@ -118,7 +118,7 @@ control yet, or the control exists with no test, and the row says which.
 | STRIDE | Threat | Control in the design | Test | Status |
 |---|---|---|---|---|
 | Tampering | Policy files altered so a denied call becomes allowed | Policy is code in the repo, reviewed through Gatehouse; OPA mounts it read-only; decision carries the policy version into the audit row | T1-PL-01: Rego unit tests (7) run in CI on every PR (`policy-tests` workflow) | Passing, required check |
-| Repudiation | Audit rows altered or deleted after the fact | Append-only file in the slice; the gateway fsyncs each row before forwarding | T1-PL-02: audit hash chain or write-once storage | Gap, phase 7 (audit table in the lakehouse with Iceberg snapshots) |
+| Repudiation | Audit rows altered or deleted after the fact | Append-only file in the slice, fsynced per row before forwarding; in the cloud each row is published to the platform-events topic and the call waits for the broker's acknowledgement, so nothing on the instance's disk is trusted | T1-PL-02: audit hash chain or write-once storage | Gap, phase 7 (audit table in the lakehouse with Iceberg snapshots) |
 | Information disclosure | Audit rows reveal sensitive arguments | Arguments are identifiers (`system_id`, `control_id`, `row_id`), never free text | T1-GW-04 | Passing |
 | Denial of service | OPA or the audit path is unavailable | Fail closed: the gateway refuses the call | T1-PL-03: stop OPA, confirm calls are refused and nothing is forwarded (`test_boundaries.py`) | Passing |
 | Elevation | A default-allow rule slips into policy | `default allow := false` plus a test that an unknown identity is denied | T1-PL-01 | Passing, required check |
@@ -127,7 +127,7 @@ control yet, or the control exists with no test, and the row says which.
 
 | STRIDE | Threat | Control in the design | Test | Status |
 |---|---|---|---|---|
-| Spoofing | Something other than the gateway calls the evidence server | Evidence server sits on an internal network with no route from the agent or outside | T1-EV-01: from the agent container, the evidence server does not resolve (`test_boundaries.py`) | Passing, automated |
+| Spoofing | Something other than the gateway calls the evidence server | Evidence server sits on an internal network with no route from the agent or outside; in the cloud it admits only a signed identity token for its own address, and only the gateway's identity is granted that (`gateway/upstream.py`; deployed form in phase 6 step 3) | T1-EV-01: from the agent container, the evidence server does not resolve (`test_boundaries.py`) | Passing, automated |
 | Tampering | A query is shaped to read outside its scope | No free-form query tool; every tool takes `system_id` and filters on it inside the query | T1-EV-02: `get_evidence_row` with a row from another system returns nothing (`test_boundaries.py`) | Passing |
 | Information disclosure | The evidence server returns more than asked | Narrow Gold views; result limit capped at 50 | T1-EV-02 | Passing |
 | Elevation | The evidence server has write access to data | Read-only DuckDB connection; data volume mounted read-only | T1-EV-03: write attempt fails (`test_boundaries.py`) | Passing |
