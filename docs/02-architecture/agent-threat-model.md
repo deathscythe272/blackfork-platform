@@ -157,10 +157,10 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 
 | STRIDE | Threat | Control in the design | Test | Status |
 |---|---|---|---|---|
-| Spoofing | A job from another repository, or a fork, obtains a deployer identity | The identity provider accepts a token only when its repository claim equals this repository; the condition is on the provider, before any binding | T1-CI-01: a token from another repository is refused at the provider | Planned, phase 6 step 2 |
-| Elevation | A pull request applies changes instead of planning them | Two deployers: any branch may become the plan identity (read only); only a token from `refs/heads/main` may become the apply identity | T1-CI-02: the pull-request workflow cannot obtain the apply identity | Planned, phase 6 step 2 |
+| Spoofing | A job from another repository, or a fork, obtains a deployer identity | The identity provider accepts a token only when its repository claim equals this repository; the condition is on the provider, before any binding | T1-CI-01: a token from another repository is refused at the provider | Planned; needs a job in a second repository to present a token, which this repository cannot do to itself |
+| Elevation | A pull request applies changes instead of planning them | Two deployers: any branch may become the plan identity (read only); only a token from `refs/heads/main` may become the apply identity | T1-CI-02: the pull-request workflow asks for the apply identity on every run and fails the run if it gets it | Passing, asserted on every pull request (`.github/workflows/terraform.yml`); the first real exchange was refused with permission denied |
 | Tampering | Terraform records altered or deleted so the next apply does the wrong thing | Versioned bucket with public access prevented at the bucket; only the two deployers and the operator may write | T1-CI-03: versioning and public-access prevention verified on the bucket | Passing (verified on the bucket after bootstrap apply) |
-| Repudiation | A change to the cloud cannot be traced to a merged pull request | Apply runs only on `main`, from a workflow whose run URL is recorded with the plan; no human holds the apply identity | T1-CI-04: every apply maps to a run and a merge commit | Planned, phase 6 step 2 |
+| Repudiation | A change to the cloud cannot be traced to a merged pull request | Apply runs only on `main`, from a workflow whose run URL is recorded with the plan; no human holds the apply identity | T1-CI-04: every apply maps to a run and a merge commit; the record is written beside the state by the apply job | Passing from the first apply on main (`.github/workflows/terraform.yml`) |
 
 ### Test index
 
@@ -180,9 +180,9 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | T1-EV-01 to T1-EV-03 | B5 | `test_boundaries.py` | Passing |
 | T1-SC-01 to T1-SC-04 | B6 | phase 4, phase 6 | Planned / gap |
 | T1-HX-01 to T1-HX-04 | B7 | phase 7 | Planned |
-| T1-CI-01 to T1-CI-04 | B8 | `infra/modules/delivery-plane/`; phase 6 step 2 | One passing, three planned |
+| T1-CI-01 to T1-CI-04 | B8 | `infra/modules/delivery-plane/`, `.github/workflows/terraform.yml` | Three passing, one planned |
 
-Count: 39 threat rows, 19 passing, 1 measured with mitigation upstream, 14 planned with a phase, 5 gaps named. The gaps are
+Count: 39 threat rows, 21 passing, 1 measured with mitigation upstream, 12 planned with a phase, 5 gaps named. The gaps are
 transport encryption between containers, rate limiting at two boundaries, audit
 immutability beyond append-only, and dependency hash pinning.
 
