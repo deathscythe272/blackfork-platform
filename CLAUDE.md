@@ -74,7 +74,8 @@ screenshared as much as run.
 
 - **Foundation:** F1 docs spine (done) · F2 cloud substrate (Terraform) · F3 CI/CD.
 - **Provenance:** P1 data plane · P2 context plane (MCP + gateway) · P3 agent plane ·
-  P4 assurance plane · P5 pipeline steward.
+  P4 assurance plane · P5 pipeline steward · P6 cartographer (candidate: draws the
+  platform's own diagrams from state, reviewed by a redaction lane + the judge).
 - **Gatehouse:** G1 deterministic lane (seed exists: `check_docs_standard.py`) · G2
   judge lane · G3 trust machinery (planted-flaw evals, advisory→blocking promotion,
   fail-open/-closed per ADR-005) · G3+ seeded injection evals (below).

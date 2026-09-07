@@ -53,6 +53,7 @@ subgraph DATA["Data plane — facts become agent-ready tables"]
   GOLD["Gold views<br><i>small tables shaped for agents, one system per row</i>"]
   DUCK["DuckDB<br><i>answers queries without a database server</i>"]
   STEWARD["Pipeline Steward agent<br><i>repairs a broken feed by opening a pull request</i>"]
+  CARTO["Cartographer agent<br><i>draws the platform's own diagrams from state</i>"]
 end
 
 subgraph CONTEXT["Context plane — the one door to data"]
@@ -83,6 +84,7 @@ subgraph ASSURE["Assurance plane — contained, tested, measured"]
   SAFETY["Output safety scorer<br><i>grades what the agents say</i>"]
   EVALS["Eval harness<br><i>fair and hostile questions, scored every change</i>"]
   PLANTED["Planted-flaw set<br><i>measures how often the judge is right</i>"]
+  REDACT["Diagram redaction lane<br><i>strips secrets and internal names before publication</i>"]
   OTEL["Tracing<br><i>every agent step, token, and call, inspectable</i>"]
   GRAFANA["Dashboards<br><i>posture, pipeline health, agent cost</i>"]
   THREAT["Threat model<br><i>every attack path with its control and test</i>"]
@@ -135,7 +137,8 @@ Read the layers top to bottom. Each is one row on the map.
 3. **Data plane.** Dagster moves every feed through three tables: the untouched
    original, the cleaned and redacted copy, and small agent-ready views. Quality
    checks stop bad data. The Pipeline Steward repairs broken feeds by opening pull
-   requests rather than pushing fixes.
+   requests rather than pushing fixes, and the Cartographer draws the platform's own
+   diagrams from the same state.
 4. **Context plane.** The one door. Two servers expose fixed queries and the
    rulebooks; the gateway checks identity and policy and records every call; the
    policy engine decides; the audit log remembers.
@@ -144,8 +147,8 @@ Read the layers top to bottom. Each is one row on the map.
    semantic search.
 6. **Assurance plane.** Everything that keeps the agents contained, tested, and
    measured: filters on their input and output, a sandbox for any that run commands,
-   scheduled attacks, output-safety grading, the eval sets, tracing, dashboards, the
-   threat model, and the workload profiles.
+   scheduled attacks, output-safety grading, the eval sets, a redaction lane for
+   generated diagrams, tracing, dashboards, the threat model, and the workload profiles.
 7. **Gatehouse.** The exact checks that block, the machinery that decides when the
    judge may block, and the branch protection that makes a verdict binding.
 8. **Cloud substrate.** The services, storage, secrets, and keyless identity that run
