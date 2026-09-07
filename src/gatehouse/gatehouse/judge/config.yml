@@ -1,0 +1,28 @@
+# Gatehouse judge workflow. The judge has no tools; its only input is the bundle and
+# its only instruction is rubric.yml. Same hosted model as the Provenance slice, with
+# reasoning disabled so the output is the JSON verdict and nothing else.
+# Key from NVIDIA_API_KEY. Serves: BR-3, BR-9.
+
+general:
+  use_uvloop: false
+  telemetry:
+    tracing:
+      file:
+        _type: file
+        output_path: traces/judge-traces.jsonl
+        project: blackfork-gatehouse-judge
+
+llms:
+  judge_llm:
+    _type: nim
+    model_name: nvidia/nemotron-3.5-lightning-30b-a3b
+    temperature: 0.0
+    max_tokens: 2048
+    chat_template_kwargs:
+      enable_thinking: false
+    # The hosted free tier can queue for over a minute; the client default is shorter.
+    timeout: 300
+
+workflow:
+  _type: gatehouse_judge
+  llm_name: judge_llm

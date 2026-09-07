@@ -113,8 +113,11 @@ ADR-008 appendix → satellites (patterns repo; upstream PRs to NVIDIA repos as 
 Docs-first phase complete: business case carries BR-8/BR-9 and C5/P7, START HERE
 and the narrative lead with the assurance layer, the three architecture pages read
 left to right in parts with walkthroughs, and `docs/ROADMAP.md` holds the phased plan.
-Docs-standard CI gate live and required on protected `main`; ADR-001 (gateway)
-accepted with a STRIDE seed for T1. V1 slice runs locally under `src/provenance/`
+Docs-standard CI gate live and required on protected `main`; ADR-001 (gateway) and
+ADR-003 (MCP-only) accepted; threat model at `02-architecture/agent-threat-model.md`.
+Gatehouse judge (`src/gatehouse/`, NAT plugin `gatehouse_judge`, rubric v1) runs as an
+advisory Actions workflow on every PR with the built-in token; `NVIDIA_API_KEY` is a
+repository secret. V1 slice runs locally under `src/provenance/`
 (evidence-mcp, gateway with OPA + audit, Evidence Collector on NAT with Guardrails,
 OTel, three evals passing; `scripts/demo.py`). Model: nvidia/nemotron-3.5-lightning-30b-a3b
 with `chat_template_kwargs.enable_thinking=false`. No cloud infra yet. Public docs describe the safety and evaluation emphasis without naming job
@@ -122,8 +125,9 @@ requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. PR: G2 judge lane + the fixed-or-dismissed loop, posting with the built-in Actions
-   token (decided 2026-09-07). Serves: BR-3, BR-9.
-2. PR: ADR-005 (two lanes, promotion by measured precision, fail-open/closed).
-3. PR: G3 planted-flaw evals, then G3+ seeded attacks closing the threat model's planned
-   B1/B3/B4/B5 tests and making the Rego tests a required check.
+1. PR: ADR-005 (two lanes, promotion by measured precision, fail-open/closed).
+2. PR: G3 planted-flaw evals: a fixture per rubric item plus clean controls, a scoring
+   script, precision/recall per item published in `docs/analysis/`.
+3. PR: G3+ seeded attacks (injection in diffs aimed at the judge, tool abuse against the
+   slice, Garak + NeMo Auditor), closing the threat model's planned B1/B3/B4/B5 tests
+   and making the Rego tests a required check.
