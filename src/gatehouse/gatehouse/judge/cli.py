@@ -25,12 +25,27 @@ CONFIG = HERE / "config.yml"
 RUBRIC = HERE / "rubric.yml"
 
 
+def _rendered_config() -> pathlib.Path:
+    """The config with the model base URL filled from NIM_BASE_URL (default: NVIDIA's endpoint)."""
+    import tempfile
+
+    text = CONFIG.read_text(encoding="utf-8").replace(
+        "__NIM_BASE_URL__", os.environ.get("NIM_BASE_URL", "https://integrate.api.nvidia.com/v1"))
+    tmp = tempfile.NamedTemporaryFile("w", suffix=".yml", delete=False, encoding="utf-8")
+    tmp.write(text); tmp.close()
+    return pathlib.Path(tmp.name)
+
+
 async def run_judge(bundle: dict) -> dict:
     from nat.runtime.loader import load_workflow
 
-    async with load_workflow(CONFIG) as workflow:
-        async with workflow.run(json.dumps(bundle)) as runner:
-            out = await runner.result(to_type=str)
+    cfg = _rendered_config()
+    try:
+        async with load_workflow(cfg) as workflow:
+            async with workflow.run(json.dumps(bundle)) as runner:
+                out = await runner.result(to_type=str)
+    finally:
+        cfg.unlink(missing_ok=True)
     return json.loads(out)
 
 

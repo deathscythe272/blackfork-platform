@@ -63,6 +63,8 @@ services:
       GATEWAY_TOKEN: ${GATEWAY_TOKEN}
       GATEWAY_URL: http://gateway:8000/mcp
       OTEL_ENDPOINT: http://otel-collector:4318/v1/traces
+      NIM_BASE_URL: ${NIM_BASE_URL:-https://integrate.api.nvidia.com/v1}
+    extra_hosts: ["host.docker.internal:host-gateway"]  # the profiling proxy, when one is running
     depends_on: [gateway, otel-collector]
     networks: [edge]
     labels: {plane: agent, system: provenance, env: dev, serves-br: "BR-7,BR-8,BR-9"}

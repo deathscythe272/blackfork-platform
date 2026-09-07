@@ -35,6 +35,7 @@ def _render_config() -> pathlib.Path:
         "__GATEWAY_URL__": os.environ.get("GATEWAY_URL", "http://localhost:8000/mcp"),
         "__GATEWAY_TOKEN__": os.environ["GATEWAY_TOKEN"],
         "__OTEL_ENDPOINT__": os.environ.get("OTEL_ENDPOINT", "http://localhost:4318/v1/traces"),
+        "__NIM_BASE_URL__": os.environ.get("NIM_BASE_URL", "https://integrate.api.nvidia.com/v1"),
     }
     for k, v in values.items():
         template = template.replace(k, v)

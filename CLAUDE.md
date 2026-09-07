@@ -124,7 +124,9 @@ R5, R6 clear every fixture threshold (1.00/1.00); R2 on notice. Required checks 
 main: `check` (docs standard incl. diagram rules), `cites-requirement`, and `rego`
 (policy tests). Seeded attacks done: zero steer-induced changes on three judge twins;
 seven agent cases contained with zero foreign calls; every answer scored safe; Garak
-run on the model; threat model 18/34 passing. Phase 4 complete except promotion. V1 slice runs locally under `src/provenance/`
+run on the model; threat model 18/34 passing. Phase 4 complete except promotion.
+Phase 5 done: harness profile (914 turns, 43k→853k context) and agent profile via the
+logging proxy (`src/profiling/`); agent tool-call cap 6; Steward token budget 50k/job. V1 slice runs locally under `src/provenance/`
 (evidence-mcp, gateway with OPA + audit, Evidence Collector on NAT with Guardrails,
 OTel, three evals passing; `scripts/demo.py`). Model: nvidia/nemotron-3.5-lightning-30b-a3b
 with `chat_template_kwargs.enable_thinking=false`. No cloud infra yet. Public docs describe the safety and evaluation emphasis without naming job
@@ -132,10 +134,9 @@ requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. PR: W1b agent workload profile: a local logging proxy in front of the model
-   endpoint (per-call tokens, latency; reasoning off by default; also the clean Garak
-   endpoint), agent + judge runs through it, long-horizon run, charts,
-   `docs/analysis/agent-workload-profile.md`. Serves: BR-9.
+1. PR: grow the judge's injection twin set (the clean Garak run showed the raw model
+   obeys 82% of plain injections with reasoning off; three twins is a thin sample) and
+   re-score; ADR-005 steerability is judged on the larger set.
 2. PR: rubric v1.3 removes R2 from the judged set (ADR-005: cannot earn its numbers) and
    re-scores; then the first promotion decision once 20 live instances exist.
 3. PR: harvest live PR findings (PR 12 already holds four reasoned dismissals against
