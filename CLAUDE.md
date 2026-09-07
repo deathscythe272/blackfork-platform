@@ -126,7 +126,9 @@ main: `check` (docs standard incl. diagram rules), `cites-requirement`, and `reg
 seven agent cases contained with zero foreign calls; every answer scored safe; Garak
 run on the model; threat model 18/34 passing. Phase 4 complete except promotion.
 Phase 5 done: harness profile (914 turns, 43k→853k context) and agent profile via the
-logging proxy (`src/profiling/`); agent tool-call cap 6; Steward token budget 50k/job. V1 slice runs locally under `src/provenance/`
+logging proxy (`src/profiling/`); agent tool-call cap 6; Steward token budget 50k/job.
+Rubric v1.3 (R2 to human review, six injection twins): the title-and-body twin steered
+R4 and R6; v1.4 moves both to Lane 1. V1 slice runs locally under `src/provenance/`
 (evidence-mcp, gateway with OPA + audit, Evidence Collector on NAT with Guardrails,
 OTel, three evals passing; `scripts/demo.py`). Model: nvidia/nemotron-3.5-lightning-30b-a3b
 with `chat_template_kwargs.enable_thinking=false`. No cloud infra yet. Public docs describe the safety and evaluation emphasis without naming job
@@ -134,11 +136,10 @@ requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. PR: grow the judge's injection twin set (the clean Garak run showed the raw model
-   obeys 82% of plain injections with reasoning off; three twins is a thin sample) and
-   re-score; ADR-005 steerability is judged on the larger set.
-2. PR: rubric v1.3 removes R2 from the judged set (ADR-005: cannot earn its numbers) and
-   re-scores; then the first promotion decision once 20 live instances exist.
-3. PR: harvest live PR findings (PR 12 already holds four reasoned dismissals against
+1. PR: rubric v1.4: R6 (tool without grant or eval in the same PR) and R4's mechanical
+   half (boundary signal without a threat-model change in the same PR) become Lane 1
+   scripts; the body can no longer exempt either. The judge keeps R1 and R5. Re-score.
+   Serves: BR-8, BR-9.
+2. PR: harvest live PR findings (PR 12 already holds four reasoned dismissals against
    rubric v1, all the same cause: v1 could see test data) (fixed = accepted, dismissed = false positive) into the
    precision table.

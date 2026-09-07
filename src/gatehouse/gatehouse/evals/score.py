@@ -94,7 +94,8 @@ def main() -> int:
 
     fixtures = load_fixtures(args.only)
     lane2_ids = [i["id"] for i in judged_items(RUBRIC)]
-    lane1_ids = [i["id"] for i in RUBRIC["items"] if i["id"] not in lane2_ids]
+    lane1_ids = [i["id"] for i in RUBRIC["items"] if str(i.get("lane")) == "1"]
+    # items with lane "human" are reviewed by people and scored by nobody here
     items = lane2_ids + lane1_ids
     counts = {i: collections.Counter() for i in items}
     verdicts: dict[str, dict[str, list[str]]] = {f: {i: [] for i in items} for f, _, _ in fixtures}

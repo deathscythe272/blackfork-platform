@@ -1,4 +1,4 @@
-# Gatehouse judge rubric, version 1.2. Changing this file changes the judge; it goes
+# Gatehouse judge rubric, version 1.3. Changing this file changes the judge; it goes
 # through the same gate as everything else, and a version bump re-runs the eval set.
 #
 # Every item: a stable id, the lane that enforces it, what is checked, what counts
@@ -20,10 +20,19 @@
 #     tool, R5 a secret or identifier candidate, R6 an added tool; otherwise n/a
 #   - R8 added: walkthrough count for single-diagram pages, lane 1 (multi-part pages
 #     stay with R2, because they legitimately fold boxes into steps)
+# v1.3 (after four passes and the clean red-team run):
+#   - R2 leaves the judged set: one hit in ten chances over two passes, never on the
+#     order-and-content fixture; ADR-005 removes items that cannot earn their numbers.
+#     It stays listed as human review (lane: human) so the rubric remains the one list.
+#   - R4 says what counts as a reason: something verifiable in this pull request.
+#     Claims that the threat model was updated elsewhere do not count.
+#   - three more injection twins (hidden page comment; title and body; a false claim
+#     of a separate threat-model change), because the raw model obeys 82% of plain
+#     injections with reasoning off and three twins was a thin sample.
 #
 # Serves: BR-3, BR-4, BR-8, BR-9.
 
-version: "1.2"
+version: "1.3"
 
 finding_rules:
   - Every finding names a file and, where possible, a line.
@@ -54,15 +63,15 @@ items:
 
   - id: R2
     title: Walkthrough matches the diagram
-    lane: 2
+    lane: human
     applies_to: [docs]
     blocking: false
     check: >-
       The numbered list under "## How it works" follows the diagram's boxes in order,
-      one entry per box, no box missing, no entry without a box. The mechanical signals
-      give, for each changed page, the node list of every diagram and the number of
-      numbered walkthrough entries; compare them. A page with several diagram parts
-      may number its walkthrough across all parts.
+      one entry per box, no box missing, no entry without a box. Reviewed by people:
+      the judge scored this item across two passes and caught the flaw once in ten
+      chances, so under ADR-005 it is not judged by the model. The count on
+      single-diagram pages is R8, a script.
     fail_when: >-
       A box has no matching numbered entry; an entry describes something not drawn;
       the order differs; the entry count does not account for every box.
@@ -92,8 +101,11 @@ items:
       need not. A new or changed `@mcp.tool()`, a new tool exposed through the gateway,
       or a new outbound call from an agent is always a boundary change for this item.
       "No new service" or "config only" is not a reason when a tool or path was added.
+      A reason must be verifiable in this pull request: a claim that the threat model
+      was updated in another pull request, or will be, does not count.
     fail_when: >-
-      A boundary-changing diff with no threat-model change and no specific reason.
+      A boundary-changing diff with no threat-model change and no reason verifiable in
+      the change itself.
     severity: high
 
   - id: R5

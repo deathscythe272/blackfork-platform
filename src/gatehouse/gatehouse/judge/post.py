@@ -101,10 +101,13 @@ def render(verdict: dict, rows: list[dict], rubric: dict, n_files: int) -> str:
     v = verdict["rubric_version"]
     counts = {s: sum(1 for r in rows if r["status"] == s) for s in ("open", "fixed", "dismissed")}
     blocking = {i["id"] for i in rubric["items"] if i.get("blocking")}
-    judged = [i for i in rubric["items"] if int(i.get("lane", 2)) == 2]
+    judged = [i for i in rubric["items"] if str(i.get("lane", 2)) == "2"]
+    scripted = [i for i in rubric["items"] if str(i.get("lane")) == "1"]
+    human = [i for i in rubric["items"] if i.get("lane") == "human"]
     lines = [MARKER, f"### Gatehouse judge · rubric v{v} · advisory",
              f"Checked {len(judged)} judgment items on {n_files} changed file(s); "
-             f"{len(rubric['items']) - len(judged)} exact-rule items run as scripts. "
+             f"{len(scripted)} exact-rule items run as scripts"
+             + (f"; {len(human)} item(s) left to human review" if human else "") + ". "
              f"**{counts['open']} open**, {counts['fixed']} fixed, {counts['dismissed']} dismissed.", ""]
     lines.append("| Item | Verdict | Note |")
     lines.append("|---|---|---|")
