@@ -89,7 +89,7 @@ exists to rotate, leak, or commit.
 
 | Identity | Reach | Why |
 |---|---|---|
-| Plan deployer | Read the project; read and lock the records | A pull request must show its effect and change nothing |
+| Plan deployer | Read the project and its permission bindings; read and lock the records | A pull request must show its effect and change nothing |
 | Apply deployer | Manage Cloud Run, identities and their bindings, registry, secrets, topics, buckets | An environment root creates all of these; narrowed as the planes settle |
 | Gateway | Nothing beyond its own identity yet | Token check, policy decision, audit write need no cloud permission of their own |
 | Evidence server | Read the lakehouse bucket | Fixed queries over evidence, read only (ADR-003) |
