@@ -138,8 +138,11 @@ hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
 1. Done: G2 judge lane, a NAT workflow that scores a PR bundle against rubric v1 and
    posts one advisory comment per pull request, with a fixed-or-dismissed loop and a
    `gatehouse/judge` check run. Never blocks yet. See `30-gatehouse/judge-lane.md`.
-2. PR ADR-005: two lanes; advisory→blocking promotion by measured precision;
-   fail-open versus fail-closed rules.
+2. Done: ADR-005, two lanes; per-item promotion at precision ≥ 0.90, recall ≥ 0.80,
+   ≥ 20 instances over ≥ 5 fixture runs, ≥ 90% stability, zero steer-induced verdict
+   changes; demotion on trailing precision < 0.80, two consecutive dismissals, any
+   injection-induced change, or any model/prompt/rubric change; Lane 1 and blocking
+   items fail closed, advisory items fail open; no administrative bypass.
 3. PR G3 planted-flaw evals: synthetic PRs with known design flaws, a scoring script,
    and a published precision/recall table per rubric item.
 4. PR G3+ seeded injection evals: adversarial cases added to the eval set — injection

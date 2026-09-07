@@ -115,7 +115,7 @@ hunting for them, which is where the first miss came from (BR-3, BR-9). The
 fixed-or-dismissed loop exists because an advisory bot nobody answers is worse than no
 bot: it teaches reviewers to skip it. Making dismissal a recorded, reasoned act turns
 disagreement into measurement, and measurement is the only thing that can ever give the
-judge authority (ADR-005, planned). The judge is itself an agent that reads text anyone
+judge authority (ADR-005). The judge is itself an agent that reads text anyone
 can write, so it is bound by the same threat model as the Evidence Collector (BR-8).
 
 ## Go deeper
