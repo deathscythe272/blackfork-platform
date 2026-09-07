@@ -79,6 +79,18 @@ agent has no route to evidence-mcp or OPA; the gateway is the only bridge. This 
 seed of the sandbox boundary C5 requires for agents that act; a full sandbox adds
 filesystem and credential isolation and an egress allow-list.
 
+**Two settings for the cloud, off on the laptop.** The same gateway image runs in
+both places. On the laptop its audit rows go to a file and the evidence server is
+reachable only over a private network. In the cloud there is no private network and
+no disk to trust, so two settings switch behavior: the audit sink can be the
+platform-events topic, still written before the call is forwarded and still failing
+the call if the broker does not acknowledge (`gateway/audit.py`); and every forwarded
+call can carry the gateway's own signed identity for the evidence server's address,
+so the evidence server admits the gateway and no one else (`gateway/upstream.py`).
+The eval runner reads audit rows from the file or from the assurance plane's
+subscription the same way (`evals/audit_source.py`). Nine unit tests cover the three
+with the cloud clients stubbed; the deployed form is roadmap phase 6, step 3.
+
 **What the evals assert.** From `src/provenance/evals/cases.yaml`:
 
 | Case | Must hold |

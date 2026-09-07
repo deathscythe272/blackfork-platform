@@ -147,6 +147,10 @@ requisitions. Repo is public on GitHub.
    ADR-005 threshold; R1 and R5 are the only candidates left in Lane 2.
 3. PR: judge retry waits longer on a rate limit (429) so run success measures the
    endpoint, not a two-second backoff; then re-score. Serves: BR-9.
-4. PR: Cloud Run services for the gateway and evidence server, scale to zero, secret
-   from Secret Manager; the deployed gateway answers the phase 2 eval. Serves: BR-5.
+4. PR B: Cloud Run services for the gateway (OPA sidecar, policy baked in) and the
+   evidence server (fixture DB baked in, invoker = gateway identity), scale to zero;
+   gateway signing key as a second secret (value added by the user from a shell);
+   images built and pushed on main before apply; budget alert; done when the laptop
+   eval runner passes 7/7 against the deployed gateway with AUDIT_SOURCE=pubsub.
+   Serves: BR-5, BR-7, BR-8, C4.
 5. Phase 7 P1 data plane (Dagster, Iceberg on the lakehouse bucket, DuckDB, Presidio).
