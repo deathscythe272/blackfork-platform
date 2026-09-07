@@ -5,6 +5,6 @@
   ],
   "note": "A literal API key committed to compose. The value is synthetic. R5 must fail with the file and line named. R4 may also fail: the rubric lists a credential as a boundary change.",
   "may_fail": [
-    "R4"
+    "R9"
   ]
 }

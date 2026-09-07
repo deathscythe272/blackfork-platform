@@ -68,7 +68,7 @@ def build_messages(rubric_text: str, bundle: dict[str, Any]) -> list[dict[str, s
         parts.append("=== EVIDENCE: docs standard, diagram rules ===\n" + ctx["diagram_rules"])
     if ctx.get("threat_model_boundaries"):
         parts.append("=== EVIDENCE: threat model, boundary list ===\n" + ctx["threat_model_boundaries"])
-    for f in bundle.get("changed_files", []):
+    for f in bundle.get("changed_files", []):  # never raw_changed_files: test data stays withheld
         parts.append(f"=== EVIDENCE: diff for {f['path']} ({f.get('status', 'modified')}) ===\n{f.get('patch') or '(binary or no patch)'}")
     for path, content in (bundle.get("full_files") or {}).items():
         parts.append(f"=== EVIDENCE: full content after change, {path} ===\n{content}")
@@ -89,10 +89,7 @@ def judged_items(rubric: dict) -> list[dict]:
 GATES = {
     # item -> signal keys, any non-empty one lets the item be judged; otherwise not_applicable
     "R1": ("template_docs_changed",),
-    "R2": ("template_docs_changed",),
-    "R4": ("boundary_signals", "mcp_tools_added"),
     "R5": ("secret_pattern_hits", "identifier_candidates"),
-    "R6": ("mcp_tools_added",),
 }
 
 

@@ -92,6 +92,82 @@ def walkthrough_rule(text: str, path: str = "") -> list[str]:
     return []
 
 
+THREAT_MODEL = "docs/02-architecture/agent-threat-model.md"
+_TEST_DATA = re.compile(r"(^|/)(fixtures|tests|test|testdata|evals)/|\.patch$|\.diff$")
+_PLACEHOLDER = re.compile(r"\.\.\.|\$\{|<[^>]+>|your[-_ ]?key|example|placeholder|paste", re.I)
+
+
+def is_test_data(path: str) -> bool:
+    return bool(_TEST_DATA.search(path))
+
+
+def boundary_kinds(path: str, line: str) -> list[str]:
+    """What kind of trust-boundary change one added line represents, if any."""
+    kinds = []
+    if re.search(r"https?://", line) and not _PLACEHOLDER.search(line):
+        kinds.append("url")
+    if re.search(r"\b[A-Z][A-Z0-9_]*_(URL|ENDPOINT|HOST|KEY|TOKEN|SECRET|PASSWORD)\b", line):
+        kinds.append("credential-or-endpoint env var")
+    if path.endswith(("docker-compose.yml", "compose.yml", "compose.yaml")) and re.match(r"^  [a-z0-9][a-z0-9_-]*:\s*$", line):
+        kinds.append("compose service")
+    if re.search(r"\b(httpx|requests|aiohttp|urllib)\.(post|get|put|request|urlopen)\(", line):
+        kinds.append("outbound call")
+    if "@mcp.tool" in line:
+        kinds.append("tool")
+    return kinds
+
+
+def tool_rule(paths: list[str], added: list[tuple[str, int, str]]) -> list[str]:
+    """R6, lane 1: a new agent tool ships with a policy grant and an eval case in the same change."""
+    tools = [(p, n) for p, n, t in added if "@mcp.tool" in t and not is_test_data(p)]
+    if not tools:
+        return []
+    fails = []
+    if not any(p.endswith(".rego") for p in paths):
+        fails.append("new tool(s) at " + ", ".join(f"{p}:{n}" for p, n in tools) + " with no Rego policy change in this pull request")
+    if not any(("/evals/" in p or p.endswith("cases.yaml")) and not p.endswith((".patch", ".diff")) for p in paths):
+        fails.append("new tool(s) at " + ", ".join(f"{p}:{n}" for p, n in tools) + " with no eval case change in this pull request")
+    return fails
+
+
+def boundary_rule(paths: list[str], added: list[tuple[str, int, str]]) -> list[str]:
+    """R9, lane 1: a trust-boundary change comes with a threat-model change in the same pull request."""
+    hits = []
+    for p, n, t in added:
+        if is_test_data(p):
+            continue
+        kinds = boundary_kinds(p, t)
+        if p.endswith(".md") and kinds == ["url"]:
+            continue  # a hyperlink on a docs page is a citation, not a trust boundary
+        if kinds:
+            hits.append((p, n, kinds))
+    if not hits:
+        return []
+    if THREAT_MODEL in paths:
+        return []
+    where = "; ".join(f"{p}:{n} ({', '.join(k)})" for p, n, k in hits[:6])
+    return [f"trust-boundary change with no change to {THREAT_MODEL} in this pull request: {where}"]
+
+
+def added_lines_from_patch(path: str, patch: str) -> list[tuple[str, int, str]]:
+    """(path, new line number, text) for every added line in a unified diff of one file."""
+    out = []
+    new_ln = 0
+    for line in patch.splitlines():
+        if line.startswith("@@"):
+            m = re.search(r"\+(\d+)", line)
+            new_ln = int(m.group(1)) - 1 if m else 0
+            continue
+        if line.startswith(("+++", "---")):
+            continue
+        if line.startswith("+"):
+            new_ln += 1
+            out.append((path, new_ln, line[1:]))
+        elif not line.startswith("-"):
+            new_ln += 1
+    return out
+
+
 def citation(body: str) -> tuple[bool, str]:
     """Does a pull-request body cite an existing requirement or constraint?"""
     m = re.search(r"Serves:\s*((?:BR-\d+|C\d+)(?:\s*,\s*(?:BR-\d+|C\d+))*)", body or "")

@@ -106,27 +106,54 @@ def test_render_roundtrips_state_and_conclusion():
 def test_lane1_verdicts_are_exact_on_fixtures():
     from gatehouse.evals.score import lane1_verdicts
     v = lane1_verdicts(gather.from_fixture(FIXTURES / "bad-diagram-nine-nodes"))
-    assert v == {"R3": False, "R7": True, "R8": True}
+    assert v == {"R3": False, "R7": True, "R8": True, "R6": False, "R9": False}
     v = lane1_verdicts(gather.from_fixture(FIXTURES / "no-citation"))
-    assert v == {"R3": True, "R7": False, "R8": False}
+    assert v == {"R3": True, "R7": False, "R8": False, "R6": False, "R9": False}
     v = lane1_verdicts(gather.from_fixture(FIXTURES / "clean-docs-gloss"))
-    assert v == {"R3": False, "R7": False, "R8": False}
+    assert v == {"R3": False, "R7": False, "R8": False, "R6": False, "R9": False}
+
+
+def test_tool_and_boundary_rules_ignore_the_body():
+    """v1.4: R6 and R9 are scripts, so the pull-request text cannot exempt them."""
+    from gatehouse.evals.score import lane1_verdicts
+    for name in ("new-tool-no-grant", "inject-tool-no-grant", "inject-title-and-body"):
+        v = lane1_verdicts(gather.from_fixture(FIXTURES / name))
+        assert v["R6"] and v["R9"], name
+    for name in ("new-network-path-no-threat-model", "inject-network-path-claims-tm"):
+        v = lane1_verdicts(gather.from_fixture(FIXTURES / name))
+        assert v["R9"] and not v["R6"], name
+    for name in ("clean-code-typo", "clean-mixed", "inject-clean-docs-body", "inject-docs-hidden-comment"):
+        v = lane1_verdicts(gather.from_fixture(FIXTURES / name))
+        assert not v["R6"] and not v["R9"], name
+
+
+def test_boundary_rule_skips_docs_hyperlinks_and_test_data():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("lane1_rules", gather.REPO_ROOT / "scripts" / "lane1_rules.py")
+    rules = importlib.util.module_from_spec(spec); spec.loader.exec_module(rules)
+    link = [("docs/01-business-case.md", 3, "See https://www.nist.gov/ for the catalog.")]
+    assert rules.boundary_rule(["docs/01-business-case.md"], link) == []
+    fixture = [("src/gatehouse/gatehouse/judge/fixtures/x/server.py", 1, "@mcp.tool()")]
+    assert rules.tool_rule([fixture[0][0]], fixture) == [] and rules.boundary_rule([fixture[0][0]], fixture) == []
+    real = [("src/provenance/evidence_mcp/server.py", 40, "@mcp.tool()")]
+    assert len(rules.tool_rule([real[0][0]], real)) == 2 and len(rules.boundary_rule([real[0][0]], real)) == 1
+    assert rules.boundary_rule([real[0][0], rules.THREAT_MODEL], real) == []
 
 
 def test_judge_scores_only_lane2_items():
     rubric = yaml.safe_load(RUBRIC)
     ids = [i["id"] for i in prompt.judged_items(rubric)]
-    assert "R3" not in ids and "R7" not in ids and "R4" in ids
+    assert ids == ["R1", "R5"]  # v1.4: R6 and R9 are scripts, R2 and R4 are human review
     v = prompt.parse_verdict('{"rubric_version":"1.1","items":[{"id":"R7","verdict":"fail"}],"findings":[{"item":"R7","severity":"high","file":"x","line":1,"why":"w","fix":"f"}]}', RUBRIC)
     assert all(i["id"] != "R7" for i in v["items"]) and v["findings"] == []
 
 
 def test_parser_gates_close_items_with_no_signal():
     b = gather.from_fixture(FIXTURES / "clean-docs-gloss")
-    assert set(prompt.gated_off(b["signals"])) == {"R4", "R5", "R6"}
-    raw = '{"rubric_version":"1.2","items":[{"id":"R4","verdict":"fail","note":"pile-on"}],"findings":[{"item":"R4","severity":"high","file":"docs/x.md","line":1,"why":"w","fix":"f"}]}'
+    assert set(prompt.gated_off(b["signals"])) == {"R5"}
+    raw = '{"rubric_version":"1.4","items":[{"id":"R5","verdict":"fail","note":"pile-on"}],"findings":[{"item":"R5","severity":"high","file":"docs/x.md","line":1,"why":"w","fix":"f"}]}'
     v = prompt.parse_verdict(raw, RUBRIC, b["signals"])
-    r4 = next(i for i in v["items"] if i["id"] == "R4")
-    assert r4["verdict"] == "not_applicable" and v["findings"] == [] and "R4" in v["gated_off"]
-    b2 = gather.from_fixture(FIXTURES / "new-tool-no-grant")
-    assert "R4" not in prompt.gated_off(b2["signals"]) and "R6" not in prompt.gated_off(b2["signals"])
+    r5 = next(i for i in v["items"] if i["id"] == "R5")
+    assert r5["verdict"] == "not_applicable" and v["findings"] == [] and "R5" in v["gated_off"]
+    b2 = gather.from_fixture(FIXTURES / "secret-in-compose")
+    assert "R5" not in prompt.gated_off(b2["signals"])

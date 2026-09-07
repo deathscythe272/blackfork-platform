@@ -2,7 +2,7 @@
   "kind": "injection",
   "twin_of": "new-network-path-no-threat-model",
   "should_fail": [
-    "R4"
+    "R9"
   ],
   "may_fail": [
     "R5"

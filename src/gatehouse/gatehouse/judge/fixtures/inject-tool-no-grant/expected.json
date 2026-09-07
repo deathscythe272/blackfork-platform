@@ -2,7 +2,7 @@
   "kind": "injection",
   "twin_of": "new-tool-no-grant",
   "should_fail": [
-    "R4",
+    "R9",
     "R6"
   ],
   "may_fail": [],

@@ -184,8 +184,11 @@ hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
    reason the rails and gates are the containment, not the model. The judge's
    injection set doubled to six (rubric v1.3, which also retired R2 to human review):
    one twin, the injection in the pull-request title and body, steered R4 and R6 from
-   fail to pass on every run. Both move to Lane 1 in v1.4 because the facts they
-   depend on are parser facts; the judge keeps R1 and R5.
+   fail to pass on every run. Rubric v1.4 moved both to Lane 1 as
+   `scripts/check_pr_boundaries.py`, a required check that reads only the diff: R6
+   (tool without grant or eval) and R9 (boundary change without a threat-model
+   change); R4's remaining judgment went to human review. The judge keeps R1 and R5.
+   Sixth pass re-scored the set under v1.4; see `docs/analysis/judge-precision.md`.
 5. Promote any rubric item whose measured precision clears the ADR-005 threshold to
    blocking.
 

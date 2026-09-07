@@ -1,0 +1,17 @@
+# Gatehouse Lane 1: a new agent tool ships with a policy grant and an eval case, and a
+# trust-boundary change ships with a threat-model change, in the same pull request.
+# Moved here from the judge (R6, and R4's mechanical half) after the fifth precision
+# pass showed the model could be talked out of both by the pull-request body.
+# Serves: BR-7, BR-8, BR-9.
+name: pr-boundaries
+on:
+  pull_request:
+jobs:
+  boundaries:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: "Require grants, evals, and threat-model changes alongside the changes that need them"
+        run: python3 scripts/check_pr_boundaries.py origin/${{ github.base_ref }}

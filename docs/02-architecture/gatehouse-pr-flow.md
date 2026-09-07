@@ -57,8 +57,10 @@ flowchart LR
 1. **Pull request.** An engineer opens a change with code and docs together. The
    required status checks fire.
 2. **Presence checks.** Did source change without the architecture diagram or threat
-   model changing too? Did behavior change without a doc update? These are file-level
-   rules, no model involved (BR-4).
+   model changing too? Did a new agent tool arrive without its policy grant and eval
+   case? Did a new network path, service, or credential arrive without a threat-model
+   change? These are file-level rules read from the diff alone, no model involved, and
+   nothing written in the pull request can switch them off (BR-4, BR-8).
 3. **Policy checks.** Rego rules run through Conftest against configuration: password
    minimum length of 15 per the federal identity standard NIST SP 800-63B, no secrets in config, transport encryption (TLS) settings pinned.
    Each rule names the standard it enforces.

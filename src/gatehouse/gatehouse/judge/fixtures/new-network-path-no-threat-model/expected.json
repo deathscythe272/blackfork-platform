@@ -1,6 +1,10 @@
 {
   "kind": "planted",
-  "should_fail": ["R4"],
-  "may_fail": ["R5"],
+  "should_fail": [
+    "R9"
+  ],
+  "may_fail": [
+    "R5"
+  ],
   "note": "The gateway gains a new outbound network call and a new service that sits on both networks, with no threat-model change and a body that waves it off as internal. R4 must fail. R5 may fail on the project id in the emulator URL."
 }

@@ -195,7 +195,8 @@ def from_fixture(fixture_dir: pathlib.Path) -> dict[str, Any]:
     sig = signals(changed, body)
     sig["diagram_facts"] = _diagram_facts(full)
     return {"pr": {"number": None, "title": title, "body": body, "source": f"fixture:{fixture_dir.name}"},
-            "changed_files": _redact_test_data(changed), "full_files": full, "context": _context(), "signals": sig}
+            "changed_files": _redact_test_data(changed), "raw_changed_files": changed,
+            "full_files": full, "context": _context(), "signals": sig}
 
 
 def _split_patch(patch: str) -> list[dict[str, Any]]:
@@ -237,7 +238,8 @@ def from_github(repo: str, number: int, token: str, checkout: pathlib.Path | Non
             full[f["path"]] = _clip(p.read_text(encoding="utf-8"), MAX_FILE_CHARS)
     return {"pr": {"number": number, "title": pr.get("title", ""), "body": pr.get("body") or "", "source": f"github:{repo}#{number}",
                    "head_sha": pr.get("head", {}).get("sha")},
-            "changed_files": _redact_test_data(changed), "full_files": full, "context": _context(),
+            "changed_files": _redact_test_data(changed), "raw_changed_files": changed, "full_files": full,
+            "context": _context(),
             "signals": {**signals(changed, pr.get("body") or ""), "diagram_facts": _diagram_facts(full)}}
 
 
