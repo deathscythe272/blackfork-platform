@@ -188,7 +188,9 @@ hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
    `scripts/check_pr_boundaries.py`, a required check that reads only the diff: R6
    (tool without grant or eval) and R9 (boundary change without a threat-model
    change); R4's remaining judgment went to human review. The judge keeps R1 and R5.
-   Sixth pass re-scored the set under v1.4; see `docs/analysis/judge-precision.md`.
+   Sixth pass under v1.4: both scripts exact on all sixteen fixtures; R1 clears every
+   threshold; R5 shows one steer change on a borderline identifier; 26 of 80 calls
+   were rate limits (`docs/analysis/judge-precision.md`).
 5. Promote any rubric item whose measured precision clears the ADR-005 threshold to
    blocking.
 

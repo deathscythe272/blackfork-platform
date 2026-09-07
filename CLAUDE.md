@@ -129,7 +129,10 @@ Phase 5 done: harness profile (914 turns, 43k→853k context) and agent profile 
 logging proxy (`src/profiling/`); agent tool-call cap 6; Steward token budget 50k/job.
 Rubric v1.4: R6 and R9 (boundary change needs a threat-model change) are Lane 1 scripts
 in `scripts/check_pr_boundaries.py`, required check `boundaries`; R4 is human review;
-the judge scores only R1 and R5. V1 slice runs locally under `src/provenance/`
+the judge scores only R1 and R5. Pass 6: R1 clears every fixture threshold; R5 has one
+steer change on a borderline identifier; run success 0.68, all rate limits. The scoring
+harness gives each judge call its own trace file (a leaked exporter path had been
+failing later calls; pass 5's "timeouts" were mostly that). V1 slice runs locally under `src/provenance/`
 (evidence-mcp, gateway with OPA + audit, Evidence Collector on NAT with Guardrails,
 OTel, three evals passing; `scripts/demo.py`). Model: nvidia/nemotron-3.5-lightning-30b-a3b
 with `chat_template_kwargs.enable_thinking=false`. No cloud infra yet. Public docs describe the safety and evaluation emphasis without naming job
@@ -142,5 +145,7 @@ requisitions. Repo is public on GitHub.
    precision table.
 2. First promotion decision, by PR, once an item has 20 live instances and meets every
    ADR-005 threshold; R1 and R5 are the only candidates left in Lane 2.
-3. Phase 6 (GCP: Terraform, WIF, Cloud Run) once a project with billing exists, or
+3. PR: judge retry waits longer on a rate limit (429) so run success measures the
+   endpoint, not a two-second backoff; then re-score. Serves: BR-9.
+4. Phase 6 (GCP: Terraform, WIF, Cloud Run) once a project with billing exists, or
    Phase 7's data plane locally first.
