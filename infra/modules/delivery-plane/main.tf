@@ -74,6 +74,14 @@ resource "google_project_iam_member" "plan_viewer" {
   member  = "serviceAccount:${google_service_account.plan.email}"
 }
 
+# Reading a resource's permission bindings (who may read a bucket or a subscription)
+# is not part of roles/viewer; the security-reviewer role adds exactly that, read only.
+resource "google_project_iam_member" "plan_security_reviewer" {
+  project = var.project_id
+  role    = "roles/iam.securityReviewer"
+  member  = "serviceAccount:${google_service_account.plan.email}"
+}
+
 # Plan needs to write the state lock, so it gets object access on the state bucket only.
 resource "google_storage_bucket_iam_member" "plan_state" {
   bucket = google_storage_bucket.tfstate.name
