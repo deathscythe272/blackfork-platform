@@ -101,3 +101,21 @@ def test_render_roundtrips_state_and_conclusion():
     assert post.conclusion_for(rows, rubric)[0] == "neutral"  # advisory while nothing is blocking
     rubric["items"][4]["blocking"] = True  # R5
     assert post.conclusion_for(rows, rubric)[0] == "failure"
+
+
+def test_lane1_verdicts_are_exact_on_fixtures():
+    from gatehouse.evals.score import lane1_verdicts
+    v = lane1_verdicts(gather.from_fixture(FIXTURES / "bad-diagram-nine-nodes"))
+    assert v == {"R3": False, "R7": True}
+    v = lane1_verdicts(gather.from_fixture(FIXTURES / "no-citation"))
+    assert v == {"R3": True, "R7": False}
+    v = lane1_verdicts(gather.from_fixture(FIXTURES / "clean-docs-gloss"))
+    assert v == {"R3": False, "R7": False}
+
+
+def test_judge_scores_only_lane2_items():
+    rubric = yaml.safe_load(RUBRIC)
+    ids = [i["id"] for i in prompt.judged_items(rubric)]
+    assert "R3" not in ids and "R7" not in ids and "R4" in ids
+    v = prompt.parse_verdict('{"rubric_version":"1.1","items":[{"id":"R7","verdict":"fail"}],"findings":[{"item":"R7","severity":"high","file":"x","line":1,"why":"w","fix":"f"}]}', RUBRIC)
+    assert all(i["id"] != "R7" for i in v["items"]) and v["findings"] == []

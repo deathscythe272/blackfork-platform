@@ -120,7 +120,36 @@ def _clip(s: str, n: int) -> str:
 
 
 def _wants_full(path: str) -> bool:
-    return path.endswith(".md") and path.startswith("docs/")
+    return path.endswith(".md") and path.startswith("docs/") and not is_test_data(path)
+
+
+def _redact_test_data(changed: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Test-data files stay in the changed list but their contents never reach the model."""
+    out = []
+    for f in changed:
+        if is_test_data(f["path"]):
+            out.append({**f, "patch": "(test data by design: contents withheld from the judge)"})
+        else:
+            out.append(f)
+    return out
+
+
+def _diagram_facts(full: dict[str, str]) -> list[dict[str, Any]]:
+    """Node lists and walkthrough counts for changed template pages (for R2)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("lane1_rules", REPO_ROOT / "scripts" / "lane1_rules.py")
+    rules = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(rules)
+    facts = []
+    for path, text in full.items():
+        if "You are here:" not in text:
+            continue
+        facts.append({"path": path,
+                      "diagrams": [{"direction": d["direction"], "node_count": d["node_count"], "nodes": d["nodes"]}
+                                   for d in rules.diagrams(text)],
+                      "walkthrough_entries": rules.walkthrough_entries(text),
+                      "lane1_failures": rules.diagram_rules(text, path)})
+    return facts
 
 
 # ---- local fixture -----------------------------------------------------------------
@@ -136,8 +165,10 @@ def from_fixture(fixture_dir: pathlib.Path) -> dict[str, Any]:
         p = files_dir / f["path"]
         if _wants_full(f["path"]) and p.exists():
             full[f["path"]] = _clip(p.read_text(encoding="utf-8"), MAX_FILE_CHARS)
+    sig = signals(changed, body)
+    sig["diagram_facts"] = _diagram_facts(full)
     return {"pr": {"number": None, "title": title, "body": body, "source": f"fixture:{fixture_dir.name}"},
-            "changed_files": changed, "full_files": full, "context": _context(), "signals": signals(changed, body)}
+            "changed_files": _redact_test_data(changed), "full_files": full, "context": _context(), "signals": sig}
 
 
 def _split_patch(patch: str) -> list[dict[str, Any]]:
@@ -179,8 +210,8 @@ def from_github(repo: str, number: int, token: str, checkout: pathlib.Path | Non
             full[f["path"]] = _clip(p.read_text(encoding="utf-8"), MAX_FILE_CHARS)
     return {"pr": {"number": number, "title": pr.get("title", ""), "body": pr.get("body") or "", "source": f"github:{repo}#{number}",
                    "head_sha": pr.get("head", {}).get("sha")},
-            "changed_files": changed, "full_files": full, "context": _context(),
-            "signals": signals(changed, pr.get("body") or "")}
+            "changed_files": _redact_test_data(changed), "full_files": full, "context": _context(),
+            "signals": {**signals(changed, pr.get("body") or ""), "diagram_facts": _diagram_facts(full)}}
 
 
 def from_env() -> dict[str, Any]:

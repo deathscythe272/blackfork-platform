@@ -54,17 +54,34 @@ flowchart LR
 ## The details
 
 <!-- results:start -->
-Run 2026-09-07T16:08:52+00:00 · rubric v1 · model `nvidia/nemotron-3.5-lightning-30b-a3b` · 5 runs × 9 fixtures · judge run success 43/45 (0.96).
+Run 2026-09-07T16:46:09+00:00 · rubric v1.1 · model `nvidia/nemotron-3.5-lightning-30b-a3b` · 5 runs × 9 fixtures · judge run success 43/45 (0.96).
 
-| Item | TP | FP | FN | TN | Precision | Recall | Stability | Instances | Fixture thresholds met |
-|---|---|---|---|---|---|---|---|---|---|
-| R1 Diagram present and within the rules | 0 | 0 | 5 | 38 | n/a | 0.00 | 1.00 | 43 | no: precision, recall |
-| R2 Walkthrough matches the diagram | 0 | 0 | 4 | 34 | n/a | 0.00 | 1.00 | 38 | no: precision, recall |
-| R3 Requirement cited | 0 | 0 | 4 | 39 | n/a | 0.00 | 1.00 | 43 | no: precision, recall |
-| R4 Threat model updated when a trust boundary changes | 9 | 0 | 1 | 28 | 1.00 | 0.90 | 0.96 | 38 | yes |
-| R5 No secrets or internal identifiers introduced | 5 | 0 | 0 | 33 | 1.00 | 1.00 | 1.00 | 38 | yes |
-| R6 New agent tools ship with a policy grant and an eval case | 5 | 3 | 0 | 35 | 0.62 | 1.00 | 0.96 | 43 | no: precision |
+| Item | Lane | TP | FP | FN | TN | Precision | Recall | Stability | Instances | Fixture thresholds met |
+|---|---|---|---|---|---|---|---|---|---|---|
+| R1 Diagram reads as one story | 2 | 5 | 0 | 0 | 38 | 1.00 | 1.00 | 1.00 | 43 | yes |
+| R2 Walkthrough matches the diagram | 2 | 0 | 0 | 5 | 33 | n/a | 0.00 | 1.00 | 38 | no: precision, recall |
+| R4 Threat model updated when a trust boundary changes | 2 | 8 | 5 | 0 | 25 | 0.62 | 1.00 | 0.96 | 38 | no: precision |
+| R5 No secrets or internal identifiers introduced | 2 | 5 | 2 | 0 | 32 | 0.71 | 1.00 | 0.96 | 39 | no: precision |
+| R6 New agent tools ship with a policy grant and an eval case | 2 | 4 | 1 | 0 | 38 | 0.80 | 1.00 | 0.98 | 43 | no: precision |
+| R3 Requirement cited | 1 | 1 | 0 | 0 | 8 | 1.00 | 1.00 | 1.00 | 9 | script; exact by construction |
+| R7 Diagram mechanics | 1 | 1 | 0 | 0 | 8 | 1.00 | 1.00 | 1.00 | 9 | script; exact by construction |
 <!-- results:end -->
+
+**Latest pass** is the table above; the script rewrites it on every run.
+
+**Pass 1, rubric v1, kept for comparison.**
+
+Run 2026-09-07T16:20:36+00:00 · rubric v1.1 · model `nvidia/nemotron-3.5-lightning-30b-a3b` · 0 runs × 9 fixtures · judge run success 0/0 (n/a).
+
+| Item | Lane | TP | FP | FN | TN | Precision | Recall | Stability | Instances | Fixture thresholds met |
+|---|---|---|---|---|---|---|---|---|---|---|
+| R1 Diagram reads as one story | 2 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | 0 | no: precision, recall, stability, instances, runs |
+| R2 Walkthrough matches the diagram | 2 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | 0 | no: precision, recall, stability, instances, runs |
+| R4 Threat model updated when a trust boundary changes | 2 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | 0 | no: precision, recall, stability, instances, runs |
+| R5 No secrets or internal identifiers introduced | 2 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | 0 | no: precision, recall, stability, instances, runs |
+| R6 New agent tools ship with a policy grant and an eval case | 2 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | 0 | no: precision, recall, stability, instances, runs |
+| R3 Requirement cited | 1 | 1 | 0 | 0 | 8 | 1.00 | 1.00 | 1.00 | 9 | script; exact by construction |
+| R7 Diagram mechanics | 1 | 1 | 0 | 0 | 8 | 1.00 | 1.00 | 1.00 | 9 | script; exact by construction |
 
 **Reading the table.** Instances is the number of counted verdicts for the item, not
 the number of fixtures: nine fixtures over five runs give up to 45 instances per item,
@@ -74,7 +91,7 @@ number that matters first for those. Stability below 1.00 means the same fixture
 different verdicts on different runs, which is the variance the repeated runs exist
 to expose.
 
-**Findings from the first pass, rubric v1.** Read the table with the verdict log
+**Findings from pass 1, rubric v1.** Read the table with the verdict log
 beside it and five things stand out.
 
 1. **Silence is reliable.** All three clean controls got zero findings on all five
@@ -103,10 +120,40 @@ beside it and five things stand out.
    0.96 clears the 0.95 bar but only just; the fix is a tighter output format, not a
    longer timeout.
 
-Nothing is promoted on the strength of this table. R4 and R5 meet the fixture
-thresholds, but ADR-005 also requires zero verdict changes under seeded injection,
-which the next phase step measures, and a rubric change resets every item anyway.
-This pass is the baseline the next one is compared against.
+**Findings from pass 2, rubric v1.1.** Same nine fixtures, same five runs, same
+model, 43 of 45 calls succeeded. Read against pass 1:
+
+1. **What v1.1 targeted, it fixed.** R1, now a readability judgment only, caught its
+   planted flaw on every run with no false alarms: 1.00 precision, 1.00 recall, from
+   0.00 recall in pass 1. The two items moved to Lane 1, R3 and R7, are exact on all
+   nine fixtures, one hit each and eight silences each, by construction.
+2. **It exposed a failure mode pass 1 could not see.** On the one fixture that fails
+   R1, the model also flagged R4 on four of five runs, R5 on two, and R6 on one, for
+   a docs-only page with no boundary, no secret, and no tool. In pass 1 that fixture
+   was judged clean on every item, so the pile-on never showed. Once the model finds
+   one real problem it over-reports the rest. Those false alarms are what pulled R4
+   from 1.00 to 0.62, R5 from 1.00 to 0.71, and R6 from 0.62 to 0.80 rather than
+   higher. Away from that fixture the three items behaved: the network-path, new-tool,
+   and secret fixtures were caught on every successful run, and the clean controls
+   drew one stray R4 in fifteen.
+3. **R2 still never fires on the count mismatch.** The parser now hands the model six
+   boxes and four walkthrough entries as a fact, and it still passed the page on
+   every run. It did flag R2 on the nine-node fixture every time, which is the
+   may-fail case and is not counted. The count comparison is an arithmetic check, so
+   it moves to Lane 1 next; the judge keeps only whether the entries describe the
+   boxes in order.
+4. **Run success held at 0.96**, two failed calls out of 45, both endpoint faults
+   rather than unparseable output this time. The shorter output format did what it was
+   meant to.
+
+The next rubric version has two changes with a hypothesis each: judge every item
+independently, so that one failure is not evidence for another, and move the
+walkthrough count to the docs-standard script. The bet is that R4, R5, and R6 return
+to pass-1 precision without losing R1's gain. If they do not, the pile-on is a
+property of the model and the answer is one call per item.
+
+Nothing is promoted on the strength of these tables. ADR-005 also requires zero
+verdict changes under seeded injection, which the next phase step measures.
 
 **What is not in these numbers.** Live pull-request findings are not yet counted;
 ADR-005 says fixed findings count as accepted and reasoned dismissals as false

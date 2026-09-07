@@ -58,18 +58,24 @@ flowchart LR
 
 ## The details
 
-**The rubric, version 1.** Six items, each with a definition of pass, fail, and the
-form a finding must take. Changing the file changes the judge, so it goes through the
-gate like everything else, and a version bump re-runs the fixtures.
+**The rubric, version 1.1.** Seven items, each with a definition of pass, fail, and
+the form a finding must take, and each assigned to a lane. Lane 1 items are exact
+rules run by scripts and never scored by the model; they stay in the rubric so it
+remains the one list of what the gate checks. Changing the file changes the judge, so
+it goes through the gate like everything else, and a version bump re-runs the
+fixtures. Version 1.1 followed the first precision pass: two items that the model
+never caught moved to Lane 1, one item gained parsed facts, and one sentence that
+caused false alarms came out.
 
-| Item | Checks |
-|---|---|
-| R1 | A changed template page has a diagram that follows the rules: left to right, seven nodes or fewer, every node named and glossed |
-| R2 | The numbered walkthrough matches the diagram box for box, in order |
-| R3 | The pull-request body cites an existing requirement or constraint |
-| R4 | A change that adds or alters a network path, an agent tool, a credential, a service, or a data source also changes the threat model, or says specifically why not |
-| R5 | No added line carries a credential, cloud project id, internal hostname, or non-example address |
-| R6 | A new agent tool ships with a policy grant and an eval case in the same change |
+| Item | Lane | Checks |
+|---|---|---|
+| R1 | 2 | The diagram reads as one story: glosses say what a box does, the boxes form one path, no legend needed |
+| R2 | 2 | The numbered walkthrough matches the diagram box for box, in order, using the parsed node list and entry count |
+| R3 | 1 | The pull-request body cites an existing requirement or constraint (`scripts/check_pr_body.py`) |
+| R4 | 2 | A change that adds or alters a network path, an agent tool, a credential, a service, or a data source also changes the threat model, or says specifically why not |
+| R5 | 2 | No added line carries a credential, cloud project id, internal hostname, or non-example address |
+| R6 | 2 | A new agent tool ships with a policy grant and an eval case in the same change |
+| R7 | 1 | Diagram mechanics: left to right, seven nodes or fewer, every node glossed (`scripts/check_docs_standard.py`) |
 
 **What the judge cannot do.** It cannot merge, cannot call tools, cannot post on its
 own (separate code posts its output), and cannot change its rubric. The Actions token it

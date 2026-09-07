@@ -43,7 +43,9 @@ regardless — that's the point.
 
 ## Diagram rules
 
-These exist because dense diagrams don't read; linear ones do.
+These exist because dense diagrams don't read; linear ones do. Rules 1 to 3 are
+enforced by `scripts/check_docs_standard.py` on every pull request; the rest are
+reviewed by people and by the Gatehouse judge.
 
 1. **Left-to-right only** (`flowchart LR`), one primary path. Time-ordered workflows may
    use sequence diagrams instead.

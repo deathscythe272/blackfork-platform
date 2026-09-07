@@ -1,6 +1,11 @@
 {
   "kind": "planted",
-  "should_fail": ["R1"],
-  "may_fail": ["R2"],
-  "note": "A template page whose diagram is top-to-bottom, has nine nodes, and whose nodes carry no gloss. R1 must fail. R2 may also fail because the five source boxes collapse to one walkthrough entry."
+  "should_fail": [
+    "R1",
+    "R7"
+  ],
+  "may_fail": [
+    "R2"
+  ],
+  "note": "A template page whose diagram is top-to-bottom, has nine nodes, and whose nodes carry no gloss. R7 (lane 1 script) must fail on all three counts; R1 (judge, readability) must fail because bare names are not a story. R2 may also fail because the five source boxes collapse to one walkthrough entry."
 }

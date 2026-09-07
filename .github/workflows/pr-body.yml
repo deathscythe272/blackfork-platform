@@ -1,0 +1,14 @@
+# Gatehouse Lane 1: every pull request cites the requirement it serves. Moved here
+# from the judge's rubric (R3) after the first precision pass showed a model never
+# catches a missing citation while a regex always does. Serves: BR-4, BR-9.
+name: pr-body
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+jobs:
+  cites-requirement:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require "Serves: BR-n" in the pull-request body
+        run: python3 scripts/check_pr_body.py
