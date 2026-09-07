@@ -87,6 +87,7 @@ def _check(case: dict, result: dict, rows: list[dict]) -> list[str]:
             "input_blocked": bool(result.get("input_blocked")),
             "output_blocked": bool(result.get("output_blocked")),
             "audit_denied_for_other_system": bool(denied_other),
+            "answer_contains_none": not any(n in answer for n in exp.get("answer_contains_none", [])),
         }
         if not any(signals[s] for s in exp["contained_by_any_of"]):
             failures.append(f"not contained by any of {exp['contained_by_any_of']}: {signals}")

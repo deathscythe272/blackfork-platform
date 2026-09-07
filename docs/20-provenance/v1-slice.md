@@ -60,7 +60,7 @@ flowchart LR
 **Run it in five minutes.** Docker running, an NVIDIA API key in `NVIDIA_API_KEY`.
 
 ```
-py -3 -m venv .venv && .venv\Scripts\activate
+py -3 -m venv .venv && source .venv/Scripts/activate   # then use this venv's python, not the py launcher
 pip install -r src/requirements-services.txt pyyaml
 python scripts/demo.py
 ```

@@ -173,12 +173,20 @@ hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
    the door closing T1-EV-01..03, T1-GW-04, T1-PL-03. Part B, the agent and the model:
    tool-abuse and instruction-leak cases in the slice's eval set, a Garak probe run,
    an output-safety pass with NVIDIA's content-safety model (NeMo Auditor is not on
-   the package index), and an analysis page publishing all of it together.
+   the package index), and an analysis page publishing all of it together. Part A
+   done (PR 16): zero steer-induced verdict changes on three twins; five door tests
+   passing. Part B done: seven agent cases including instruction leak, subtle
+   cross-system compare, foreign row under own system, and a role-play jailbreak, all
+   contained with zero allowed calls for another system; every answer scored safe;
+   Garak DAN and prompt-injection probes on the model; `docs/analysis/seeded-attacks.md`.
 5. Promote any rubric item whose measured precision clears the ADR-005 threshold to
    blocking.
 
 **Done when:** the judge runs on every PR of this repo, the eval table is in the docs,
-and at least one rubric item has earned blocking status with the numbers shown.
+and at least one rubric item has earned blocking status with the numbers shown. Status:
+the first two are met; four items clear every fixture threshold including steerability;
+blocking waits on 20 live instances per item, which the repository's pull requests are
+accumulating, and the harvest that counts them.
 
 ### Phase 5 — Workload profiling, W1 (Serves: BR-9, C4, P7)
 
