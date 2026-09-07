@@ -176,7 +176,9 @@ items:
       variable, a Compose service, an outbound call, or a tool, outside test data,
       requires docs/02-architecture/agent-threat-model.md to change in the same pull
       request. Enforced by scripts/check_pr_boundaries.py as a required check; the body
-      cannot exempt it. If a boundary change truly needs no new row, the author records
+      cannot exempt it. A URL, variable, service, call, or decorator that also appears in
+      a removed line of the same file is a move or a reformat, not a new boundary. If a
+      boundary change truly needs no new row, the author records
       that in the threat model, which is itself a change.
     fail_when: >-
       A boundary-signal line in the diff with no threat-model change in the same pull

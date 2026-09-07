@@ -156,7 +156,6 @@ def boundary_rule(paths: list[str], added: list[tuple[str, int, str]],
     (the URL, variable name, service name, call, or decorator) also appears in a removed
     line of the same file is a move or a reformat, not a new boundary, and is ignored.
     """
-    gone = "\n".join(t for _, t in (removed or []))
     gone_by_file: dict[str, str] = {}
     for p, t in removed or []:
         gone_by_file[p] = gone_by_file.get(p, "") + "\n" + t
@@ -176,7 +175,6 @@ def boundary_rule(paths: list[str], added: list[tuple[str, int, str]],
             continue  # a hyperlink on a docs page is a citation, not a trust boundary
         if kinds:
             hits.append((p, n, kinds))
-    del gone
     if not hits:
         return []
     if THREAT_MODEL in paths:
