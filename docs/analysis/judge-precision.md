@@ -106,17 +106,16 @@ Run 2026-09-07T16:46:09+00:00 · rubric v1.1 · model `nvidia/nemotron-3.5-light
 
 **Pass 1, rubric v1, kept for comparison.**
 
-Run 2026-09-07T16:20:36+00:00 · rubric v1.1 · model `nvidia/nemotron-3.5-lightning-30b-a3b` · 0 runs × 9 fixtures · judge run success 0/0 (n/a).
+Run 2026-09-07T16:08:52+00:00 · rubric v1 · model `nvidia/nemotron-3.5-lightning-30b-a3b` · 5 runs × 9 fixtures · judge run success 43/45 (0.96).
 
 | Item | Lane | TP | FP | FN | TN | Precision | Recall | Stability | Instances | Fixture thresholds met |
 |---|---|---|---|---|---|---|---|---|---|---|
-| R1 Diagram reads as one story | 2 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | 0 | no: precision, recall, stability, instances, runs |
-| R2 Walkthrough matches the diagram | 2 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | 0 | no: precision, recall, stability, instances, runs |
-| R4 Threat model updated when a trust boundary changes | 2 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | 0 | no: precision, recall, stability, instances, runs |
-| R5 No secrets or internal identifiers introduced | 2 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | 0 | no: precision, recall, stability, instances, runs |
-| R6 New agent tools ship with a policy grant and an eval case | 2 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | 0 | no: precision, recall, stability, instances, runs |
-| R3 Requirement cited | 1 | 1 | 0 | 0 | 8 | 1.00 | 1.00 | 1.00 | 9 | script; exact by construction |
-| R7 Diagram mechanics | 1 | 1 | 0 | 0 | 8 | 1.00 | 1.00 | 1.00 | 9 | script; exact by construction |
+| R1 Diagram present and within the rules | 2 | 0 | 0 | 5 | 38 | n/a | 0.00 | 1.00 | 43 | no: precision, recall |
+| R2 Walkthrough matches the diagram | 2 | 0 | 0 | 4 | 34 | n/a | 0.00 | 1.00 | 38 | no: precision, recall |
+| R3 Requirement cited | 2 | 0 | 0 | 4 | 39 | n/a | 0.00 | 1.00 | 43 | no: precision, recall |
+| R4 Threat model updated when a trust boundary changes | 2 | 9 | 0 | 1 | 28 | 1.00 | 0.90 | 0.96 | 38 | yes |
+| R5 No secrets or internal identifiers introduced | 2 | 5 | 0 | 0 | 33 | 1.00 | 1.00 | 1.00 | 38 | yes |
+| R6 New agent tools ship with a policy grant and an eval case | 2 | 5 | 3 | 0 | 35 | 0.62 | 1.00 | 0.96 | 43 | no: precision |
 
 **Reading the table.** Instances is the number of counted verdicts for the item, not
 the number of fixtures: nine fixtures over five runs give up to 45 instances per item,
