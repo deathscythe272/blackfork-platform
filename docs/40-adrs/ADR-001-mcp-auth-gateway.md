@@ -6,7 +6,7 @@
 
 ## Context
 
-MCP is the only way an agent in this platform may reach data (ADR-003, planned). That
+MCP is the only way an agent in this platform may reach data (ADR-003). That
 choice only means something if the door is guarded: every call must be tied to an
 identity, checked against policy, and written down, including calls that are refused.
 Three facts shape the decision.
@@ -43,7 +43,7 @@ flowchart LR
    identity. Unsigned or unknown callers are refused before anything else happens.
 2. **Validate the request against the tool schema.** The tool name must exist and the
    arguments must match the tool's declared schema. There is no free-form query
-   parameter to validate; tools are parameterized by design (ADR-003, planned).
+   parameter to validate; tools are parameterized by design (ADR-003).
 3. **Ask OPA.** The gateway sends caller identity, tool name, and arguments to OPA. Rego
    policy answers allow or deny. Policy is default deny: a tool or argument combination
    with no rule is refused. Rules can constrain arguments, for example restricting a
