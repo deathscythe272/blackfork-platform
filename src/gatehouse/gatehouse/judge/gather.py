@@ -56,6 +56,7 @@ SECRET_PATTERNS = [
 ]
 PLACEHOLDER = re.compile(r"\.\.\.|\$\{|<[^>]+>|your[-_ ]?key|example|placeholder|paste", re.I)
 # Test data by design: planted flaws live here on purpose and must never count as findings.
+TOOL_DECORATOR = re.compile(r"^\s*@mcp\.tool")  # the decorator itself, not prose that names it
 TEST_DATA = re.compile(r"(^|/)(fixtures|tests|test|testdata|evals)/|\.patch$|\.diff$")
 
 
@@ -88,7 +89,7 @@ def signals(changed: list[dict[str, Any]], body: str) -> dict[str, Any]:
                 added_lines.append((f["path"], new_ln, line[1:]))
             elif not line.startswith("-"):
                 new_ln += 1
-    tools_added = [{"file": p, "line": n, "text": t.strip()} for p, n, t in added_lines if "@mcp.tool" in t]
+    tools_added = [{"file": p, "line": n, "text": t.strip()} for p, n, t in added_lines if TOOL_DECORATOR.match(t)]
     boundary = []
     for p, n, t in added_lines:
         kinds = []
@@ -100,7 +101,7 @@ def signals(changed: list[dict[str, Any]], body: str) -> dict[str, Any]:
             kinds.append("compose service")
         if re.search(r"\b(httpx|requests|aiohttp|urllib)\.(post|get|put|request|urlopen)\(", t):
             kinds.append("outbound call")
-        if "@mcp.tool" in t:
+        if TOOL_DECORATOR.match(t):
             kinds.append("tool")
         if kinds:
             boundary.append({"file": p, "line": n, "kinds": kinds, "excerpt": t.strip()[:80]})

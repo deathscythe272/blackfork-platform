@@ -93,6 +93,7 @@ def walkthrough_rule(text: str, path: str = "") -> list[str]:
 
 
 THREAT_MODEL = "docs/02-architecture/agent-threat-model.md"
+TOOL_DECORATOR = re.compile(r"^\s*@mcp\.tool")  # the decorator itself, not prose that names it
 _TEST_DATA = re.compile(r"(^|/)(fixtures|tests|test|testdata|evals)/|\.patch$|\.diff$")
 _PLACEHOLDER = re.compile(r"\.\.\.|\$\{|<[^>]+>|your[-_ ]?key|example|placeholder|paste", re.I)
 
@@ -112,14 +113,14 @@ def boundary_kinds(path: str, line: str) -> list[str]:
         kinds.append("compose service")
     if re.search(r"\b(httpx|requests|aiohttp|urllib)\.(post|get|put|request|urlopen)\(", line):
         kinds.append("outbound call")
-    if "@mcp.tool" in line:
+    if TOOL_DECORATOR.match(line):
         kinds.append("tool")
     return kinds
 
 
 def tool_rule(paths: list[str], added: list[tuple[str, int, str]]) -> list[str]:
     """R6, lane 1: a new agent tool ships with a policy grant and an eval case in the same change."""
-    tools = [(p, n) for p, n, t in added if "@mcp.tool" in t and not is_test_data(p)]
+    tools = [(p, n) for p, n, t in added if TOOL_DECORATOR.match(t) and not is_test_data(p)]
     if not tools:
         return []
     fails = []
