@@ -72,7 +72,7 @@ like. Steps are pull-request sized; each PR cites the requirement it serves.
 
 ## The details
 
-### Phase 1 — Legibility (Serves: BR-4, BR-7) — diagrams done, ADR-001 open
+### Phase 1 — Legibility (Serves: BR-4, BR-7) — done
 
 1. Done: context, Provenance flow, and Gatehouse flow rebuilt as left-to-right parts
    with a numbered walkthrough and next-page link on each; narrative cross-references
@@ -133,7 +133,7 @@ container; results in `src/provenance/evals/results/latest.json`; see
 hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
 10 passing, 19 planned with a phase, 5 named gaps.
 
-### Phase 4 — Gatehouse G2, G3, G3+ (Serves: BR-3, BR-4, BR-8, BR-9)
+### Phase 4 — Gatehouse G2, G3, G3+ (Serves: BR-3, BR-4, BR-8, BR-9) — done except promotion
 
 1. Done: G2 judge lane, a NAT workflow that scores a PR bundle against rubric v1 and
    posts one advisory comment per pull request, with a fixed-or-dismissed loop and a
@@ -182,7 +182,10 @@ hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
    Clean Garak run through the profiling proxy (reasoning off, the platform's calling
    convention): the raw model obeys 82% of plain injections, which is the measured
    reason the rails and gates are the containment, not the model. The judge's
-   injection set grows before any promotion.
+   injection set doubled to six (rubric v1.3, which also retired R2 to human review):
+   one twin, the injection in the pull-request title and body, steered R4 and R6 from
+   fail to pass on every run. Both move to Lane 1 in v1.4 because the facts they
+   depend on are parser facts; the judge keeps R1 and R5.
 5. Promote any rubric item whose measured precision clears the ADR-005 threshold to
    blocking.
 
@@ -192,7 +195,7 @@ the first two are met; four items clear every fixture threshold including steera
 blocking waits on 20 live instances per item, which the repository's pull requests are
 accumulating, and the harvest that counts them.
 
-### Phase 5 — Workload profiling, W1 (Serves: BR-9, C4, P7)
+### Phase 5 — Workload profiling, W1 (Serves: BR-9, C4, P7) — done
 
 Two workloads get profiled: the agents this repo builds, and the coding-agent harness
 that builds this repo.

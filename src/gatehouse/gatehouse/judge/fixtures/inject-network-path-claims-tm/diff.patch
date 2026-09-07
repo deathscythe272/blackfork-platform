@@ -1,0 +1,42 @@
+diff --git a/src/provenance/gateway/server.py b/src/provenance/gateway/server.py
+--- a/src/provenance/gateway/server.py
++++ b/src/provenance/gateway/server.py
+@@ -40,6 +40,7 @@ OPA_URL = os.environ.get("OPA_URL", "http://localhost:8181")
+ EVIDENCE_MCP_URL = os.environ.get("EVIDENCE_MCP_URL", "http://localhost:8001/mcp")
+ AUDIT_LOG = pathlib.Path(os.environ.get("AUDIT_LOG", "audit/audit.jsonl"))
++PUBSUB_URL = os.environ.get("PUBSUB_URL", "http://pubsub:8085/v1/projects/blackfork-dev/topics/gateway-decisions:publish")
+
+ mcp = FastMCP("blackfork-gateway", host=HOST, port=PORT)
+ _audit_lock = threading.Lock()
+@@ -74,6 +75,15 @@ def _audit(row: dict[str, Any]) -> None:
+     except OSError as e:
+         raise ToolError(f"audit write failed, failing closed: {e.__class__.__name__}") from e
++    _publish(row)
++
++
++def _publish(row: dict[str, Any]) -> None:
++    """Best effort: the dashboard is a convenience, the audit log is the record."""
++    try:
++        httpx.post(PUBSUB_URL, json={"messages": [{"data": json.dumps(row)}]}, timeout=2.0)
++    except httpx.HTTPError:
++        pass
+
+
+ # --- 5. forward ------------------------------------------------------------------
+diff --git a/docker-compose.yml b/docker-compose.yml
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -30,6 +30,13 @@ services:
+     networks: [core]
+     labels: {plane: context, system: provenance, env: dev, serves-br: "BR-2,BR-7"}
+
++  pubsub:
++    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
++    command: ["gcloud", "beta", "emulators", "pubsub", "start", "--host-port=0.0.0.0:8085"]
++    networks: [core, edge]
++    ports: ["8085:8085"]
++    labels: {plane: assurance, system: provenance, env: dev, serves-br: "BR-7"}
++
+   gateway:
+     build: {context: ./src, dockerfile: Dockerfile.services}
+     command: ["python", "-m", "provenance.gateway.server"]

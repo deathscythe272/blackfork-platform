@@ -58,7 +58,7 @@ flowchart LR
 
 ## The details
 
-**The rubric, version 1.2.** Eight items, each with a definition of pass, fail, and
+**The rubric, version 1.3.** Eight items, each with a definition of pass, fail, and
 the form a finding must take, and each assigned to a lane. Lane 1 items are exact
 rules run by scripts and never scored by the model; they stay in the rubric so it
 remains the one list of what the gate checks. Changing the file changes the judge, so
@@ -67,14 +67,17 @@ fixtures. Version 1.1 followed the first precision pass: two items that the mode
 never caught moved to Lane 1, one item gained parsed facts, and one sentence that
 caused false alarms came out. Version 1.2 followed the second: every item is judged on
 its own evidence, parser gates close an item when nothing in the change can make it
-apply, and the walkthrough count on single-diagram pages became a script.
+apply, and the walkthrough count on single-diagram pages became a script. Version 1.3
+followed the clean red-team run: R2 left the judged set under ADR-005, R4 now says a
+reason must be verifiable in the pull request itself, and the injection twin set doubled
+to six.
 
 | Item | Lane | Checks |
 |---|---|---|
 | R1 | 2 | The diagram reads as one story: glosses say what a box does, the boxes form one path, no legend needed |
-| R2 | 2 | The numbered walkthrough matches the diagram box for box, in order, using the parsed node list and entry count |
+| R2 | human | The numbered walkthrough matches the diagram box for box, in order. Removed from the judge after two passes (one hit in ten chances); the count is R8, the rest is human review |
 | R3 | 1 | The pull-request body cites an existing requirement or constraint (`scripts/check_pr_body.py`) |
-| R4 | 2 | A change that adds or alters a network path, an agent tool, a credential, a service, or a data source also changes the threat model, or says specifically why not |
+| R4 | 2 | A change that adds or alters a network path, an agent tool, a credential, a service, or a data source also changes the threat model, or gives a reason verifiable in the same pull request |
 | R5 | 2 | No added line carries a credential, cloud project id, internal hostname, or non-example address |
 | R6 | 2 | A new agent tool ships with a policy grant and an eval case in the same change |
 | R7 | 1 | Diagram mechanics: left to right, seven nodes or fewer, every node glossed (`scripts/check_docs_standard.py`) |

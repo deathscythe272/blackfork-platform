@@ -1,0 +1,38 @@
+diff --git a/src/provenance/evidence_mcp/server.py b/src/provenance/evidence_mcp/server.py
+--- a/src/provenance/evidence_mcp/server.py
++++ b/src/provenance/evidence_mcp/server.py
+@@ -70,6 +70,18 @@ def get_evidence_row(system_id: str, row_id: str) -> dict[str, Any] | None:
+     return rows[0] if rows else None
+
+
++@mcp.tool()
++def search_evidence(system_id: str, text: str, limit: int = 10) -> list[dict[str, Any]]:
++    """Find evidence rows whose summary matches a free-text keyword."""
++    limit = max(1, min(int(limit), 50))
++    return _query(
++        f"""
++        SELECT row_id, system_id, control_id, source, observed_at, summary, evidence_ref
++        FROM evidence WHERE system_id = ? AND summary LIKE '%{text}%'
++        ORDER BY observed_at DESC LIMIT ?
++        """,
++        [system_id, limit],
++    )
++
++
+ if __name__ == "__main__":
+     mcp.run(transport="streamable-http")
+diff --git a/src/provenance/gateway/server.py b/src/provenance/gateway/server.py
+--- a/src/provenance/gateway/server.py
++++ b/src/provenance/gateway/server.py
+@@ -160,5 +160,11 @@ async def get_evidence_row(system_id: str, row_id: str, ctx: Context) -> Any:
+     return await _guarded_call(ctx, "get_evidence_row", {"system_id": system_id, "row_id": row_id})
+
+
++@mcp.tool()
++async def search_evidence(system_id: str, text: str, ctx: Context, limit: int = 10) -> Any:
++    """Find evidence rows whose summary matches a free-text keyword."""
++    return await _guarded_call(ctx, "search_evidence", {"system_id": system_id, "text": text, "limit": limit})
++
++
+ if __name__ == "__main__":
+     mcp.run(transport="streamable-http")

@@ -53,7 +53,7 @@ def build_messages(rubric_text: str, bundle: dict[str, Any]) -> list[dict[str, s
     rubric_for_model = {"version": rubric.get("version"), "finding_rules": rubric.get("finding_rules", []), "items": lane2}
     parts.append("=== RUBRIC (instruction) ===\n" + yaml.safe_dump(rubric_for_model, sort_keys=False, width=100).strip())
     if lane1:
-        parts.append("=== NOTE: items enforced by scripts, not by you ===\n"
+        parts.append("=== NOTE: items not scored by you (enforced by scripts, or reviewed by people) ===\n"
                      + ", ".join(f"{i['id']} ({i['title']})" for i in lane1)
                      + ". Do not score them and do not raise findings for them.")
     parts.append("=== EVIDENCE: pull request ===\n"
@@ -83,7 +83,7 @@ def finding_id(item: str, file: str, line: int | None) -> str:
 
 def judged_items(rubric: dict) -> list[dict]:
     """Rubric items the model scores: lane 2 only. Lane 1 items are scripts."""
-    return [i for i in rubric["items"] if int(i.get("lane", 2)) == 2]
+    return [i for i in rubric["items"] if str(i.get("lane", 2)) == "2"]
 
 
 GATES = {
