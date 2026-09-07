@@ -132,8 +132,12 @@ requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. PR: rubric v1.3 removes R2 from the judged set (ADR-005: cannot earn its numbers) and
+1. PR: W1b agent workload profile: a local logging proxy in front of the model
+   endpoint (per-call tokens, latency; reasoning off by default; also the clean Garak
+   endpoint), agent + judge runs through it, long-horizon run, charts,
+   `docs/analysis/agent-workload-profile.md`. Serves: BR-9.
+2. PR: rubric v1.3 removes R2 from the judged set (ADR-005: cannot earn its numbers) and
    re-scores; then the first promotion decision once 20 live instances exist.
-2. PR: harvest live PR findings (PR 12 already holds four reasoned dismissals against
+3. PR: harvest live PR findings (PR 12 already holds four reasoned dismissals against
    rubric v1, all the same cause: v1 could see test data) (fixed = accepted, dismissed = false positive) into the
    precision table.

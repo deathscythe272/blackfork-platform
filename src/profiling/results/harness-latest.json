@@ -1,0 +1,111 @@
+{
+  "sessions": 1,
+  "assistant_turns": 914,
+  "human_prompts": 81,
+  "wall_clock_hours": 30.6,
+  "tool_calls": 460,
+  "tool_mix": {
+    "Bash": {
+      "calls": 297,
+      "share": 0.646
+    },
+    "Write": {
+      "calls": 96,
+      "share": 0.209
+    },
+    "Edit": {
+      "calls": 50,
+      "share": 0.109
+    },
+    "Artifact": {
+      "calls": 6,
+      "share": 0.013
+    },
+    "Read": {
+      "calls": 4,
+      "share": 0.009
+    },
+    "Skill": {
+      "calls": 2,
+      "share": 0.004
+    },
+    "ToolSearch": {
+      "calls": 2,
+      "share": 0.004
+    },
+    "WebFetch": {
+      "calls": 2,
+      "share": 0.004
+    },
+    "AskUserQuestion": {
+      "calls": 1,
+      "share": 0.002
+    }
+  },
+  "tool_results": 459,
+  "tool_errors": 23,
+  "tool_error_rate": 0.05,
+  "files_read": 4,
+  "re_reads": 0,
+  "turns_with_visible_reasoning": 299,
+  "turns_with_tool_calls": 460,
+  "prompt_tokens": {
+    "p50": 487100.0,
+    "p95": 808203.0,
+    "max": 853205,
+    "first_turn": 43420,
+    "last_turn": 853205
+  },
+  "output_tokens": {
+    "p50": 1406.5,
+    "p95": 9241.0,
+    "max": 14113,
+    "total": 2489737
+  },
+  "cache_read_share": {
+    "p50": 1.0,
+    "min": 0.076
+  },
+  "turn_gap_seconds": {
+    "p50": 4.1,
+    "p95": 23.2,
+    "note": "gap since the previous record; a latency proxy, not a measurement"
+  },
+  "total_prompt_tokens_billed_shape": {
+    "fresh_input": 24406,
+    "cache_read": 423504458,
+    "cache_creation": 3590685
+  },
+  "run_at": "2026-09-07T21:01:10+00:00",
+  "harness": "Claude Code (session logs under ~/.claude/projects)",
+  "per_session": [
+    {
+      "file": "ddf9583d",
+      "tools": {
+        "Bash": 297,
+        "Write": 96,
+        "Skill": 2,
+        "Artifact": 6,
+        "Read": 4,
+        "Edit": 50,
+        "AskUserQuestion": 1,
+        "ToolSearch": 2,
+        "WebFetch": 2
+      },
+      "tool_results": 459,
+      "tool_errors": 23,
+      "human_prompts": 81,
+      "re_reads": 0,
+      "files_read": 4,
+      "first": "2026-09-06T14:22:19.658000+00:00",
+      "last": "2026-09-07T21:01:07.114000+00:00",
+      "span_hours": 30.65,
+      "turns": 914
+    }
+  ],
+  "charts": [
+    "harness-context-per-turn.png",
+    "harness-tool-mix.png",
+    "harness-output-per-turn.png"
+  ]
+}
