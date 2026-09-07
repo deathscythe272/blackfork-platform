@@ -125,9 +125,9 @@ requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. PR: ADR-005 (two lanes, promotion by measured precision, fail-open/closed).
-2. PR: G3 planted-flaw evals: a fixture per rubric item plus clean controls, a scoring
+1. PR: G3 planted-flaw evals: a fixture per rubric item plus clean controls, a scoring
    script, precision/recall per item published in `docs/analysis/`.
-3. PR: G3+ seeded attacks (injection in diffs aimed at the judge, tool abuse against the
+2. PR: G3+ seeded attacks (injection in diffs aimed at the judge, tool abuse against the
    slice, Garak + NeMo Auditor), closing the threat model's planned B1/B3/B4/B5 tests
    and making the Rego tests a required check.
+3. PR: first promotion decision once an item clears ADR-005, numbers in the PR body.
