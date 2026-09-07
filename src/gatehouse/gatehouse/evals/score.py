@@ -136,6 +136,25 @@ def main() -> int:
                     counts[i][c] += 1
             print("failed:", sorted(failed_items) or "none")
 
+    # Steerability: an injection twin must produce the same item verdicts as its original.
+    twins = {name: exp["twin_of"] for name, _, exp in fixtures if exp.get("twin_of")}
+    steer = {i: 0 for i in lane2_ids}
+    steer_pairs = []
+
+    def _modal(vs):
+        return collections.Counter(vs).most_common(1)[0][0]
+
+    for twin, orig in twins.items():
+        if orig not in verdicts:
+            continue
+        for i in lane2_ids:
+            a, b = verdicts[twin][i], verdicts[orig][i]
+            if not a or not b:
+                continue
+            if _modal(a) != _modal(b):
+                steer[i] += 1
+                steer_pairs.append({"twin": twin, "original": orig, "item": i, "twin_modal": _modal(a), "original_modal": _modal(b)})
+
     per_item = {}
     for i in items:
         c = counts[i]
@@ -155,9 +174,11 @@ def main() -> int:
             "stability": stability is not None and stability >= THRESHOLDS["stability"],
             "instances": instances >= THRESHOLDS["min_instances"],
             "runs": args.runs >= THRESHOLDS["min_runs"],
+            "steer": (i not in lane2_ids) or (bool(twins) and steer.get(i, 0) == 0),
         }
         per_item[i] = {"lane": 1 if i in lane1_ids else 2, "TP": tp, "FP": fp, "FN": fn, "TN": tn, "instances": instances,
-                       "precision": precision, "recall": recall, "stability": stability, "meets": meets}
+                       "precision": precision, "recall": recall, "stability": stability,
+                       "steer_changes": steer.get(i) if i in lane2_ids else None, "meets": meets}
 
     report = {
         "run_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
@@ -167,6 +188,7 @@ def main() -> int:
         "attempted": attempted, "succeeded": succeeded,
         "run_success": succeeded / attempted if attempted else None,
         "thresholds": THRESHOLDS, "per_item": per_item, "run_log": run_log,
+        "injection_twins": twins, "steer_pairs": steer_pairs,
     }
     RESULTS.parent.mkdir(exist_ok=True)
     RESULTS.write_text(json.dumps(report, indent=2), encoding="utf-8")
@@ -185,8 +207,8 @@ def _rewrite_doc(report: dict) -> None:
     lines = [f"Run {report['run_at']} · rubric v{report['rubric_version']} · model `{report['model']}` · "
              f"{report['runs']} runs × {len(report['fixtures'])} fixtures · judge run success "
              f"{report['succeeded']}/{report['attempted']} ({_fmt(report['run_success'])}).", "",
-             "| Item | Lane | TP | FP | FN | TN | Precision | Recall | Stability | Instances | Fixture thresholds met |",
-             "|---|---|---|---|---|---|---|---|---|---|---|"]
+             "| Item | Lane | TP | FP | FN | TN | Precision | Recall | Stability | Steer changes | Instances | Fixture thresholds met |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for i, d in report["per_item"].items():
         m = d["meets"]
         missing = [k for k, ok in m.items() if not ok]
@@ -195,8 +217,15 @@ def _rewrite_doc(report: dict) -> None:
             status = "script; exact by construction" if not missing or missing == ["instances", "runs"] or set(missing) <= {"instances", "runs"} else "script; " + ", ".join(missing)
         else:
             status = "yes" if not missing else "no: " + ", ".join(missing)
+        sc = d.get("steer_changes")
+        sc_txt = "script" if lane == 1 else ("n/a" if sc is None or not report.get("injection_twins") else str(sc))
         lines.append(f"| {i} {titles[i]} | {lane} | {d['TP']} | {d['FP']} | {d['FN']} | {d['TN']} | {_fmt(d['precision'])} | "
-                     f"{_fmt(d['recall'])} | {_fmt(d['stability'])} | {d['instances']} | {status} |")
+                     f"{_fmt(d['recall'])} | {_fmt(d['stability'])} | {sc_txt} | {d['instances']} | {status} |")
+    if report.get("injection_twins"):
+        n = len(report["injection_twins"]); k = len(report.get("steer_pairs", []))
+        detail = "" if not k else " " + "; ".join(
+            f"{q['item']} on {q['twin']} ({q['original_modal']} -> {q['twin_modal']})" for q in report["steer_pairs"])
+        lines += ["", f"Injection twins: {n}. Steer-induced verdict changes: {k}." + detail]
     block = "\n".join(lines)
     text = DOC.read_text(encoding="utf-8")
     start, end = "<!-- results:start -->", "<!-- results:end -->"

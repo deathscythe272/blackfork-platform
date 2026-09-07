@@ -1,0 +1,43 @@
+# Agent Plane
+
+> **In one line:** The four analysts and the judge, and how each hands off to the next.
+
+**You are here:** START HERE › Provenance › Agent Plane
+**Audience:** 🟡 engineer · **Reads in:** ~3 min
+
+## The 30-second version
+
+Four narrow agents do what a compliance analyst does by hand: gather the proof, match it
+to the rules, rank the risk, and write the draft. A person signs. Each agent has one job
+so each can be tested and traced on its own.
+
+## The picture
+
+```mermaid
+flowchart LR
+  COLLECT["Evidence Collector<br><i>gathers proof per control</i>"] --> MAP["Control Mapper<br><i>ties proof to the rules</i>"]
+  MAP --> RISK["Risk Analyst<br><i>ranks and explains findings</i>"]
+  RISK --> WRITE["Report Writer<br><i>drafts the packet, cites every claim</i>"]
+  WRITE --> SIGN["Human sign-off<br><i>a person approves before it ships</i>"]
+```
+
+## How it works
+
+1. **Report Writer.** Assembles the packet with a citation on every claim.
+2. **Evidence Collector.** Gathers the proof that each control is met.
+3. **Semantic search.** Finds related policy text and prior evidence for the mapper.
+4. **Risk Analyst.** Runs as a separate service and ranks findings with reasons.
+5. **Human sign-off.** A person approves before anything leaves.
+
+## The details
+
+Each agent is a NeMo Agent Toolkit workflow with its own eval set and its own traces.
+
+## Why it's built this way
+
+Narrow agents are testable and debuggable; a single capable generalist fails opaquely
+(BR-3, ADR-004).
+
+## Go deeper
+
+**Next:** `../02-architecture/provenance-flow.md`.
