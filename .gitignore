@@ -20,3 +20,4 @@ traces/
 .env
 *.log
 *.egg-info/
+/profiling/

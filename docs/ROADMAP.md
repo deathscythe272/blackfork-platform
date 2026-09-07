@@ -179,6 +179,10 @@ hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
    cross-system compare, foreign row under own system, and a role-play jailbreak, all
    contained with zero allowed calls for another system; every answer scored safe;
    Garak DAN and prompt-injection probes on the model; `docs/analysis/seeded-attacks.md`.
+   Clean Garak run through the profiling proxy (reasoning off, the platform's calling
+   convention): the raw model obeys 82% of plain injections, which is the measured
+   reason the rails and gates are the containment, not the model. The judge's
+   injection set grows before any promotion.
 5. Promote any rubric item whose measured precision clears the ADR-005 threshold to
    blocking.
 
@@ -193,12 +197,18 @@ accumulating, and the harvest that counts them.
 Two workloads get profiled: the agents this repo builds, and the coding-agent harness
 that builds this repo.
 
-1. OpenTelemetry plus NAT profiling on the Phase 2 agent and the Phase 4 judge.
-2. A repeatable profiling script that runs the golden and adversarial eval sets N times
-   and writes raw results to a committed CSV.
-3. `docs/analysis/agent-workload-profile.md` with committed charts: tokens per task,
-   tool calls per task, p50/p95 latency, and a long-horizon run showing drift or
-   stability.
+1. Done: a logging proxy (`src/profiling/proxy.py`) in front of the model endpoint
+   records every call's tokens and latency with no text, and turns reasoning off as
+   the platform does; the toolkit's own trace exporter recorded no token counts, so
+   the proxy is the instrument.
+2. Done: `src/profiling/agents.py` runs the agent's cases three times, the judge's
+   fixtures once, and the golden question twenty times, assigning calls to tasks by
+   time window.
+3. Done: `docs/analysis/agent-workload-profile.md` with three committed charts. First
+   measurement: rail-refused attacks cost zero workflow calls; a running task sends
+   ~1.5k prompt tokens over 2–3 calls, growing ~400 per step, max 3.1k; the judge is
+   one ~3.7k-token call per PR at 8.6 s median; no drift over twenty runs. Decisions:
+   Steward token budget 50k per job; agent tool-call cap 8 → 6.
 4. Done: harness workload analysis, answering P7. `src/profiling/harness.py` reads
    the coding agent's own session logs and publishes aggregates only:
    `docs/analysis/coding-agent-harness-profile.md` with three committed charts. First
@@ -211,7 +221,7 @@ that builds this repo.
    (tool-count limits, prompt-size caps, context-management rules, or similar).
 
 **Done when:** both profiles have charts in the repo and each names at least one
-decision the data drove.
+decision the data drove. Met.
 
 ### Phase 6 — Cloud substrate and CI/CD, F2 and F3 (Serves: BR-5, C4)
 
