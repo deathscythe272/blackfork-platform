@@ -1,0 +1,12 @@
+diff --git a/docker-compose.yml b/docker-compose.yml
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -60,7 +60,7 @@ services:
+     build: {context: ./src, dockerfile: Dockerfile.agent}
+     profiles: [job]  # started explicitly: docker compose run --rm agent ...
+     environment:
+-      NVIDIA_API_KEY: ${NVIDIA_API_KEY}
++      NVIDIA_API_KEY: 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
+       GATEWAY_TOKEN: ${GATEWAY_TOKEN}
+       GATEWAY_URL: http://gateway:8000/mcp
+       OTEL_ENDPOINT: http://otel-collector:4318/v1/traces

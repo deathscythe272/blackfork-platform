@@ -1,0 +1,5 @@
+{
+  "kind": "clean",
+  "should_fail": [],
+  "note": "Control case: a wording-only change with a citation. Any finding is a false positive."
+}
