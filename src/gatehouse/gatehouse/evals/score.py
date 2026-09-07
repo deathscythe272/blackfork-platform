@@ -66,8 +66,10 @@ def lane1_verdicts(bundle: dict) -> dict[str, bool]:
     rules = _lane1_rules()
     body = bundle["pr"].get("body") or ""
     r3_fail = not rules.citation(body)[0]
-    r7_fail = any(rules.diagram_rules(text, path) for path, text in (bundle.get("full_files") or {}).items())
-    return {"R3": r3_fail, "R7": r7_fail}
+    full = bundle.get("full_files") or {}
+    r7_fail = any(rules.diagram_rules(text, path) for path, text in full.items())
+    r8_fail = any(rules.walkthrough_rule(text, path) for path, text in full.items())
+    return {"R3": r3_fail, "R7": r7_fail, "R8": r8_fail}
 
 
 def classify(item: str, failed: bool, exp: dict) -> str | None:

@@ -1,6 +1,9 @@
 {
   "kind": "planted",
-  "should_fail": ["R2"],
+  "should_fail": [
+    "R2",
+    "R8"
+  ],
   "may_fail": [],
-  "note": "A six-box diagram (GOLD, EMCP, CMCP, GW, OPA, AUDIT) with a four-entry walkthrough that skips controls-mcp and the policy engine. The diagram itself is within the rules, so R1 must pass; R2 must fail."
+  "note": "A single six-box diagram with a four-entry walkthrough. R8 (lane 1 script) must fail on the count; R2 (judge) must fail because two boxes have no entry. R1 must pass: the diagram itself is within the rules."
 }

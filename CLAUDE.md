@@ -36,8 +36,10 @@ screenshared as much as run.
 - **Conventional commits**, small and scoped: `type(scope): message`. Never backdate,
   rewrite published history, or fabricate activity — the honest iterative record is part
   of the portfolio.
-- **Docs standard is law.** Template docs keep their required sections
-  (`scripts/check_docs_standard.py` enforces). Code and docs change together.
+- **Docs standard is law.** Template docs keep their required sections and the
+  mechanical diagram rules (`scripts/check_docs_standard.py` enforces both); every PR
+  body cites a requirement (`scripts/check_pr_body.py` enforces). Code and docs change
+  together.
 - **Diagram rules:** `flowchart LR`, one primary path, ≤7 nodes, every node = name +
   ≤6-word gloss, split into sequential diagrams rather than cramming; time-ordered
   workflows may use sequence diagrams.
@@ -117,7 +119,9 @@ Docs-standard CI gate live and required on protected `main`; ADR-001 (gateway) a
 ADR-003 (MCP-only) accepted; threat model at `02-architecture/agent-threat-model.md`.
 Gatehouse judge (`src/gatehouse/`, NAT plugin `gatehouse_judge`, rubric v1) runs as an
 advisory Actions workflow on every PR with the built-in token; `NVIDIA_API_KEY` is a
-repository secret. V1 slice runs locally under `src/provenance/`
+repository secret. Rubric v1.2: R3, R7, R8 are Lane 1 scripts; judged items R1, R4,
+R5, R6 clear every fixture threshold (1.00/1.00); R2 on notice. Required checks on
+main: `check` (docs standard incl. diagram rules) and `cites-requirement`. V1 slice runs locally under `src/provenance/`
 (evidence-mcp, gateway with OPA + audit, Evidence Collector on NAT with Guardrails,
 OTel, three evals passing; `scripts/demo.py`). Model: nvidia/nemotron-3.5-lightning-30b-a3b
 with `chat_template_kwargs.enable_thinking=false`. No cloud infra yet. Public docs describe the safety and evaluation emphasis without naming job
@@ -125,13 +129,11 @@ requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. PR: rubric v1.1 from the first precision pass: R1 mechanical checks (direction,
-   node count, gloss) and R3 (citation present) become Lane 1 scripts; R2 gets parsed
-   node list + walkthrough count; drop the R4 cross-item sentence; tighter JSON output;
-   re-score with `gatehouse.evals.score --runs 5`. Serves: BR-4, BR-9.
-2. PR: G3+ seeded attacks (injection in diffs aimed at the judge, tool abuse against the
+1. PR: G3+ seeded attacks (adds a second walkthrough-mismatch fixture; R2's last
+   chance under ADR-005) (injection in diffs aimed at the judge, tool abuse against the
    slice, Garak + NeMo Auditor), closing the threat model's planned B1/B3/B4/B5 tests
    and making the Rego tests a required check.
-3. PR: first promotion decision once an item clears ADR-005, numbers in the PR body.
-4. PR: harvest live PR findings (fixed = accepted, dismissed = false positive) into the
+2. PR: first promotion decision once an item clears ADR-005, numbers in the PR body.
+3. PR: harvest live PR findings (PR 12 already holds four reasoned dismissals against
+   rubric v1, all the same cause: v1 could see test data) (fixed = accepted, dismissed = false positive) into the
    precision table.

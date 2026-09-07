@@ -26,14 +26,16 @@ flowchart LR
 
 ## How it works
 
-1. **Plane — five values, fixed.** `data` (sources → pipelines → lakehouse), `context`
+1. **Any resource.** A table, a service, a dashboard, a doc: everything the platform
+   creates gets the same four labels at birth.
+2. **Plane — five values, fixed.** `data` (sources → pipelines → lakehouse), `context`
    (Model Context Protocol, MCP, servers + gateway), `agent` (the workflows), `assurance` (policy, audit, evals,
    observability), `delivery` (CI/CD, infrastructure as code, Gatehouse). Planes slice the *platform*.
-2. **System — open set, registered.** Blackfork's ~40 services roll up into a handful of
+3. **System — open set, registered.** Blackfork's ~40 services roll up into a handful of
    registered systems (e.g., `windrow-core`, `windrow-edge`, `corp-it`). Systems slice
    the *evidence and scope*.
-3. **Environment — `dev` or `demo`.** Environments slice the *copies*.
-4. **Applied everywhere:** GCP labels, Iceberg table properties and a `system_id` column
+4. **Environment — `dev` or `demo`.** Environments slice the *copies*.
+5. **One filter answers any question.** Applied everywhere: GCP labels, Iceberg table properties and a `system_id` column
    on every evidence/finding row, Grafana dashboard variables, and the repo tree (planes
    as folders).
 

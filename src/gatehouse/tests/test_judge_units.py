@@ -106,11 +106,11 @@ def test_render_roundtrips_state_and_conclusion():
 def test_lane1_verdicts_are_exact_on_fixtures():
     from gatehouse.evals.score import lane1_verdicts
     v = lane1_verdicts(gather.from_fixture(FIXTURES / "bad-diagram-nine-nodes"))
-    assert v == {"R3": False, "R7": True}
+    assert v == {"R3": False, "R7": True, "R8": True}
     v = lane1_verdicts(gather.from_fixture(FIXTURES / "no-citation"))
-    assert v == {"R3": True, "R7": False}
+    assert v == {"R3": True, "R7": False, "R8": False}
     v = lane1_verdicts(gather.from_fixture(FIXTURES / "clean-docs-gloss"))
-    assert v == {"R3": False, "R7": False}
+    assert v == {"R3": False, "R7": False, "R8": False}
 
 
 def test_judge_scores_only_lane2_items():
@@ -119,3 +119,14 @@ def test_judge_scores_only_lane2_items():
     assert "R3" not in ids and "R7" not in ids and "R4" in ids
     v = prompt.parse_verdict('{"rubric_version":"1.1","items":[{"id":"R7","verdict":"fail"}],"findings":[{"item":"R7","severity":"high","file":"x","line":1,"why":"w","fix":"f"}]}', RUBRIC)
     assert all(i["id"] != "R7" for i in v["items"]) and v["findings"] == []
+
+
+def test_parser_gates_close_items_with_no_signal():
+    b = gather.from_fixture(FIXTURES / "clean-docs-gloss")
+    assert set(prompt.gated_off(b["signals"])) == {"R4", "R5", "R6"}
+    raw = '{"rubric_version":"1.2","items":[{"id":"R4","verdict":"fail","note":"pile-on"}],"findings":[{"item":"R4","severity":"high","file":"docs/x.md","line":1,"why":"w","fix":"f"}]}'
+    v = prompt.parse_verdict(raw, RUBRIC, b["signals"])
+    r4 = next(i for i in v["items"] if i["id"] == "R4")
+    assert r4["verdict"] == "not_applicable" and v["findings"] == [] and "R4" in v["gated_off"]
+    b2 = gather.from_fixture(FIXTURES / "new-tool-no-grant")
+    assert "R4" not in prompt.gated_off(b2["signals"]) and "R6" not in prompt.gated_off(b2["signals"])

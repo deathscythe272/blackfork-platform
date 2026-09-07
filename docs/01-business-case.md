@@ -38,12 +38,18 @@ flowchart LR
 
 ## How it works
 
-The eight sections below follow the picture left to right. Sections 1 and 2 are the
-company and its pains. Sections 3 and 4 are the requirements and the constraints they
-must respect. Section 5 is the two systems and the assurance layer they share. Section 6
-ties every requirement to the component that answers it and the artifact that proves
-it. Section 7 is a plain-English glossary of every component named, in the order data
-moves through them. Section 8 is how this repo itself is the proof.
+The picture reads left to right; the numbered sections below carry the detail.
+
+1. **Seven pains.** Sections 1 and 2: the company, and what hurts, with numbers.
+2. **Nine requirements.** Sections 3 and 4: what the automation must do, what it must
+   prove about itself, and the constraints both halves respect.
+3. **Provenance.** Section 5: the evidence lakehouse and the agents that collect, map,
+   rank, and draft.
+4. **Gatehouse.** Section 5: the merge gate on this repo's own pull requests.
+5. **Assurance.** Section 5: the safety and evaluation machinery both systems run under,
+   and section 6, which ties every requirement to the component that answers it.
+6. **Proof.** Sections 7 and 8: the plain-English glossary of every component, and how
+   this repo itself is the evidence.
 
 ## 1. Company snapshot
 

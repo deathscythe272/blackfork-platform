@@ -1,4 +1,4 @@
-# Gatehouse judge rubric, version 1.1. Changing this file changes the judge; it goes
+# Gatehouse judge rubric, version 1.2. Changing this file changes the judge; it goes
 # through the same gate as everything else, and a version bump re-runs the eval set.
 #
 # Every item: a stable id, the lane that enforces it, what is checked, what counts
@@ -14,10 +14,16 @@
 #   - R3 moved to lane 1 (a regex catches what the model never did)
 #   - R4 lost the sentence "whenever R6 applies, R4 applies" (caused R6 false alarms)
 #   - R7 added: the mechanical diagram rules, lane 1
+# v1.2 (after the second pass exposed pile-on false alarms):
+#   - every item is judged on its own evidence; a fail needs a named signal or line
+#   - parser gates: R1/R2 need a changed template page, R4 a boundary signal or added
+#     tool, R5 a secret or identifier candidate, R6 an added tool; otherwise n/a
+#   - R8 added: walkthrough count for single-diagram pages, lane 1 (multi-part pages
+#     stay with R2, because they legitimately fold boxes into steps)
 #
 # Serves: BR-3, BR-4, BR-8, BR-9.
 
-version: "1.1"
+version: "1.2"
 
 finding_rules:
   - Every finding names a file and, where possible, a line.
@@ -27,6 +33,7 @@ finding_rules:
   - Files under fixtures, tests, or evals directories, and patch files, are test data. Never raise a finding on them.
   - If nothing fails, report every item as pass or not_applicable and no findings.
   - Keep every note under 20 words and every finding's why under 40 words.
+  - Judge every item on its own evidence. A failure on one item is never evidence for another.
 
 items:
   - id: R1
@@ -130,4 +137,17 @@ items:
     fail_when: >-
       Top-to-bottom direction; more than seven nodes; a node with no gloss; a template
       page with a picture heading and no diagram.
+    severity: medium
+
+  - id: R8
+    title: Walkthrough count on single-diagram pages
+    lane: 1
+    applies_to: [docs]
+    blocking: true
+    check: >-
+      A template page with exactly one flowchart has one numbered walkthrough entry per
+      box. Multi-part pages are judged by R2 instead. Enforced by
+      scripts/check_docs_standard.py as a required check.
+    fail_when: >-
+      The entry count differs from the box count on a single-diagram page.
     severity: medium
