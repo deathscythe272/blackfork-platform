@@ -94,7 +94,7 @@ cannot be shown safe fails BR-1 just as surely as one that does nothing.
 | **BR-1** | Unblock ~$4.2M stalled pipeline: pass SOC 2 Type II next cycle; CMMC L2 assessment-ready in 12 months | Attestation + readiness dates met | Revenue |
 | **BR-2** | Cut audit-evidence effort with automated, continuously collected evidence carrying chain of custody | ≥80% reduction (6 wks → ≤1 wk) | Cost |
 | **BR-3** | Security feedback on every PR, humans only on flagged high-risk changes | ≤30 min for standard changes, SLA ≥95% | Velocity |
-| **BR-4** | Every production service has a current architecture diagram + threat model, enforced at merge | 100% coverage | Quality |
+| **BR-4** | Every production service has a current architecture diagram + threat model, enforced at merge; where diagrams can be generated from systems of record they are, and reviewed for leaks before publication | 100% coverage | Quality |
 | **BR-5** | Collect evidence once, map to many frameworks (SOC 2 + 800-171) | 1 evidence base → 2 frameworks | Scalability |
 | **BR-6** | Turn scanner findings into ranked, explained verdicts, so a person starts from an investigation already done rather than a raw count of known vulnerabilities (CVEs) | ≥90% triage-noise reduction; every ranked finding carries its reasoning | Risk |
 | **BR-7** | Every automated decision is explainable, logged, and reversible — the automation itself must survive audit | 100% of agent actions in audit log | Trust |
