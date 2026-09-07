@@ -157,8 +157,15 @@ hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
    same five-run pass; both tables are on the analysis page. Result: R1 fixed
    (1.00/1.00), lane-1 items exact, but a new failure mode: when one item fails the
    model piles on others, costing R4, R5, R6 precision; R2 still misses a count
-   mismatch handed to it as a fact. Rubric v1.2 next: judge items independently,
-   move the walkthrough count to Lane 1.
+   mismatch handed to it as a fact. Rubric v1.2: every item judged on its own
+   evidence; parser gates close R1/R2 without a changed template page, R4 without a
+   boundary signal or added tool, R5 without a secret or identifier candidate, R6
+   without an added tool; the walkthrough count on single-diagram pages is R8 in
+   Lane 1 (multi-part pages stay with R2), which also caught two pages on main.
+   Third pass: R1, R4, R5, R6 at 1.00 precision and recall, clean controls silent
+   14/14, run success 0.98; R2 still never fires on the subtle case and is on notice
+   under ADR-005. Four judged items now clear the fixture thresholds; promotion waits
+   on the seeded-attack step and 20 live instances.
 4. PR G3+ seeded injection evals: adversarial cases added to the eval set — injection
    inside diffs and docs aimed at the judge, tool-abuse attempts against the Phase 2
    agent, a Garak probe run against both, and a NeMo Auditor safety evaluation of the

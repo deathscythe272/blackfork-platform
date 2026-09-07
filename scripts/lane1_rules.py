@@ -75,6 +75,23 @@ def walkthrough_entries(text: str) -> int:
     return len(re.findall(r"^\s*\d+\.\s", m.group(1), re.M))
 
 
+def walkthrough_rule(text: str, path: str = "") -> list[str]:
+    """For a template page with exactly one flowchart, the numbered walkthrough must
+    have one entry per box. Multi-part pages legitimately fold boxes into steps and
+    stay with the judge (R2). Empty = pass."""
+    if any(path.replace("\\", "/").endswith(p) for p in DIAGRAM_EXEMPT):
+        return []
+    if "You are here:" not in text:
+        return []
+    flows = [d for d in diagrams(text) if d["kind"] == "flowchart"]
+    if len(flows) != 1:
+        return []
+    n, w = flows[0]["node_count"], walkthrough_entries(text)
+    if n and w != n:
+        return [f"walkthrough has {w} numbered entries for a {n}-box diagram (one entry per box)"]
+    return []
+
+
 def citation(body: str) -> tuple[bool, str]:
     """Does a pull-request body cite an existing requirement or constraint?"""
     m = re.search(r"Serves:\s*((?:BR-\d+|C\d+)(?:\s*,\s*(?:BR-\d+|C\d+))*)", body or "")

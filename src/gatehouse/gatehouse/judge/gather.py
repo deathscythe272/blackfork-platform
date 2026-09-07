@@ -89,6 +89,31 @@ def signals(changed: list[dict[str, Any]], body: str) -> dict[str, Any]:
             elif not line.startswith("-"):
                 new_ln += 1
     tools_added = [{"file": p, "line": n, "text": t.strip()} for p, n, t in added_lines if "@mcp.tool" in t]
+    boundary = []
+    for p, n, t in added_lines:
+        kinds = []
+        if re.search(r"https?://", t) and not PLACEHOLDER.search(t):
+            kinds.append("url")
+        if re.search(r"\b[A-Z][A-Z0-9_]*_(URL|ENDPOINT|HOST|KEY|TOKEN|SECRET|PASSWORD)\b", t):
+            kinds.append("credential-or-endpoint env var")
+        if p.endswith(("docker-compose.yml", "compose.yml", "compose.yaml")) and re.match(r"^  [a-z0-9][a-z0-9_-]*:\s*$", t):
+            kinds.append("compose service")
+        if re.search(r"\b(httpx|requests|aiohttp|urllib)\.(post|get|put|request|urlopen)\(", t):
+            kinds.append("outbound call")
+        if "@mcp.tool" in t:
+            kinds.append("tool")
+        if kinds:
+            boundary.append({"file": p, "line": n, "kinds": kinds, "excerpt": t.strip()[:80]})
+    identifiers = []
+    for p, n, t in added_lines:
+        if PLACEHOLDER.search(t):
+            continue
+        for label, rx in (("url", re.compile(r"https?://[^\s\"']+")),
+                          ("ipv4", re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b")),
+                          ("project-id-like", re.compile(r"\b[a-z][a-z0-9]+-(?:dev|prod|demo|staging|test)\b")),
+                          ("hostname-like", re.compile(r"\b[a-z0-9-]+\.(?:internal|local|corp|lan)\b"))):
+            if rx.search(t):
+                identifiers.append({"file": p, "line": n, "kind": label, "excerpt": t.strip()[:80]})
     secrets = []
     for p, n, t in added_lines:
         if PLACEHOLDER.search(t):
@@ -109,6 +134,8 @@ def signals(changed: list[dict[str, Any]], body: str) -> dict[str, Any]:
         "eval_files_changed": [p for p in paths if "/evals/" in p or p.endswith("cases.yaml")],
         "agent_or_tool_code_changed": [p for p in paths if p.endswith(".py") and ("mcp" in p or "gateway" in p or "agent" in p)],
         "mcp_tools_added": tools_added,
+        "boundary_signals": boundary,
+        "identifier_candidates": identifiers,
         "secret_pattern_hits": secrets,
         "body_cites_requirement": bool(re.search(r"Serves:\s*(BR-\d|C\d)", body)),
         "body_requirement_ids": re.findall(r"\b(BR-\d|C\d)\b", body),

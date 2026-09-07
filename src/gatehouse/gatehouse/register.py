@@ -55,7 +55,7 @@ async def gatehouse_judge(config: GatehouseJudgeConfig, builder: Builder):
         else:
             raise RuntimeError(f"judge model call failed after 3 attempts: {last_error}")
         content = response.content if hasattr(response, "content") else str(response)
-        verdict = parse_verdict(content, rubric_text)
+        verdict = parse_verdict(content, rubric_text, bundle.get("signals"))
         verdict["attempts"] = attempt + 1
         return json.dumps(verdict)
 

@@ -58,14 +58,16 @@ flowchart LR
 
 ## The details
 
-**The rubric, version 1.1.** Seven items, each with a definition of pass, fail, and
+**The rubric, version 1.2.** Eight items, each with a definition of pass, fail, and
 the form a finding must take, and each assigned to a lane. Lane 1 items are exact
 rules run by scripts and never scored by the model; they stay in the rubric so it
 remains the one list of what the gate checks. Changing the file changes the judge, so
 it goes through the gate like everything else, and a version bump re-runs the
 fixtures. Version 1.1 followed the first precision pass: two items that the model
 never caught moved to Lane 1, one item gained parsed facts, and one sentence that
-caused false alarms came out.
+caused false alarms came out. Version 1.2 followed the second: every item is judged on
+its own evidence, parser gates close an item when nothing in the change can make it
+apply, and the walkthrough count on single-diagram pages became a script.
 
 | Item | Lane | Checks |
 |---|---|---|
@@ -76,6 +78,7 @@ caused false alarms came out.
 | R5 | 2 | No added line carries a credential, cloud project id, internal hostname, or non-example address |
 | R6 | 2 | A new agent tool ships with a policy grant and an eval case in the same change |
 | R7 | 1 | Diagram mechanics: left to right, seven nodes or fewer, every node glossed (`scripts/check_docs_standard.py`) |
+| R8 | 1 | On a single-diagram page, one walkthrough entry per box (`scripts/check_docs_standard.py`); multi-part pages stay with R2 |
 
 **What the judge cannot do.** It cannot merge, cannot call tools, cannot post on its
 own (separate code posts its output), and cannot change its rubric. The Actions token it
