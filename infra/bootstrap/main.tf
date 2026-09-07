@@ -11,6 +11,11 @@
 provider "google" {
   project = var.project_id
   region  = var.region
+
+  # The budget API bills its quota to a project and refuses requests that name none;
+  # these two settings make every call carry this project as its quota project.
+  user_project_override = true
+  billing_project       = var.project_id
 }
 
 # The cost claim, enforced: a small monthly budget with alerts at half, ninety percent,
