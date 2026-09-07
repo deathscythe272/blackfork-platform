@@ -1,0 +1,155 @@
+# Foundation F3: infrastructure change becomes running platform through two jobs.
+#   plan   on every pull request, as the plan deployer (read only), posting the effect
+#          as a comment so reviewers approve effects, not text
+#   apply  on main only, as the apply deployer, recording the run and commit it applied
+# Both authenticate with a signed token from GitHub exchanged for short-lived cloud
+# credentials; no key is stored anywhere. Two threat-model tests run here on every pull
+# request: T1-CI-02 shows a pull-request job cannot obtain the apply identity, and
+# T1-CI-04 is the apply record. Serves: BR-5, BR-7.
+name: terraform
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+env:
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+  TF_VAR_project_id: ${{ vars.GCP_PROJECT_ID }}
+  TF_VAR_region: ${{ vars.GCP_REGION }}
+
+jobs:
+  terraform-plan:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Format and validate every root without credentials
+        run: |
+          terraform -chdir=infra fmt -check -recursive
+          for root in infra/bootstrap infra/envs/dev; do
+            terraform -chdir="$root" init -backend=false >/dev/null
+            terraform -chdir="$root" validate
+          done
+
+      - name: "T1-CI-02: a pull-request job must not obtain the apply identity"
+        id: apply_identity
+        uses: google-github-actions/auth@v2
+        continue-on-error: true
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_APPLY_SERVICE_ACCOUNT }}
+          create_credentials_file: false
+          export_environment_variables: false
+
+      - name: "T1-CI-02: assert the exchange was refused"
+        run: |
+          if [ "${{ steps.apply_identity.outcome }}" != "failure" ]; then
+            echo "::error::a pull-request job obtained the apply identity; the main-only binding is broken"
+            exit 1
+          fi
+          echo "T1-CI-02 passing: the apply identity refused a pull-request token"
+
+      - name: Authenticate as the plan deployer
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_PLAN_SERVICE_ACCOUNT }}
+
+      - name: Plan the dev environment
+        id: plan
+        run: |
+          terraform -chdir=infra/envs/dev init \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="prefix=envs/dev" >/dev/null
+          set +e
+          terraform -chdir=infra/envs/dev plan -no-color -lock=false -detailed-exitcode -out=dev.tfplan > plan.log 2>&1
+          code=$?
+          set -e
+          echo "exitcode=$code" >> "$GITHUB_OUTPUT"
+          if [ "$code" = "1" ]; then cat plan.log; exit 1; fi
+          grep -E '^Plan:|^No changes|^  # ' plan.log > plan-summary.txt || true
+          cat plan-summary.txt
+
+      - name: Post the plan as a pull-request comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          {
+            echo "<!-- terraform-plan -->"
+            echo "### Terraform plan · \`infra/envs/dev\` · as the plan deployer"
+            if [ "${{ steps.plan.outputs.exitcode }}" = "0" ]; then
+              echo "No changes. The dev environment already matches this branch."
+            else
+              echo "This pull request would make these changes after merge:"
+              echo
+              echo '```'
+              cat plan-summary.txt
+              echo '```'
+            fi
+            echo
+            echo "_Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}. T1-CI-02 passed on this run: the apply identity refused the pull-request token._"
+          } > comment.md
+          existing=$(gh api "repos/${{ github.repository }}/issues/$PR/comments" --paginate --jq '.[] | select(.body | startswith("<!-- terraform-plan -->")) | .id' | head -1)
+          if [ -n "$existing" ]; then
+            gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$existing" -F body=@comment.md >/dev/null
+          else
+            gh api "repos/${{ github.repository }}/issues/$PR/comments" -F body=@comment.md >/dev/null
+          fi
+
+  terraform-apply:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: terraform-apply-dev
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Authenticate as the apply deployer
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_APPLY_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Plan then apply the dev environment
+        id: apply
+        run: |
+          terraform -chdir=infra/envs/dev init \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="prefix=envs/dev" >/dev/null
+          terraform -chdir=infra/envs/dev plan -no-color -out=dev.tfplan | grep -E '^Plan:|^No changes|^  # ' | tee plan-summary.txt || true
+          terraform -chdir=infra/envs/dev apply -no-color dev.tfplan | tail -3
+
+      - name: "T1-CI-04: record which run applied which commit"
+        run: |
+          python3 - <<'PY' > apply-record.json
+          import json, os
+          print(json.dumps({
+              "commit": os.environ["GITHUB_SHA"],
+              "run_url": f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
+              "actor": os.environ["GITHUB_ACTOR"],
+              "root": "infra/envs/dev",
+              "plan": open("plan-summary.txt").read().splitlines(),
+          }, indent=2))
+          PY
+          gcloud storage cp apply-record.json "gs://${{ vars.TF_STATE_BUCKET }}/envs/dev/applies/${GITHUB_RUN_ID}-${GITHUB_SHA::12}.json"
+          echo "T1-CI-04: apply record written beside the state"
