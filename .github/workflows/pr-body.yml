@@ -10,5 +10,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Require "Serves: BR-n" in the pull-request body
+      - name: "Require a Serves line naming an existing requirement"
         run: python3 scripts/check_pr_body.py
