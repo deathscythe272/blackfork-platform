@@ -45,8 +45,10 @@ Phase-by-phase plan with steps and done-criteria: [`docs/ROADMAP.md`](docs/ROADM
       against the agent, Garak against the model, every answer safety-scored
       ([docs/analysis/seeded-attacks.md](docs/analysis/seeded-attacks.md))
 - [ ] First promotion of a rubric item to blocking, once 20 live PR instances exist
-- [ ] W1: workload profiles — our agents (tokens, tool calls, latency, long-horizon
-      behavior) and the coding-agent harness that builds this repo
+- [x] W1a: coding-agent harness profile — the agent that built this repo, measured
+      from its own logs, aggregates only ([docs/analysis/coding-agent-harness-profile.md](docs/analysis/coding-agent-harness-profile.md))
+- [ ] W1b: our agents' workload profile — tokens, tool calls, latency, long-horizon
+      behavior
 - [ ] Foundation IaC: Terraform modules, WIF keyless CI (F2–F3)
 - [ ] Provenance: widen the planes (P1–P4) + Pipeline Steward (P5)
 - [ ] ADR-008 appendix: confidential/air-gapped deployment pattern (design-only)

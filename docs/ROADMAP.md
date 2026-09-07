@@ -199,12 +199,14 @@ that builds this repo.
 3. `docs/analysis/agent-workload-profile.md` with committed charts: tokens per task,
    tool calls per task, p50/p95 latency, and a long-horizon run showing drift or
    stability.
-4. Harness workload analysis, answering P7: instrument coding-agent sessions on this
-   repo (the repo is built with one, so the raw material exists) and measure per turn: input and
-   output tokens, context growth, tool-call mix, retries and re-reads, and where
-   inference time goes across a session. Published as
-   `docs/analysis/coding-agent-harness-profile.md` with committed charts and the
-   collection method stated so it can be repeated on another harness.
+4. Done: harness workload analysis, answering P7. `src/profiling/harness.py` reads
+   the coding agent's own session logs and publishes aggregates only:
+   `docs/analysis/coding-agent-harness-profile.md` with three committed charts. First
+   measurement: 914 turns from 81 prompts, prompt size 43k → 853k tokens across the
+   session with no compaction, median 100% of each prompt served from cache, 2.5M
+   output tokens, 5% tool-error rate. Two decisions recorded: the agent profile now
+   measures prompt size per step, and the Steward's sandbox gains a per-job token
+   budget.
 5. A findings section in each doc stating what the numbers changed in the design
    (tool-count limits, prompt-size caps, context-management rules, or similar).
 
@@ -234,12 +236,13 @@ answers the Phase 2 eval.
    agent-to-agent (A2A) service. The Risk Analyst plus the exploitability verdicts form the platform's
    investigation-automation workflow: finding in, ranked and explained verdict out.
    ADR-004, and ADR-007 on human sign-off.
-4. P4 assurance plane: NeMo Retriever with Milvus, scheduled Garak and NeMo Auditor
+4. P4 assurance plane: NeMo Retriever with Milvus, scheduled Garak and output-safety
    runs, and an eval harness that re-scores every agent on every change.
 5. P5 Pipeline Steward: the on-failure agent that diagnoses a broken Dagster job and
    opens a fix PR, itself gated by Gatehouse. It runs commands, so per C5 it runs
    inside a sandbox per the Phase 3 agent→host boundary: OpenShell where available, a locked
-   container otherwise, with the escape tests from T1 in its eval set.
+   container otherwise, with the escape tests from T1 in its eval set, a wall-clock limit, and a
+   per-job token budget (the harness profile showed why).
 6. P6 Cartographer agent (candidate): draws the platform's own topology and threat
    diagrams from systems of record only (Terraform state, the deployed-service
    inventory, a Cartography asset graph), never from what the model believes the
