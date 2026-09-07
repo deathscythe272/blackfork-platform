@@ -27,8 +27,8 @@ flowchart LR
 ## How it works
 
 1. **Plane — five values, fixed.** `data` (sources → pipelines → lakehouse), `context`
-   (MCP servers + gateway), `agent` (the workflows), `assurance` (policy, audit, evals,
-   observability), `delivery` (CI/CD, IaC, Gatehouse). Planes slice the *platform*.
+   (Model Context Protocol, MCP, servers + gateway), `agent` (the workflows), `assurance` (policy, audit, evals,
+   observability), `delivery` (CI/CD, infrastructure as code, Gatehouse). Planes slice the *platform*.
 2. **System — open set, registered.** Blackfork's ~40 services roll up into a handful of
    registered systems (e.g., `windrow-core`, `windrow-edge`, `corp-it`). Systems slice
    the *evidence and scope*.
@@ -55,7 +55,7 @@ Every evidence row, finding, control status, and generated packet carries `syste
 Audit packets are generated *per system* — which is exactly how System Security Plans
 (SSPs) and assessments actually scope in the real world. The registry also drives
 policy: a system tagged `cui` routes agent inference to the self-hosted path (C2) and
-tightens which MCP tools OPA will allow.
+tightens which MCP tools the policy engine (OPA) will allow.
 
 **Why three axes and not one big category tree:** the axes are orthogonal. "Context
 plane" resources exist for every system; "windrow-core" evidence exists in every plane.

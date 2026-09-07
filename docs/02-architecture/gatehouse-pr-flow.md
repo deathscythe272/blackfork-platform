@@ -60,13 +60,13 @@ flowchart LR
    model changing too? Did behavior change without a doc update? These are file-level
    rules, no model involved (BR-4).
 3. **Policy checks.** Rego rules run through Conftest against configuration: password
-   minimum length of 15 per NIST SP 800-63B, no secrets in config, TLS settings pinned.
+   minimum length of 15 per the federal identity standard NIST SP 800-63B, no secrets in config, transport encryption (TLS) settings pinned.
    Each rule names the standard it enforces.
 4. **Blocked or green.** Any failure blocks the merge and cites the exact rule, with
    feedback in about two minutes. All passes turn the check green and hand the change
    to the judge.
 5. **AI judge.** A NeMo Agent Toolkit workflow reads the diff, the diagram, and the
-   threat model and scores them against a versioned rubric: STRIDE coverage, trust
+   threat model and scores them against a versioned rubric: STRIDE coverage (the six-part threat checklist), trust
    boundaries drawn, data flows labeled, authentication design addressed. The diff is
    data to the judge, never instructions.
 6. **Review comment.** The judge posts structured findings and a score on the pull
@@ -81,7 +81,7 @@ flowchart LR
    deliberate prompt-injection text inside diffs and docs to test whether the judge can
    be steered (BR-8, BR-9).
 10. **Precision per item.** For each rubric item, how often the judge was right is
-    measured and published. Items that clear the threshold set in ADR-005 are promoted
+    measured and published. Items that clear the threshold set in architecture decision record ADR-005 are promoted
     to blocking. Items below it stay advisory and keep being measured. Promotion is
     reversible: a regression demotes.
 
@@ -117,7 +117,7 @@ input, so it gets the same treatment as every other agent in the platform.
 
 ## Go deeper
 
-**Next:** `architecture-narrative.md` — the what and why of every stage in both systems.
+**Next:** `end-state.md` — every piece of the finished platform on one map.
 
 - `provenance-flow.md` — where the gate's decisions end up as evidence
 - `../30-gatehouse/README.md` — the lane-by-lane docs as they are built

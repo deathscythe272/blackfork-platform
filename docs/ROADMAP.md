@@ -49,14 +49,14 @@ like. Steps are pull-request sized; each PR cites the requirement it serves.
 2. **Phase 1 — Legibility.** Fix the diagrams to meet our own rules, then write the
    first ADR. This comes first because the diagrams are what an interviewer sees first,
    and every later doc cites them.
-3. **Phase 2 — V1 vertical slice.** One agent, one MCP server, the auth gateway,
+3. **Phase 2 — V1 vertical slice.** One agent, one tool server (MCP, the Model Context Protocol), the auth gateway,
    Guardrails, one golden eval, one trace — all running locally. This is the single most
    important phase: every later safety and evaluation claim needs a real system to be
    true about.
 4. **Phase 3 — Threat model.** Take the running slice and ask how it gets attacked.
    Every threat maps to a mitigation and to a test ID, and the test IDs become the
    backlog for the next phase.
-5. **Phase 4 — Gatehouse trust machinery.** Build the LLM judge lane, then the
+5. **Phase 4 — Gatehouse trust machinery.** Build the large-language-model (LLM) judge lane, then the
    machinery that decides when it may block, then seed the eval sets with injection and
    tool-abuse attempts so containment becomes a measured number.
 6. **Phase 5 — Workload profiling.** Instrument the agents and publish measured
@@ -67,7 +67,7 @@ like. Steps are pull-request sized; each PR cites the requirement it serves.
    deploying an untested system proves nothing.
 8. **Phase 7 — Widen Provenance.** Replace the slice's stubs with the real data,
    context, agent, and assurance planes, one PR each. The slice becomes the platform.
-9. **Phase 8 — Outward.** Close the CUI story with the ADR-008 appendix, then extract
+9. **Phase 8 — Outward.** Close the controlled-unclassified-information (CUI) story with the ADR-008 appendix, then extract
    reusable pieces into a patterns repo and upstream fixes as they arise.
 
 ## The details
@@ -80,7 +80,7 @@ like. Steps are pull-request sized; each PR cites the requirement it serves.
 2. Extend `scripts/check_docs_standard.py` to require "How it works" on template docs,
    so walkthrough-matches-diagram is enforced rather than hoped for.
 3. PR ADR-001: the MCP auth gateway decision — context, options, decision,
-   consequences — plus a short STRIDE sketch of the gateway that Phase 3 grows.
+   consequences — plus a short STRIDE threat sketch (the six-part checklist) of the gateway that Phase 3 grows.
 
 **Done when:** checker green, no v1 banners, ADR-001 accepted and linked from the ADR
 index and the narrative.
@@ -91,8 +91,8 @@ index and the narrative.
    carrying `system_id`. No Dagster or Iceberg yet.
 2. `evidence-mcp`: an MCP server exposing two or three parameterized tools over the
    fixture. No model-written SQL (ADR-003, planned).
-3. Auth gateway: a small service in front of the MCP server — verify identity, ask OPA
-   for a decision, write an audit row, forward. Rego policy checked in.
+3. Auth gateway: a small service in front of the MCP server — verify identity, ask the
+   policy engine (OPA) for a decision, write an audit row, forward. Rego policy checked in.
 4. Agent: the Evidence Collector as a NeMo Agent Toolkit workflow calling a hosted NIM
    endpoint; the key comes from `NVIDIA_API_KEY`, never the repo.
 5. Guardrails: a NeMo Guardrails config wrapping the agent's input and output.
@@ -189,12 +189,12 @@ answers the Phase 2 eval.
 
 ### Phase 7 — Widen Provenance, P1–P5 (Serves: BR-1, BR-2, BR-5, BR-7)
 
-1. P1 data plane: Dagster assets, Iceberg bronze/silver/gold on GCS, Presidio redaction
+1. P1 data plane: Dagster assets, Iceberg bronze/silver/gold on Google Cloud Storage (GCS), Presidio redaction
    before silver, asset checks. ADR-002 and ADR-006 land here.
-2. P2 context plane: `controls-mcp` with OSCAL catalogs; gateway hardened per Phase 3
+2. P2 context plane: `controls-mcp` with OSCAL (machine-readable) control catalogs; gateway hardened per Phase 3
    findings. ADR-003.
-3. P3 agent plane: Control Mapper, Report Writer, and Risk Analyst as a separate A2A
-   service. The Risk Analyst plus the exploitability verdicts form the platform's
+3. P3 agent plane: Control Mapper, Report Writer, and Risk Analyst as a separate
+   agent-to-agent (A2A) service. The Risk Analyst plus the exploitability verdicts form the platform's
    investigation-automation workflow: finding in, ranked and explained verdict out.
    ADR-004, and ADR-007 on human sign-off.
 4. P4 assurance plane: NeMo Retriever with Milvus, scheduled Garak and NeMo Auditor

@@ -56,13 +56,18 @@ These exist because dense diagrams don't read; linear ones do.
    follows the boxes in order, left to right.
 6. In the repo, diagrams live inside markdown as ` ```mermaid ` fences so GitHub renders
    them inline.
+7. **One named exception.** `02-architecture/end-state.md` holds a single inventory map
+   of every component in the finished platform, grouped by layer, with no arrows. It
+   is exempt from rules 1 and 2 because it is a list drawn as boxes, not a flow. It
+   still obeys rule 3: every box is a name plus a short line saying what the piece does
+   for the system. No other page may use this form.
 
 ## Writing rules
 
 - The 30-second version is mandatory and acronym-free.
 - Define every acronym on first use *in each doc* — readers land on pages cold.
 - "Why it's built this way" must cite at least one business requirement (BR-x) or
-  architecture decision (ADR-x). Rationale without a source is opinion.
+  architecture decision record (ADR-x). Rationale without a source is opinion.
 - State the honest read time. A "5-minute doc" that takes twenty breaks trust.
 
 ## Why it's built this way

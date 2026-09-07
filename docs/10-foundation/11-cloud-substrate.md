@@ -34,10 +34,10 @@ flowchart LR
 1. **Projects.** Two GCP projects, `bf-dev` and `bf-demo`, created and owned by
    Terraform. Same modules, different variable files — environment parity by
    construction.
-2. **Storage.** One GCS bucket per environment holds the Iceberg lakehouse (warehouse
+2. **Storage.** One Google Cloud Storage (GCS) bucket per environment holds the Iceberg lakehouse (warehouse
    path), plus a separate bucket for Terraform state with versioning enabled.
-3. **Runtime.** Cloud Run hosts every stateless service — the MCP servers, the auth
-   gateway, the A2A Risk Analyst — because it scales to zero between demos.
+3. **Runtime.** Cloud Run hosts every stateless service — the Model Context Protocol (MCP) servers, the auth
+   gateway, the agent-to-agent (A2A) Risk Analyst — because it scales to zero between demos.
 4. **Supporting services.** Artifact Registry stores container images; Secret Manager
    holds the few real secrets (the NVIDIA API key); Pub/Sub carries platform events.
 5. **Guardrails.** IAM bindings are least-privilege per service account, every resource
@@ -79,7 +79,7 @@ No JSON key ever exists to rotate, leak, or commit.
 | `serves-br` | br1…br7 | Which business requirement justifies it? |
 
 **Cost posture.** Idle ≈ a few dollars/month (storage + registries). Demo hours are
-dominated by Cloud Run request time and NIM usage (free dev tier). `terraform destroy`
+dominated by Cloud Run request time and hosted model (NIM) usage (free dev tier). `terraform destroy`
 is a supported, tested path — disposability is a feature, and the demo script includes a
 timed cold rebuild.
 

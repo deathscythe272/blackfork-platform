@@ -42,7 +42,7 @@ flowchart LR
 ## The details
 
 - **Identity split.** The PR pipeline exchanges its OIDC token for a *plan-only* service
-  account; the merge pipeline gets the *apply* account, and WIF attribute conditions
+  account; the merge pipeline gets the *apply* account, and Workload Identity Federation (WIF) attribute conditions
   restrict apply to `main` (see `11-cloud-substrate.md`). Compromising a PR cannot
   deploy.
 - **Concurrency.** Applies serialize on a per-environment concurrency group; a stale

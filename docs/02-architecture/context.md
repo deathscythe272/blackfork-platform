@@ -41,8 +41,8 @@ flowchart LR
 
 ## How it works
 
-1. **DoD prime contractor.** The customer whose contract flows NIST 800-171 and CMMC
-   requirements down to Blackfork, and whose revenue is stalled until the company can
+1. **DoD prime contractor.** The customer whose contract flows the federal security
+   standard NIST SP 800-171 and its certification program (CMMC) down to Blackfork, and whose revenue is stalled until the company can
    show it meets them (BR-1).
 2. **Security team.** Three people who own compliance and cannot scale by hiring (C1).
    They set the rules Provenance enforces and sign what it produces.
@@ -70,7 +70,7 @@ auditor, and the hosted NVIDIA model endpoints are outside.
 
 **Where the models live.** Both systems call NVIDIA NIM endpoints for reasoning. In
 development those are hosted and free. When controlled unclassified information enters
-the boundary, the same models run as self-hosted containers inside it (C2, ADR-008).
+the boundary, the same models run as self-hosted containers inside it (C2, architecture decision record ADR-008).
 That switch is a configuration change, not a redesign.
 
 **What crosses the boundary and how.** Requirements come in as contract text. Evidence

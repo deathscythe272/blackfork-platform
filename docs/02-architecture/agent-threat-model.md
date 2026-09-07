@@ -12,8 +12,8 @@ attack surface. Someone can hide instructions in a log line. Someone can talk th
 out of its rules. A steered agent can ask for data it should not have, call the wrong
 tool, or run a command it should never run. And the model, prompts, and libraries the
 agent is built from can be swapped or poisoned before it ever starts. This page draws
-the lines an attack would have to cross, lists what could go wrong at each line using
-the standard STRIDE categories, names the control in the design that stops it, and
+the lines an attack would have to cross, lists what could go wrong at each line using a
+standard six-part checklist, names the control in the design that stops it, and
 names the test that proves the control works. Where no test exists yet, the row says
 so. Nothing here is asserted without a test or a labeled gap.
 
@@ -52,7 +52,7 @@ built (C5).
    the agent's next thought.
 3. **B3, agent to gateway.** Every tool call. The agent presents a service token; the
    gateway is the only thing the agent can reach that touches data.
-4. **B4, gateway to policy and audit.** The gateway asks OPA whether the call is allowed
+4. **B4, gateway to policy and audit.** The gateway asks the policy engine (Open Policy Agent, OPA) whether the call is allowed
    and writes the decision to an append-only log before forwarding.
 5. **B5, gateway to evidence server.** Only the gateway can reach the evidence server;
    the server runs fixed, parameterized queries.
@@ -63,7 +63,9 @@ built (C5).
 7. **B7, agent to host.** For an agent that runs commands, the boundary between the
    agent and the machine it runs on: filesystem, credentials, network.
 
-Each boundary gets a STRIDE pass below. Test IDs are stable names; the roadmap phase
+Each boundary gets a STRIDE pass below. STRIDE is the six-part checklist used in
+threat modeling: spoofing, tampering, repudiation, information disclosure, denial of
+service, and elevation of privilege. Test IDs are stable names; the roadmap phase
 that implements a planned test is given so a gap has an owner.
 
 ## The details
@@ -87,9 +89,9 @@ control yet, or the control exists with no test, and the row says which.
 
 | STRIDE | Threat | Control in the design | Test | Status |
 |---|---|---|---|---|
-| Spoofing | Traffic to the model endpoint is redirected to a hostile endpoint | TLS to a pinned base URL; in the CUI path the model runs inside the boundary (ADR-008) | T1-MD-01: endpoint pin check in config validation | Planned, phase 6 |
+| Spoofing | Traffic to the model endpoint is redirected to a hostile endpoint | TLS to a pinned base URL; when controlled unclassified information (CUI) is in scope the model runs inside the boundary (architecture decision record ADR-008) | T1-MD-01: endpoint pin check in config validation | Planned, phase 6 |
 | Tampering | The model's completion carries a tool call the agent should not make | The agent cannot make a call the gateway does not allow; every completion-driven call still passes B3 | T1-GW-06 | Passing |
-| Information disclosure | Sensitive data leaves the boundary inside prompts | Redaction before storage (ADR-006) means Gold rows carry no personal data; agent reads narrow views only | T1-MD-02: prompt payload scan for PII patterns in the trace | Planned, phase 5, using the OTel spans |
+| Information disclosure | Sensitive data leaves the boundary inside prompts | Redaction before storage (ADR-006) means Gold rows carry no personal data; agent reads narrow views only | T1-MD-02: prompt payload scan for PII patterns in the trace | Planned, phase 5, using the OpenTelemetry (OTel) spans |
 | Denial of service | Endpoint rate limits or outages stall the agent | Retries with backoff in the client; the agent failing is a result the eval runner records, not a crash | T1-MD-03: eval run with the endpoint blocked returns a failed case, not a hang | Planned, phase 4 |
 | Elevation | The model is swapped for one with different safety behavior | Model name pinned in config; a model change re-runs the eval set and a regression blocks release | T1-SC-02 | Planned, phase 4 |
 
@@ -98,7 +100,7 @@ control yet, or the control exists with no test, and the row says which.
 | STRIDE | Threat | Control in the design | Test | Status |
 |---|---|---|---|---|
 | Spoofing | A forged or replayed token acts as the Evidence Collector | Signed tokens with issuer, audience, and expiry; unknown or invalid tokens are refused before policy runs | T1-GW-01: forged token rejected and audited (`smoke.py`) | Passing |
-| Tampering | Arguments altered in transit, or a tool name that does not exist | Tool schema validation by the MCP server layer; transport is plain HTTP inside a private Compose network today | T1-GW-02: off-schema calls refused | Passing for schema; **gap** for transport (no TLS between containers; phase 6 adds mutual TLS) |
+| Tampering | Arguments altered in transit, or a tool name that does not exist | Tool schema validation by the Model Context Protocol (MCP) server layer; transport is plain HTTP inside a private Compose network today | T1-GW-02: off-schema calls refused | Passing for schema; **gap** for transport (no TLS between containers; phase 6 adds mutual TLS) |
 | Repudiation | A call cannot later be tied to an identity and a decision | Audit row per call, denies included, with identity, tool, arguments, decision, policy version, timestamp | T1-GW-03: every eval call appears in the audit log with its decision | Passing, asserted by the eval runner on every case |
 | Information disclosure | The gateway logs payloads or results | Gateway logs decisions, not results; audit rows carry arguments only | T1-GW-04: audit and server logs contain no result payloads | Planned, phase 4 |
 | Denial of service | A looping agent floods the gateway | None in the slice beyond the agent's `max_tool_calls` | T1-GW-05: per-identity rate limit, other callers unaffected | Gap, phase 6 |

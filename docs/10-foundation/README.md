@@ -26,7 +26,7 @@ flowchart LR
 ## How it works
 
 1. **Everything lives in git** — Terraform for infrastructure, Rego for policy, Python
-   for pipelines, YAML for CI, OSCAL for control catalogs, markdown for docs. There is
+   for pipelines, YAML for CI, OSCAL (the machine-readable format for control catalogs) for control catalogs, markdown for docs. There is
    no second source of truth.
 2. **GitHub Actions authenticates to Google Cloud without stored keys** using Workload
    Identity Federation (details in `11-cloud-substrate.md`).
@@ -39,7 +39,7 @@ flowchart LR
 
 ## The three foundation chunks
 
-- **F1 — Docs spine.** The business case, diagrams, architecture narrative, ADR log, and
+- **F1 — Docs spine.** The business case, diagrams, architecture narrative, architecture decision record (ADR) log, and
   the standard they all follow. Documentation is a deliverable here, not an afterthought.
 - **F2 — Cloud substrate** (`11-cloud-substrate.md`). The Terraform-managed GCP
   footprint: projects, lakehouse storage, runtime, secrets, registries, labels, budgets.
