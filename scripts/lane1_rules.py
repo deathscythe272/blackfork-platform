@@ -93,7 +93,7 @@ def walkthrough_rule(text: str, path: str = "") -> list[str]:
 
 
 THREAT_MODEL = "docs/02-architecture/agent-threat-model.md"
-TOOL_DECORATOR = re.compile(r"^\s*@mcp\.tool")  # the decorator itself, not prose that names it
+TOOL_DECORATOR = re.compile(r"^\s*@mcp\.tool\b")  # the decorator itself, not prose that names it
 _TEST_DATA = re.compile(r"(^|/)(fixtures|tests|test|testdata|evals)/|\.patch$|\.diff$")
 _PLACEHOLDER = re.compile(r"\.\.\.|\$\{|<[^>]+>|your[-_ ]?key|example|placeholder|paste", re.I)
 

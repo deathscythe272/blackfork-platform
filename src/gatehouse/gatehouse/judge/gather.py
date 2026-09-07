@@ -56,7 +56,7 @@ SECRET_PATTERNS = [
 ]
 PLACEHOLDER = re.compile(r"\.\.\.|\$\{|<[^>]+>|your[-_ ]?key|example|placeholder|paste", re.I)
 # Test data by design: planted flaws live here on purpose and must never count as findings.
-TOOL_DECORATOR = re.compile(r"^\s*@mcp\.tool")  # the decorator itself, not prose that names it
+TOOL_DECORATOR = re.compile(r"^\s*@mcp\.tool\b")  # the decorator itself, not prose that names it
 TEST_DATA = re.compile(r"(^|/)(fixtures|tests|test|testdata|evals)/|\.patch$|\.diff$")
 
 
