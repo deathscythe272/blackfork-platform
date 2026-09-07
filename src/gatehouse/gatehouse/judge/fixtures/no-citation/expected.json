@@ -1,6 +1,8 @@
 {
   "kind": "planted",
-  "should_fail": ["R3"],
+  "should_fail": [
+    "R3"
+  ],
   "may_fail": [],
-  "note": "A harmless wording change whose body has no 'Serves: BR-n' line. R3 must fail; everything else must pass or not apply."
+  "note": "A harmless wording change whose body has no 'Serves: BR-n' line. R3 (lane 1 script) must fail; everything the judge scores must pass or not apply."
 }

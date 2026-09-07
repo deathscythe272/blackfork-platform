@@ -19,7 +19,7 @@ point: there is no side door where "just a quick fix" skips review.
 
 ```mermaid
 flowchart LR
-  A["PR opened"] --> B["validate<br>fmt, lint, tests"] --> C["terraform plan<br>posted as PR comment"] --> D["Gatehouse checks<br>docs + policy + judge"] --> E["human review<br>+ merge"] --> F["apply + build<br>+ deploy"]
+  A["PR opened<br>code and docs together"] --> B["validate<br>fmt, lint, tests"] --> C["terraform plan<br>posted as PR comment"] --> D["Gatehouse checks<br>docs + policy + judge"] --> E["human review<br>+ merge"] --> F["apply + build<br>+ deploy"]
 ```
 
 ## How it works

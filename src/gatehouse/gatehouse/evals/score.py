@@ -33,6 +33,7 @@ import yaml
 
 from gatehouse.judge import gather
 from gatehouse.judge.cli import run_judge
+from gatehouse.judge.prompt import judged_items
 
 HERE = pathlib.Path(__file__).resolve().parent
 FIXTURES = HERE.parent / "judge" / "fixtures"
@@ -50,6 +51,23 @@ def load_fixtures(only: str | None) -> list[tuple[str, dict, dict]]:
         exp = json.loads((d / "expected.json").read_text(encoding="utf-8"))
         out.append((d.name, gather.from_fixture(d), exp))
     return out
+
+
+def _lane1_rules():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("lane1_rules", gather.REPO_ROOT / "scripts" / "lane1_rules.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def lane1_verdicts(bundle: dict) -> dict[str, bool]:
+    """Deterministic verdicts for lane-1 items: True means the item fails."""
+    rules = _lane1_rules()
+    body = bundle["pr"].get("body") or ""
+    r3_fail = not rules.citation(body)[0]
+    r7_fail = any(rules.diagram_rules(text, path) for path, text in (bundle.get("full_files") or {}).items())
+    return {"R3": r3_fail, "R7": r7_fail}
 
 
 def classify(item: str, failed: bool, exp: dict) -> str | None:
@@ -73,11 +91,23 @@ def main() -> int:
         return 0
 
     fixtures = load_fixtures(args.only)
-    items = [i["id"] for i in RUBRIC["items"]]
+    lane2_ids = [i["id"] for i in judged_items(RUBRIC)]
+    lane1_ids = [i["id"] for i in RUBRIC["items"] if i["id"] not in lane2_ids]
+    items = lane2_ids + lane1_ids
     counts = {i: collections.Counter() for i in items}
     verdicts: dict[str, dict[str, list[str]]] = {f: {i: [] for i in items} for f, _, _ in fixtures}
     run_log = []
     attempted = succeeded = 0
+
+    # Lane 1 items are scripts: one deterministic verdict per fixture, no model, no runs.
+    for name, bundle, exp in fixtures:
+        for i, failed in lane1_verdicts(bundle).items():
+            if i not in lane1_ids:
+                continue
+            verdicts[name][i].append("fail" if failed else "ok")
+            c = classify(i, failed, exp)
+            if c:
+                counts[i][c] += 1
 
     for r in range(args.runs):
         for name, bundle, exp in fixtures:
@@ -97,7 +127,7 @@ def main() -> int:
             failed_items = {i["id"] for i in v["items"] if i["verdict"] == "fail"} | {f["item"] for f in v["findings"]}
             row = {"run": r + 1, "fixture": name, "ok": True, "failed": sorted(failed_items), "findings": len(v["findings"])}
             run_log.append(row)
-            for i in items:
+            for i in lane2_ids:
                 verdicts[name][i].append("fail" if i in failed_items else "ok")
                 c = classify(i, i in failed_items, exp)
                 if c:
@@ -124,7 +154,7 @@ def main() -> int:
             "instances": instances >= THRESHOLDS["min_instances"],
             "runs": args.runs >= THRESHOLDS["min_runs"],
         }
-        per_item[i] = {"TP": tp, "FP": fp, "FN": fn, "TN": tn, "instances": instances,
+        per_item[i] = {"lane": 1 if i in lane1_ids else 2, "TP": tp, "FP": fp, "FN": fn, "TN": tn, "instances": instances,
                        "precision": precision, "recall": recall, "stability": stability, "meets": meets}
 
     report = {
@@ -153,13 +183,17 @@ def _rewrite_doc(report: dict) -> None:
     lines = [f"Run {report['run_at']} · rubric v{report['rubric_version']} · model `{report['model']}` · "
              f"{report['runs']} runs × {len(report['fixtures'])} fixtures · judge run success "
              f"{report['succeeded']}/{report['attempted']} ({_fmt(report['run_success'])}).", "",
-             "| Item | TP | FP | FN | TN | Precision | Recall | Stability | Instances | Fixture thresholds met |",
-             "|---|---|---|---|---|---|---|---|---|---|"]
+             "| Item | Lane | TP | FP | FN | TN | Precision | Recall | Stability | Instances | Fixture thresholds met |",
+             "|---|---|---|---|---|---|---|---|---|---|---|"]
     for i, d in report["per_item"].items():
         m = d["meets"]
         missing = [k for k, ok in m.items() if not ok]
-        status = "yes" if not missing else "no: " + ", ".join(missing)
-        lines.append(f"| {i} {titles[i]} | {d['TP']} | {d['FP']} | {d['FN']} | {d['TN']} | {_fmt(d['precision'])} | "
+        lane = d.get("lane", 2)
+        if lane == 1:
+            status = "script; exact by construction" if not missing or missing == ["instances", "runs"] or set(missing) <= {"instances", "runs"} else "script; " + ", ".join(missing)
+        else:
+            status = "yes" if not missing else "no: " + ", ".join(missing)
+        lines.append(f"| {i} {titles[i]} | {lane} | {d['TP']} | {d['FP']} | {d['FN']} | {d['TN']} | {_fmt(d['precision'])} | "
                      f"{_fmt(d['recall'])} | {_fmt(d['stability'])} | {d['instances']} | {status} |")
     block = "\n".join(lines)
     text = DOC.read_text(encoding="utf-8")

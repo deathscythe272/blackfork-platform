@@ -19,14 +19,14 @@ system's data it touches, and which environment it lives in.
 
 ```mermaid
 flowchart LR
-  A["terraform apply"] --> B["Projects<br>bf-dev / bf-demo"] --> C["Storage<br>GCS bucket = the lakehouse"] --> D["Runtime<br>Cloud Run services"] --> E["Guardrails<br>IAM, labels, budget alerts"]
+  A["terraform apply<br>one command per environment"] --> B["Projects<br>bf-dev / bf-demo"] --> C["Storage<br>GCS bucket = the lakehouse"] --> D["Runtime<br>Cloud Run services"] --> E["Guardrails<br>IAM, labels, budget alerts"]
 ```
 
 And the authentication chain that makes CI keyless:
 
 ```mermaid
 flowchart LR
-  F["Actions job starts"] --> G["GitHub issues the job an<br>OIDC identity token"] --> H["GCP Workload Identity<br>Federation verifies it"] --> I["Short-lived credentials<br>minted — nothing stored"] --> J["terraform runs<br>as a scoped service account"]
+  F["Actions job starts<br>no stored credential"] --> G["GitHub issues the job an<br>OIDC identity token"] --> H["GCP Workload Identity<br>Federation verifies it"] --> I["Short-lived credentials<br>minted — nothing stored"] --> J["terraform runs<br>as a scoped service account"]
 ```
 
 ## How it works

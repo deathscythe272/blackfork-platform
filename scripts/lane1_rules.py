@@ -1,0 +1,87 @@
+"""Gatehouse Lane 1 rules: exact checks, standard library only, importable by the
+CI scripts beside this file and by the judge's scorer.
+
+Two rule families live here because the first precision pass showed the judge never
+catches them while a script always does (docs/analysis/judge-precision.md):
+
+  diagram_rules(text)   the mechanical half of the docs standard's diagram rules
+  citation(body)        the pull-request body cites an existing requirement
+
+Serves: BR-4, BR-9. ADR-005: a judgment check that turns out to be a rule moves lanes.
+"""
+
+from __future__ import annotations
+
+import re
+
+REQUIREMENT_IDS = {f"BR-{i}" for i in range(1, 10)} | {f"C{i}" for i in range(1, 6)}
+DIAGRAM_EXEMPT = ("docs/02-architecture/end-state.md",)
+MAX_NODES = 7
+
+_FENCE = re.compile(r"```mermaid\n(.*?)```", re.S)
+_NODE = re.compile(r'(?<![\w])([A-Za-z_][\w]*)\s*(\[|\(|\{|\[\[|\(\(|>)\s*"?([^\]\)\}"\n]*)"?', re.M)
+_EDGE_TOKENS = re.compile(r"-->|-.->|==>|--|-\.|:::|\|")
+
+
+def diagrams(text: str) -> list[dict]:
+    """Every mermaid fence in a markdown text, with the facts the rules need."""
+    out = []
+    for fence in _FENCE.findall(text):
+        first = fence.strip().splitlines()[0].strip() if fence.strip() else ""
+        kind = "sequence" if first.startswith("sequenceDiagram") else "flowchart" if first.startswith("flowchart") else "other"
+        direction = first.split()[1] if kind == "flowchart" and len(first.split()) > 1 else None
+        nodes: dict[str, str] = {}
+        if kind == "flowchart":
+            for line in fence.splitlines()[1:]:
+                if line.strip().startswith(("classDef", "class ", "subgraph", "end", "%%", "direction", "style", "linkStyle")):
+                    continue
+                for m in re.finditer(r'\b([A-Z][A-Z0-9_]*)\s*\["([^"]*)"\]', line):
+                    nodes.setdefault(m.group(1), m.group(2))
+                for m in re.finditer(r'\b([A-Z][A-Z0-9_]*)\s*\[([^\]"]+)\]', line):
+                    nodes.setdefault(m.group(1), m.group(2))
+        without_gloss = [n for n, label in nodes.items() if "<br>" not in label and "<i>" not in label]
+        out.append({"kind": kind, "direction": direction, "node_count": len(nodes),
+                    "nodes": list(nodes), "nodes_without_gloss": without_gloss})
+    return out
+
+
+def diagram_rules(text: str, path: str = "") -> list[str]:
+    """Failures of the mechanical diagram rules for one template page. Empty = pass."""
+    if any(path.replace("\\", "/").endswith(p) for p in DIAGRAM_EXEMPT):
+        return []
+    if "You are here:" not in text:
+        return []
+    ds = diagrams(text)
+    fails = []
+    prose = re.sub(r"```.*?```", "", text, flags=re.S)  # headings inside code samples do not count
+    if re.search(r"^## The picture", prose, re.M) and not ds:
+        fails.append("no mermaid diagram under '## The picture'")
+    for i, d in enumerate(ds, 1):
+        if d["kind"] == "flowchart" and d["direction"] != "LR":
+            fails.append(f"diagram {i}: direction is {d['direction'] or 'unset'}, must be LR")
+        if d["kind"] == "other":
+            fails.append(f"diagram {i}: not a flowchart or sequence diagram")
+        if d["node_count"] > MAX_NODES:
+            fails.append(f"diagram {i}: {d['node_count']} nodes, max {MAX_NODES}")
+        if d["nodes_without_gloss"]:
+            fails.append(f"diagram {i}: nodes without a gloss: {', '.join(d['nodes_without_gloss'])}")
+    return fails
+
+
+def walkthrough_entries(text: str) -> int:
+    m = re.search(r"^## How it works\n(.*?)(?=^## )", text, re.S | re.M)
+    if not m:
+        return 0
+    return len(re.findall(r"^\s*\d+\.\s", m.group(1), re.M))
+
+
+def citation(body: str) -> tuple[bool, str]:
+    """Does a pull-request body cite an existing requirement or constraint?"""
+    m = re.search(r"Serves:\s*((?:BR-\d+|C\d+)(?:\s*,\s*(?:BR-\d+|C\d+))*)", body or "")
+    if not m:
+        return False, "no 'Serves: BR-n' (or C-n) line in the pull-request body"
+    ids = [i.strip() for i in m.group(1).split(",")]
+    unknown = sorted(i for i in ids if i not in REQUIREMENT_IDS)
+    if unknown:
+        return False, f"cites unknown ids: {', '.join(unknown)}"
+    return True, "cites " + ", ".join(ids)
