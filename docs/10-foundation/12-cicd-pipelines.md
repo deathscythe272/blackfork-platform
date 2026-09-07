@@ -1,75 +1,95 @@
 # CI/CD Pipelines — How Change Becomes Running Platform
 
-> **In one line:** Two pipelines run everything: the PR pipeline proves a change is safe
-> and shows exactly what it will do; the merge pipeline makes it real.
+> **In one line:** Two jobs run infrastructure: on a pull request one shows exactly what
+> would change and proves it cannot change anything itself; after merge the other makes
+> it real and records that it did.
 
 **You are here:** START HERE › Foundation › CI/CD
 **Audience:** 🟡 engineer · **Reads in:** ~5 min
 
 ## The 30-second version
 
-Every change — application code, infrastructure, policy, docs — arrives as a pull
-request. A pipeline immediately checks it, previews its effect (for infrastructure, the
-exact list of what would be created or changed is posted as a comment), and the security
-gate weighs in. Only after checks pass and a human approves does the merge pipeline
-apply the infrastructure and deploy the services. One flow for all change types is the
-point: there is no side door where "just a quick fix" skips review.
+Every change, whether application code, infrastructure, policy, or docs, arrives as a
+pull request. Checks run at once: the docs standard, the requirement citation, the
+policy tests, the boundary rules, the AI judge, and, for infrastructure, a preview of
+what would be created or changed, posted as a comment so reviewers approve effects and
+not text. The preview job holds an identity that can only read, and on every run it
+proves it cannot obtain the one that can write. After a person merges, a second job with
+the writing identity applies the change and leaves a record naming the run and the
+commit. One flow for every kind of change is the point: there is no side door where a
+quick fix skips review.
 
 ## The picture
 
 ```mermaid
 flowchart LR
-  A["PR opened<br>code and docs together"] --> B["validate<br>fmt, lint, tests"] --> C["terraform plan<br>posted as PR comment"] --> D["Gatehouse checks<br>docs + policy + judge"] --> E["human review<br>+ merge"] --> F["apply + build<br>+ deploy"]
+  PR["Pull request<br><i>code and docs together</i>"] --> CHECKS["Exact checks<br><i>docs, citation, policy, boundaries</i>"]
+  CHECKS --> PLAN["Plan<br><i>read-only identity, effect as a comment</i>"]
+  PLAN --> JUDGE["Judge<br><i>advisory review, two items</i>"]
+  JUDGE --> MERGE["Human merge<br><i>required checks green</i>"]
+  MERGE --> APPLY["Apply<br><i>main only, writing identity</i>"]
+  APPLY --> RECORD["Record<br><i>run and commit beside the state</i>"]
 ```
 
 ## How it works
 
-1. **PR opened.** Any change, any type. Branch protection makes the following checks
-   *required* — the merge button stays gray until they're green.
-2. **Validate.** Formatters, linters, unit tests, `terraform validate`. Cheap failures
-   fail first.
-3. **Plan.** Terraform plans against the dev environment with read-only credentials and
-   posts the human-readable diff as a PR comment — reviewers approve *effects*, not just
-   text.
-4. **Gatehouse.** The gate runs its deterministic lane (and, once trusted, its judge) as
-   status checks — this is where `30-gatehouse/` plugs into the foundation.
-5. **Human review + merge.** CODEOWNERS routes security-relevant paths (`infra/`,
-   `policy/`, `gatehouse/`) to required reviewers.
-6. **Apply + deploy.** On main only: `terraform apply` with the write-scoped identity,
-   container builds pushed to Artifact Registry, Cloud Run services rolled with
-   revision-based rollback available.
+1. **Pull request.** Any change, any type. Branch protection makes the checks below
+   required; the merge button stays gray until they are green.
+2. **Exact checks.** The docs standard with its diagram rules, the requirement citation,
+   the Rego policy tests, and the boundary rules (a new tool ships with its grant and
+   eval; a boundary change ships with a threat-model change). Scripts only, no model.
+3. **Plan.** The Terraform job formats and validates every root without credentials,
+   then asks the cloud for the apply identity and asserts it was refused (the pull
+   request proving on every run that it cannot deploy), then authenticates as the plan
+   identity and plans the dev root. The list of what would change is posted as a
+   comment, updated in place on every push.
+4. **Judge.** The advisory review from `30-gatehouse/judge-lane.md`, scoring the two
+   items it has earned.
+5. **Human merge.** A person reads the plan and the findings and merges. Nothing merges
+   with a red check, administrators included.
+6. **Apply.** On main only, a job authenticates as the apply identity, plans again from
+   the merged commit, applies that plan, and never runs two at once.
+7. **Record.** The apply job writes a small file beside the Terraform records naming
+   the run, the commit, who merged, and the plan it applied. Every change to the cloud
+   maps to a merged pull request.
 
 ## The details
 
-- **Identity split.** The PR pipeline exchanges its OIDC token for a *plan-only* service
-  account; the merge pipeline gets the *apply* account, and Workload Identity Federation (WIF) attribute conditions
-  restrict apply to `main` (see `11-cloud-substrate.md`). Compromising a PR cannot
-  deploy.
-- **Concurrency.** Applies serialize on a per-environment concurrency group; a stale
-  plan (base branch moved) is detected by plan-file hash and re-planned rather than
-  applied.
-- **Failure modes are chosen, not accidental.** Validation and deterministic Gatehouse
-  checks *fail closed* (red blocks merge). The non-deterministic judge starts *fail
-  open* (advisory comment) and only gains fail-closed status per rubric item as its
-  measured precision earns it — the promotion mechanism lives in
-  `33-trust-machinery.md`.
-- **Provenance hook.** Every pipeline run emits a structured event (check name, verdict,
-  versions, duration) to Pub/Sub; Provenance ingests these as evidence rows — CI is a
-  sensor, and gate history becomes audit material (BR-7).
-- **Environments.** Merge deploys dev automatically; `demo` deploys on a tagged release
-  only, keeping the interview environment stable mid-conversation.
+- **Identity split, tested.** The plan identity holds read-only project access and may
+  write only the records lock. The apply identity may be assumed only by a token whose
+  repository and reference equal this repository on `refs/heads/main`. The plan job
+  tries to assume it on every pull request and fails the run if it succeeds; that is
+  threat-model test T1-CI-02. Its first version fired on its own pull request, not
+  because the binding was open but because the test was hollow: the auth action had
+  reported success without ever asking Google for a token. The test now demands a real
+  access token, so the refusal it asserts is a refusal that happened.
+- **Concurrency.** Applies serialize on one group per environment and are never
+  cancelled mid-run. A pull request plans with no lock so two open pull requests cannot
+  block each other.
+- **What is posted.** The comment carries the resource-level list (`# ... will be
+  created`) and the plan summary line, not the full attribute diff, which stays in the
+  run log. Enough to approve effects; not enough to leak a value.
+- **Failure modes are chosen.** Every exact check and the plan job fail closed. The
+  judge fails open while advisory and closes per item as promotion earns it (ADR-005).
+- **Not yet built.** Container images and Cloud Run rollouts arrive with the next
+  roadmap step. A `demo` environment deploys on a tagged release only, when it exists.
+  Pipeline runs as evidence rows in Provenance arrive with phase 7. Code ownership
+  routing for `infra/` and `policy/` is a one-file change once a second reviewer
+  exists.
 
 ## Why it's built this way
 
-Posting plans on PRs turns infrastructure review from faith into reading (BR-7).
-Required checks plus CODEOWNERS make BR-4's "enforced at merge" literal — enforcement
-that depends on memory isn't enforcement. Split plan/apply identities apply least
-privilege to the pipeline itself, because CI is the most attacked doorway in modern
-supply chains. And routing every change type through one gated flow is what makes
-Gatehouse's guarantees total: a gate only counts if there's nothing to walk around
-(BR-3, BR-4).
+Posting plans on pull requests turns infrastructure review from faith into reading
+(BR-7). Required checks make BR-4's "enforced at merge" literal; enforcement that
+depends on memory is not enforcement. Split plan and apply identities apply least
+privilege to the pipeline itself, because automation is the most attacked doorway in a
+modern supply chain, and a job that proves its own limits on every run turns a design
+claim into a test (BR-8). Routing every change type through one gated flow is what
+makes Gatehouse's guarantees total: a gate only counts if there is nothing to walk
+around (BR-3, BR-4).
 
 ## Go deeper
 
-- `30-gatehouse/README.md` — the gate that runs inside step 4
-- `11-cloud-substrate.md` — the identities and projects these pipelines touch
+- `30-gatehouse/README.md` — the gate that runs inside steps 2 and 4
+- `11-cloud-substrate.md` — the identities and project these jobs touch
+- `../02-architecture/agent-threat-model.md` — boundary B8, the four tests on this trust

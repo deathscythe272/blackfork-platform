@@ -239,8 +239,11 @@ decision the data drove. Met.
    composes them: lakehouse bucket, platform-events topic and subscription, one
    identity per service and agent, an empty secret for the model key. Nothing with
    idle cost. Threat model gains B8 with four rows. `docs/10-foundation/11-cloud-substrate.md`.
-2. PR F3: GitHub Actions — plan on PR, apply on `main` only. Requires the remote and
-   branch protection to exist by now.
+2. Done: F3. `.github/workflows/terraform.yml`: plan on every pull request as the
+   read-only deployer with the effect posted as a comment, apply on main as the
+   writing deployer with a record of run and commit beside the state. The plan job
+   asserts on every run that it cannot obtain the apply identity (T1-CI-02). The plan
+   job is a required check.
 3. PR: Cloud Run services for the gateway and MCP server, scale-to-zero, secrets from
    Secret Manager.
 4. Any cost above free tier is flagged before it is applied.

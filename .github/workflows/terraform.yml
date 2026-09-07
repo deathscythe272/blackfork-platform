@@ -50,6 +50,10 @@ jobs:
         with:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_APPLY_SERVICE_ACCOUNT }}
+          # Demand a real access token so the exchange actually happens here. Without
+          # this the action only writes a config file and reports success without ever
+          # asking Google, which made the first version of this test hollow.
+          token_format: access_token
           create_credentials_file: false
           export_environment_variables: false
 
