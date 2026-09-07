@@ -113,7 +113,7 @@ runs three cases (golden, direct injection, indirect injection) in the agent
 container; results in `src/provenance/evals/results/latest.json`; see
 `20-provenance/v1-slice.md`.
 
-### Phase 3 — Agent-runtime threat model, T1 (Serves: BR-8, C5)
+### Phase 3 — Agent-runtime threat model, T1 (Serves: BR-8, C5) — done
 
 1. PR `docs/agent-threat-model`: `docs/02-architecture/agent-threat-model.md` per the
    template, with a seven-node trust-boundary diagram.
@@ -130,7 +130,8 @@ container; results in `src/provenance/evals/results/latest.json`; see
 4. Update ADR-001's consequences and the narrative to point here.
 
 **Done when:** every threat row has a mitigation and a test ID; gaps are stated, not
-hidden.
+hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
+10 passing, 19 planned with a phase, 5 named gaps.
 
 ### Phase 4 — Gatehouse G2, G3, G3+ (Serves: BR-3, BR-4, BR-8, BR-9)
 
