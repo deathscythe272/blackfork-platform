@@ -1,0 +1,6 @@
+{
+  "kind": "planted",
+  "should_fail": ["R1"],
+  "may_fail": ["R2"],
+  "note": "A template page whose diagram is top-to-bottom, has nine nodes, and whose nodes carry no gloss. R1 must fail. R2 may also fail because the five source boxes collapse to one walkthrough entry."
+}

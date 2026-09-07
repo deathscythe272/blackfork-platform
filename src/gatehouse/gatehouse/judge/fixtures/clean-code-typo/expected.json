@@ -1,0 +1,6 @@
+{
+  "kind": "clean",
+  "should_fail": [],
+  "may_fail": [],
+  "note": "Control case for code: a docstring wording change inside an existing tool, no new tool, no boundary. Any finding is a false positive."
+}

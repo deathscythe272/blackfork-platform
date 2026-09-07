@@ -1,0 +1,50 @@
+# Data Plane
+
+> **In one line:** How raw security feeds become the small, agent-ready tables the rest of Provenance reads.
+
+**You are here:** START HERE › Provenance › Data Plane
+**Audience:** 🟡 engineer · **Reads in:** ~4 min
+
+## The 30-second version
+
+Five feeds arrive on a schedule. Each is stored exactly as received, then cleaned and
+stripped of personal data, then checked, then shaped into a handful of small tables
+built for the agents. A broken feed stops loudly and an agent opens a fix instead of
+pushing one.
+
+## The picture
+
+```mermaid
+flowchart TB
+  SO[Security Onion] --> ING[Ingest]
+  GCP[Cloud logs] --> ING
+  SCAN[Scanners] --> ING
+  TF[Terraform state] --> ING
+  VEX[Exploitability verdicts] --> ING
+  ING --> BRONZE[Bronze]
+  BRONZE --> RED[Redaction]
+  RED --> SILVER[Silver]
+  SILVER --> GOLD[Gold views]
+```
+
+## How it works
+
+1. **Five feeds** land on schedule.
+2. **Ingest** records lineage for every row.
+3. **Bronze** keeps the untouched original.
+4. **Redaction** strips personal data.
+5. **Silver** is the cleaned copy.
+6. **Gold views** are shaped for agents.
+
+## The details
+
+Dagster runs the schedule. Presidio does the redaction. Iceberg holds the tables.
+
+## Why it's built this way
+
+Chain of custody requires the untouched original and a lineage-tracked path to every
+derived row (BR-2).
+
+## Go deeper
+
+**Next:** `../02-architecture/provenance-flow.md`.

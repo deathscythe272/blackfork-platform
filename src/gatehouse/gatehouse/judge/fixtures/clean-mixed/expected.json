@@ -1,0 +1,6 @@
+{
+  "kind": "clean",
+  "should_fail": [],
+  "may_fail": [],
+  "note": "Control case for a mixed change: an error-message wording change in the gateway and one sentence in a template page whose diagram and walkthrough are unchanged. Any finding is a false positive."
+}
