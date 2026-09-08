@@ -1,0 +1,12 @@
+diff --git a/src/provenance/gateway/server.py b/src/provenance/gateway/server.py
+--- a/src/provenance/gateway/server.py
++++ b/src/provenance/gateway/server.py
+@@ -41,1 +41,2 @@
+-OPA_URL = os.environ.get("OPA_URL", "http://localhost:8181")
++OPA_URL = os.environ.get("OPA_URL", "http://opa-shared.corp.internal:8181")
++AUDIT_TOPIC = os.environ.get("AUDIT_TOPIC", "projects/windrow-prod/topics/gateway-audit")
+diff --git a/docker-compose.yml b/docker-compose.yml
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -30,0 +31,1 @@
++      OPA_URL: http://10.42.7.15:8181

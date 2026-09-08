@@ -267,3 +267,6 @@ def test_v15_reference_only_fixture_is_silent_by_script():
     assert v["R10"] is False and v["R6"] is False
     v = lane1_verdicts(gather.from_fixture(FIXTURES / "secret-in-compose"))
     assert v["R10"] is True
+    b = gather.from_fixture(FIXTURES / "internal-identifier-in-config")
+    assert sorted({c["kind"] for c in b["signals"]["identifier_candidates"]}) == ["hostname-like", "ipv4", "project-id-like", "url"]
+    assert lane1_verdicts(b)["R10"] is False and "R5" not in prompt.gated_off(b["signals"])

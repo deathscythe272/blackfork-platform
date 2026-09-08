@@ -1,0 +1,10 @@
+{
+  "kind": "flaw",
+  "should_fail": [
+    "R5"
+  ],
+  "may_fail": [
+    "R9"
+  ],
+  "note": "Three internal identifiers written out: a corporate-internal hostname, a fictional cloud project id, and a private address. R5 must fail with the lines named. R9 may also fail because the boundary changes and the threat model does not; that is a separate rule. No secret is written out, so R10 must stay silent."
+}
