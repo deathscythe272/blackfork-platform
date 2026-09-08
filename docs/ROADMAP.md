@@ -267,7 +267,14 @@ answers the Phase 2 eval. Status: all three met.
 ### Phase 7 — Widen Provenance, P1–P5 (Serves: BR-1, BR-2, BR-5, BR-7)
 
 1. P1 data plane: Dagster assets, Iceberg bronze/silver/gold on Google Cloud Storage (GCS), Presidio redaction
-   before silver, asset checks. ADR-002 and ADR-006 land here.
+   before silver, asset checks. ADR-002 and ADR-006 land here. Two pull requests:
+   (a) done, the pipeline, entirely local: three assets, three checks, the registry,
+   planted personal data in the fixture, a pointer beside each table so readers need
+   no catalog, its own environment and container (`docs/20-provenance/data-plane.md`);
+   first run found that a check re-using the redactor's detector cannot catch what
+   the redactor missed, so the silver check gained an independent pattern layer.
+   (b) the evidence server reads gold from the pointer, on the laptop and on Cloud
+   Run, with the pipeline run once against the lakehouse bucket.
 2. P2 context plane: `controls-mcp` with OSCAL (machine-readable) control catalogs; gateway hardened per Phase 3
    findings. ADR-003.
 3. P3 agent plane: Control Mapper, Report Writer, and Risk Analyst as a separate
