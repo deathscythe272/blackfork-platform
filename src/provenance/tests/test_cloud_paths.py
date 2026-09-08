@@ -142,12 +142,14 @@ def test_pubsub_source_drains_on_mark_then_collects_and_dedupes():
     fresh = _Msg("f1", {**ROW, "id": "fresh", "ts": "2026-09-08T00:00:02.000+00:00"})
     dup = _Msg("f2", {**ROW, "id": "fresh", "ts": "2026-09-08T00:00:02.000+00:00"})
     other = _Msg("f3", {**ROW, "id": "other", "ts": "2026-09-08T00:00:01.000+00:00"})
-    sub = _Subscriber([[stale], [], [fresh, dup], [other]])
+    sub = _Subscriber([[stale], [], [], [stale]])  # an empty pull does not mean empty
     src = PubSubSource("projects/p/subscriptions/s", client=sub, quiet_seconds=0.2, max_wait=5)
-    mark = src.mark()  # drains the stale batch and stops at the empty pull
+    mark = src.mark()  # drains through the empty pulls until quiet
+    assert sub.batches == []
+    sub.batches += [[fresh, dup], [other]]  # rows written during the case
     rows = src.rows_since(mark)
     assert [r["id"] for r in rows] == ["other", "fresh"]  # deduped, time-ordered
-    assert sub.acked == ["s1", "f1", "f2", "f3"]
+    assert sub.acked == ["s1", "s1", "f1", "f2", "f3"]
 
 
 def test_source_from_env_refuses_half_configuration():

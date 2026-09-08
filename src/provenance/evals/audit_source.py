@@ -75,10 +75,15 @@ class PubSubSource:
         return rows
 
     def mark(self) -> None:
-        """Drain whatever is pending so the next rows_since sees only this case's rows."""
+        """Drain whatever is pending so the next rows_since sees only this case's rows.
+        A pull can come back empty while messages remain, so the drain stops only after
+        the subscription has been quiet for quiet_seconds, not at the first empty pull.
+        The first cloud run learned this: rows from an earlier check leaked into case one."""
         deadline = time.time() + self.max_wait
-        while time.time() < deadline and self._pull_once(timeout=2.0):
-            pass
+        last_seen = time.time()
+        while time.time() < deadline and time.time() - last_seen < self.quiet_seconds:
+            if self._pull_once(timeout=2.0):
+                last_seen = time.time()
         return None
 
     def rows_since(self, mark: Any) -> list[dict]:
