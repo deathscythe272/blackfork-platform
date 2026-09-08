@@ -23,6 +23,7 @@ data/warehouse/
 data/catalog.db
 dagster_home/
 audit/
+jobs/
 traces/
 .env
 *.log

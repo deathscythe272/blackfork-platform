@@ -69,3 +69,18 @@ def open_store(env: dict[str, str] | None = None) -> Store:
         store = _load_baked(pathlib.Path(env.get("EVIDENCE_DB", "data/evidence.duckdb")))
     log.info("serving %d evidence rows from %s", store.rows, store.source)
     return store
+
+
+def control_id_variants(control_id: str) -> list[str]:
+    """The same control in every numbering the platform meets: `3.3.1` as the evidence
+    rows carry it, `03.03.01` as the current catalog names it. The Control Mapper read a
+    control from the catalog, asked for its evidence under the catalog's numbering, and
+    got nothing; a control is one thing however it is written."""
+    from provenance.data.catalog import legacy_id, normalize_id
+
+    cid = control_id.strip()
+    out = [cid]
+    for v in (legacy_id(cid), normalize_id(cid)):
+        if v not in out:
+            out.append(v)
+    return out

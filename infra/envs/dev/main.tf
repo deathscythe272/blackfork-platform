@@ -43,12 +43,16 @@ module "context" {
 }
 
 module "agent" {
-  source                = "../../modules/agent-plane"
-  project_id            = var.project_id
-  region                = var.region
-  env                   = var.env
-  labels                = local.labels
-  nvidia_api_key_secret = module.context.nvidia_api_key_secret
+  source                     = "../../modules/agent-plane"
+  project_id                 = var.project_id
+  region                     = var.region
+  env                        = var.env
+  labels                     = local.labels
+  nvidia_api_key_secret      = module.context.nvidia_api_key_secret
+  gateway_signing_key_secret = module.context.gateway_signing_key_secret
+  gateway_url                = "${module.context.gateway_url}/mcp"
+  image_registry             = "${var.region}-docker.pkg.dev/${var.project_id}/blackfork"
+  image_tag                  = var.image_tag
 }
 
 module "assurance" {

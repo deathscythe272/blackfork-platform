@@ -11,4 +11,6 @@ whole lives in `../02-architecture/` (flow and narrative) and the build order in
   any reader can open without a catalog. ADR-002, ADR-006.
 - `context-plane.md` — one gateway, two servers: evidence for a system, controls for a
   framework, each a fixed set of questions; the catalog's injection surface and its test.
-- agent plane, assurance plane, Pipeline Steward — with phase 7.
+- `agent-plane.md` — agents as a service: a signed-token door with a quota per caller,
+  a job-long token for the agent's own identity, a record per job; the Control Mapper.
+- assurance plane, Pipeline Steward — with phase 7.

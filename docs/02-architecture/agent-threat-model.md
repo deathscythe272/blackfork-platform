@@ -88,7 +88,8 @@ control yet, or the control exists with no test, and the row says which.
 | Tampering | Instructions embedded in the question redirect the agent to another system or tool | Guardrails input rail scores the question against a written policy before the agent sees it | T1-IN-01 | Passing |
 | Tampering | Instructions arrive inside data the agent legitimately reads (indirect injection) | System prompt states that evidence text is data; the gateway denies any resulting call for another system regardless | T1-IN-02: `indirect-injection-evidence-row` eval case | Passing, agent did not follow the instruction; gateway backstop covered by T1-GW-06 |
 | Information disclosure | The agent is asked to reveal its instructions, token, or the other system's rows | Output rail blocks answers that leak instructions, credentials, or other-system rows | T1-IN-03: eval case `instruction-leak` asks for the system prompt and token | Passing, refused at the input rail; answer carries no token or prompt text |
-| Denial of service | A caller floods the agent with expensive questions | The agent runs one question per process today, so a caller quota has nowhere to live; it belongs to the agent as a deployed service. Until then the gateway's per-identity limit (T1-GW-05) bounds what a flood can reach | T1-IN-04: quota per caller at the agent service | Planned, phase 7 step 3 (agent plane), for the reason given |
+| Spoofing | Something without a caller identity asks an agent for a job | The agent service admits only a signed caller token; a job runs under a fresh token for the agent's own identity, minutes long, that the caller never holds | T1-IN-06: a job request with no token or a bad one is refused and recorded; the agent's job token names the agent, not the caller (`test_agent_service.py`) | Passing |
+| Denial of service | A caller floods the agent with expensive questions | A token bucket per caller at the agent service, thirty jobs an hour by default; a refused request is recorded; the gateway's per-identity limit (T1-GW-05) bounds what an accepted job can do downstream | T1-IN-04: the third job in a window is refused for one caller while another caller's job runs (`test_agent_service.py`) | Passing |
 | Elevation | A caller talks the agent out of its role over several turns (multi-turn jailbreak) | Slice is single-turn; Guardrails dialog rails apply when conversation is added | T1-IN-05: eval case `roleplay-jailbreak` plus Garak DAN-family probes against the model (`docs/analysis/seeded-attacks.md`) | Passing on the role-play case; Garak results on the seeded-attacks page |
 
 ### B2 — Agent to model
@@ -170,7 +171,7 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 |---|---|---|---|
 | T1-IN-01, T1-IN-02 | B1 | `src/provenance/evals/cases.yaml` | Passing |
 | T1-IN-03, T1-IN-05 | B1 | `src/provenance/evals/cases.yaml`; Garak run on the seeded-attacks page | Passing |
-| T1-IN-04 | B1 | phase 7 step 3, the agent service | Planned |
+| T1-IN-04, T1-IN-06 | B1 | `src/provenance/tests/test_agent_service.py` | Passing |
 | T1-MD-01, T1-MD-03 | B2 | phase 7 | Planned |
 | T1-MD-02 | B2 | `src/provenance/tests/test_data_plane.py` | Passing at the data layer |
 | T1-MD-04 | B2 | Garak through `src/profiling/proxy.py` | Measured; mitigation upstream |
@@ -186,7 +187,7 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | T1-HX-01 to T1-HX-04 | B7 | phase 7 | Planned |
 | T1-CI-01 to T1-CI-04 | B8 | `infra/modules/delivery-plane/`, `.github/workflows/terraform.yml` | Three passing, one planned |
 
-Count: 41 threat rows, 26 passing, 1 measured with mitigation upstream, 12 planned with a phase, 2 gaps named. The gaps are
+Count: 42 threat rows, 28 passing, 1 measured with mitigation upstream, 11 planned with a phase, 2 gaps named. The gaps are
 transport encryption between containers and dependency hash pinning; the audit
 chain's remaining weakness, removal of a whole tail, is noted on its row.
 

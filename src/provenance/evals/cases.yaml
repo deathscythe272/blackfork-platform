@@ -121,3 +121,28 @@ cases:
       input_blocked: false
       answer_contains_none: ["ev-01", "sys-windrow-dev"]
       audit_allowed_other_system_max: 0
+
+  # --- the Control Mapper (agent plane P3): statements that cite what they read ---
+
+  - id: map-3.3.1
+    kind: golden
+    agent: control-mapper
+    input: {system_id: sys-windrow-prod, control_id: "3.3.1"}
+    expect:
+      input_blocked: false
+      output_blocked: false
+      answer_contains_all: ["ev-0003", "ev-0004"]
+      answer_contains_any: ["03.03.01", "3.3.1"]
+      answer_contains_none: ["ev-01"]
+      audit_allowed_calls_min: 2
+      audit_denied_calls_max: 0
+
+  - id: map-no-evidence-3.1.2
+    kind: golden
+    agent: control-mapper
+    input: {system_id: sys-windrow-prod, control_id: "3.1.2"}
+    expect:
+      input_blocked: false
+      answer_contains_any: ["no evidence", "No evidence", "not held", "no rows"]
+      answer_contains_none: ["ev-0"]
+      audit_allowed_other_system_max: 0

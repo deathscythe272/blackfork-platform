@@ -24,6 +24,24 @@ variable "labels" {
   default     = {}
 }
 
+variable "image_registry" {
+  type = string
+}
+
+variable "image_tag" {
+  type = string
+}
+
+variable "gateway_url" {
+  description = "The gateway's address; the agent's only data door."
+  type        = string
+}
+
+variable "gateway_signing_key_secret" {
+  description = "Secret id of the gateway signing key: the service verifies callers and mints per-job agent tokens with it."
+  type        = string
+}
+
 variable "nvidia_api_key_secret" {
   description = "Secret id the agent may read for model access."
   type        = string

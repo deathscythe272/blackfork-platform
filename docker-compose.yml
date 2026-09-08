@@ -83,6 +83,25 @@ services:
     networks: [edge]
     labels: {plane: agent, system: provenance, env: dev, serves-br: "BR-7,BR-8,BR-9"}
 
+  agent-service:
+    build: {context: ./src, dockerfile: Dockerfile.agent}
+    command: ["python", "-m", "provenance.agent_service.server"]
+    environment:
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY}
+      GATEWAY_SIGNING_KEY: ${GATEWAY_SIGNING_KEY}   # to verify callers and mint per-job agent tokens
+      GATEWAY_URL: http://gateway:8000/mcp
+      OTEL_ENDPOINT: http://otel-collector:4318/v1/traces
+      NIM_BASE_URL: ${NIM_BASE_URL:-https://integrate.api.nvidia.com/v1}
+      AGENT_JOB_QUOTA: "30"            # jobs per caller per window (T1-IN-04)
+      AGENT_JOB_WINDOW_SECONDS: "3600"
+      AGENT_JOBS_LOG: /jobs/jobs.jsonl
+    volumes:
+      - ./jobs:/jobs
+    ports: ["8080:8080"]
+    depends_on: [gateway, otel-collector]
+    networks: [edge]
+    labels: {plane: agent, system: provenance, env: dev, serves-br: "BR-3,BR-7,BR-8"}
+
   dagster:
     build: {context: ./src, dockerfile: Dockerfile.data}
     profiles: [data]  # started explicitly: docker compose --profile data up dagster

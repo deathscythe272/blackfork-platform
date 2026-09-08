@@ -33,14 +33,39 @@ RESULTS_DIR = HERE / "results"
 HOME_SYSTEM = "sys-windrow-prod"
 
 
-def _run_in_process(question: str) -> dict:
+def _run_in_process(case: dict) -> dict:
+    """Dispatch by agent: the collector takes a question, the mapper a system and a control."""
+    if case.get("agent") == "control-mapper":
+        from provenance.agent.mapper import main as mapper_main
+
+        return asyncio.run(mapper_main(case["input"]["system_id"], str(case["input"]["control_id"])))
     from provenance.agent.run import main as agent_main
 
-    return asyncio.run(agent_main(question))
+    return asyncio.run(agent_main(case["question"]))
 
 
-def _run_via_compose(question: str) -> dict:
-    cmd = ["docker", "compose", "run", "--rm", "-T", "agent", "python", "-m", "provenance.agent.run", question]
+def _run_via_service(case: dict) -> dict:
+    """POST the job to the agent service as the eval runner's own identity."""
+    import httpx
+
+    from provenance.gateway.tokens import mint
+
+    url = os.environ.get("AGENT_SERVICE_URL", "http://localhost:8080")
+    agent = case.get("agent", "evidence-collector")
+    job_input = case["input"] if agent == "control-mapper" else {"question": case["question"]}
+    r = httpx.post(f"{url}/jobs", json={"agent": agent, "input": job_input},
+                   headers={"X-Caller-Token": mint("eval-runner")}, timeout=600)
+    if r.status_code != 200:
+        return {"answer": None, "error": f"agent service HTTP {r.status_code}: {r.text[:200]}", "input_blocked": False, "output_blocked": False}
+    return r.json()
+
+
+def _run_via_compose(case: dict) -> dict:
+    if case.get("agent") == "control-mapper":
+        cmd = ["docker", "compose", "run", "--rm", "-T", "agent", "python", "-m", "provenance.agent.mapper",
+               case["input"]["system_id"], str(case["input"]["control_id"])]
+    else:
+        cmd = ["docker", "compose", "run", "--rm", "-T", "agent", "python", "-m", "provenance.agent.run", case["question"]]
     proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     marker = "=== RESULT ==="
     if marker not in proc.stdout:
@@ -105,6 +130,7 @@ def _check(case: dict, result: dict, rows: list[dict]) -> list[str]:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--via-compose", action="store_true", help="run the agent in its container")
+    ap.add_argument("--via-service", action="store_true", help="post each job to the agent service (AGENT_SERVICE_URL)")
     ap.add_argument("--only", help="run a single case id")
     ap.add_argument("--pause", type=float, default=0.0,
                     help="seconds to wait between cases; the hosted free tier rate-limits back-to-back runs")
@@ -113,13 +139,13 @@ def main() -> int:
     cases = yaml.safe_load(CASES.read_text(encoding="utf-8"))["cases"]
     if args.only:
         cases = [c for c in cases if c["id"] == args.only]
-    runner = _run_via_compose if args.via_compose else _run_in_process
+    runner = _run_via_service if args.via_service else (_run_via_compose if args.via_compose else _run_in_process)
 
     _fresh_agent_token()
     audit = source_from_env()
     report = {
         "run_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
-        "mode": "compose" if args.via_compose else "in-process",
+        "mode": "service" if args.via_service else ("compose" if args.via_compose else "in-process"),
         "pause_seconds": args.pause,
         "audit_source": os.environ.get("AUDIT_SOURCE", "file"),
         "gateway": os.environ.get("GATEWAY_URL", "http://localhost:8000/mcp"),
@@ -132,7 +158,7 @@ def main() -> int:
         offset = audit.mark()
         print(f"\n=== {case['id']} ({case['kind']}) ===")
         try:
-            result = runner(case["question"])
+            result = runner(case)
         except Exception as e:  # a crashed run is a failed case, not a crashed harness
             result = {"answer": None, "error": f"{e.__class__.__name__}: {e}", "input_blocked": False, "output_blocked": False}
         rows = audit.rows_since(offset)

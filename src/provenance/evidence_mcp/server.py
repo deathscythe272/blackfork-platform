@@ -20,7 +20,7 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
-from provenance.evidence_mcp.store import open_store
+from provenance.evidence_mcp.store import control_id_variants, open_store
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 HOST = os.environ.get("EVIDENCE_MCP_HOST", "0.0.0.0")
@@ -65,13 +65,14 @@ def list_controls(system_id: str) -> list[dict[str, Any]]:
 def get_evidence(system_id: str, control_id: str, limit: int = 10) -> list[dict[str, Any]]:
     """Return evidence rows for one control on one system, newest first."""
     limit = max(1, min(int(limit), 50))
+    ids = control_id_variants(control_id)  # `3.3.1` and `03.03.01` are one control
     return _query(
-        """
+        f"""
         SELECT row_id, system_id, control_id, source, observed_at, summary, evidence_ref
-        FROM evidence WHERE system_id = ? AND control_id = ?
+        FROM evidence WHERE system_id = ? AND control_id IN ({", ".join("?" for _ in ids)})
         ORDER BY observed_at DESC LIMIT ?
         """,
-        [system_id, control_id, limit],
+        [system_id, *ids, limit],
     )
 
 

@@ -45,3 +45,12 @@ def test_family_and_search_are_scoped_and_bounded():
 def test_unknown_framework_is_refused():
     with pytest.raises(ValueError):
         server.get_control("soc2", "CC6.1")
+
+
+def test_evidence_lookup_accepts_both_numberings():
+    """The mapper reads `03.03.01` from the catalog and asks for its evidence; the rows say `3.3.1`."""
+    from provenance.evidence_mcp.store import control_id_variants
+
+    assert control_id_variants("03.03.01") == ["03.03.01", "3.3.1"]
+    assert control_id_variants("3.3.1") == ["3.3.1", "03.03.01"]
+    assert control_id_variants("3.14.6") == ["3.14.6", "03.14.06"]

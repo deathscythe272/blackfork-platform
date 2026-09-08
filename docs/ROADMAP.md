@@ -295,7 +295,11 @@ answers the Phase 2 eval. Status: all three met.
 3. P3 agent plane: Control Mapper, Report Writer, and Risk Analyst as a separate
    agent-to-agent (A2A) service. The Risk Analyst plus the exploitability verdicts form the platform's
    investigation-automation workflow: finding in, ranked and explained verdict out.
-   ADR-004, and ADR-007 on human sign-off.
+   ADR-004, and ADR-007 on human sign-off. Three pull requests: (a) done, agents as
+   a service with a quota per caller and a job-long token per agent identity, and the
+   Control Mapper with its own narrower grant; both mapper cases pass locally, in process and through the service, after two findings on the way: the evidence door had to accept the catalog's numbering, and the mapper's prompt had to name its four tools so it stops probing the one it lacks
+   (`docs/20-provenance/agent-plane.md`); (b) the Risk Analyst as a separate service,
+   ADR-004; (c) the Report Writer and human sign-off, ADR-007.
 4. P4 assurance plane: NeMo Retriever with Milvus, scheduled Garak and output-safety
    runs, and an eval harness that re-scores every agent on every change.
 5. P5 Pipeline Steward: the on-failure agent that diagnoses a broken Dagster job and

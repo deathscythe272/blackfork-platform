@@ -148,8 +148,10 @@ jobs:
           gcloud auth configure-docker "${{ vars.GCP_REGION }}-docker.pkg.dev" --quiet
           docker build -f src/Dockerfile.services -t "$registry/services:$tag" src
           docker build -f src/Dockerfile.opa      -t "$registry/opa:$tag"      src
+          docker build -f src/Dockerfile.agent    -t "$registry/agent:$tag"    src
           docker push "$registry/services:$tag"
           docker push "$registry/opa:$tag"
+          docker push "$registry/agent:$tag"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
       - name: Plan then apply the dev environment
