@@ -87,6 +87,9 @@ def test_redactor_is_narrow_on_purpose():
     assert find_patterns("control 3.1.1 reviewed via CR-4471 on 2026-09-01") == []
 
     assert find("Workload identity pool restricts CI to repo deathscythe272/blackfork-platform") == []
+    # the platform's own vocabulary is not a person (ev-0004 lost "Security Onion" before the allow list)
+    onion = "Security Onion alert ET SCAN Nmap Scripting Engine detected and forwarded to SIEM within 3s"
+    assert redact(onion).text == onion
     r = redact("Approved by Jane Doe (jane.doe@windrow-corp.com) from 10.20.30.40")
     assert r.text == "Approved by <PERSON> (<EMAIL>) from <IP>"
     assert sorted(r.entities) == ["EMAIL_ADDRESS", "IP_ADDRESS", "PERSON"]

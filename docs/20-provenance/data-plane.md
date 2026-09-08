@@ -86,6 +86,12 @@ platform's own vocabulary. The planted rows show the effect: `Approved by Jane D
 (jane.doe@windrow-corp.com) from 10.20.30.40` becomes `Approved by <PERSON> (<EMAIL>)
 from <IP>`. A row with nothing to redact is byte-for-byte unchanged.
 
+**The redactor's other failure mode.** Over-reach. On the first full scan the language
+model read the product name "Security Onion" at the start of two summaries as a
+person's name and erased it, which damages evidence as surely as leaking it. The
+redactor now carries a short allow list of the platform's own vocabulary, each entry
+added because a row proved the need, and a test holds the line.
+
 **The check that does not trust the redactor.** A check that re-ran the same detector
 would pass whenever the detector was blind. The silver check runs two: the redactor's
 own, and plain patterns for the structured kinds. The first pipeline run showed why
