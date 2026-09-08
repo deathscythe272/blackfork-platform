@@ -135,7 +135,8 @@ def main() -> int:
                 continue
             succeeded += 1
             failed_items = {i["id"] for i in v["items"] if i["verdict"] == "fail"} | {f["item"] for f in v["findings"]}
-            row = {"run": r + 1, "fixture": name, "ok": True, "failed": sorted(failed_items), "findings": len(v["findings"])}
+            row = {"run": r + 1, "fixture": name, "ok": True, "failed": sorted(failed_items), "findings": len(v["findings"]),
+                   "attempts": v.get("attempts"), "rate_limited_attempts": v.get("rate_limited_attempts")}
             run_log.append(row)
             for i in lane2_ids:
                 verdicts[name][i].append("fail" if i in failed_items else "ok")
@@ -195,6 +196,7 @@ def main() -> int:
         "runs": args.runs, "fixtures": [f for f, _, _ in fixtures],
         "attempted": attempted, "succeeded": succeeded,
         "run_success": succeeded / attempted if attempted else None,
+        "rate_limited_attempts": sum(e.get("rate_limited_attempts") or 0 for e in run_log),
         "thresholds": THRESHOLDS, "per_item": per_item, "run_log": run_log,
         "injection_twins": twins, "steer_pairs": steer_pairs,
     }
@@ -214,7 +216,9 @@ def _rewrite_doc(report: dict) -> None:
     titles = {i["id"]: i["title"] for i in RUBRIC["items"]}
     lines = [f"Run {report['run_at']} · rubric v{report['rubric_version']} · model `{report['model']}` · "
              f"{report['runs']} runs × {len(report['fixtures'])} fixtures · judge run success "
-             f"{report['succeeded']}/{report['attempted']} ({_fmt(report['run_success'])}).", "",
+             f"{report['succeeded']}/{report['attempted']} ({_fmt(report['run_success'])})"
+             + (f" · rate-limited attempts absorbed by the retry wait: {report['rate_limited_attempts']}" if report.get("rate_limited_attempts") is not None else "")
+             + ".", "",
              "| Item | Lane | TP | FP | FN | TN | Precision | Recall | Stability | Steer changes | Instances | Fixture thresholds met |",
              "|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for i, d in report["per_item"].items():
