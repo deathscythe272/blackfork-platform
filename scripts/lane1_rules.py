@@ -135,6 +135,58 @@ def boundary_kinds(path: str, line: str) -> list[str]:
     return kinds
 
 
+# A secret is a value written out, never a reference to one. The judge spent a week of
+# pull requests flagging `secret = var.x`, `${VAR}`, and vendor endpoints as secrets;
+# rubric v1.5 moved the literal half here and told the judge references are not findings.
+_REFERENCE = re.compile(r"^(\$\{|\$[A-Za-z_]|var\.|module\.|local\.|data\.|google_|aws_|os\.environ|secrets\.|env\(|settings\.|config\.|<)")
+_QUOTED_LITERAL = re.compile(r"""^['"]([^'"$]{8,})['"]""")
+_BARE_LITERAL = re.compile(r"^(?=[A-Za-z0-9_\-]*\d)[A-Za-z0-9_\-]{8,}$")
+_ASSIGNMENT = re.compile(r"(?i)\b(?:password|passwd|secret|token|api[_-]?key)\s*[:=]\s*(.+?)\s*$")
+SECRET_PATTERNS = [
+    ("nvidia api key", re.compile(r"nvapi-[A-Za-z0-9_\-]{20,}")),
+    ("github token", re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}")),
+    ("aws access key", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
+    ("private key block", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")),
+    ("jwt", re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}")),
+]
+
+
+def _literal_assignment(line: str) -> str | None:
+    """A password/secret/token assignment whose right-hand side is a written-out value."""
+    m = _ASSIGNMENT.search(line)
+    if not m:
+        return None
+    value = m.group(1).strip().rstrip(",;")
+    if _REFERENCE.match(value):
+        return None  # a reference: `var.x`, `${VAR}`, `os.environ.get(...)`, a secret store name
+    q = _QUOTED_LITERAL.match(value)
+    if q:
+        return q.group(1)
+    return value if _BARE_LITERAL.match(value) else None
+
+
+def literal_secret_hits(path: str, line: str) -> list[tuple[str, str]]:
+    """(kind, excerpt) for every written-out secret on one added line. Placeholders and
+    test data are the caller's business; this only says what a literal looks like."""
+    if _PLACEHOLDER.search(line):
+        return []
+    hits = [(kind, line.strip()[:80]) for kind, rx in SECRET_PATTERNS if rx.search(line)]
+    if _literal_assignment(line):
+        hits.append(("password assignment", line.strip()[:80]))
+    return hits
+
+
+def secret_rule(added: list[tuple[str, int, str]]) -> list[str]:
+    """R10, lane 1: no written-out secret in an added line outside test data."""
+    fails = []
+    for p, n, t in added:
+        if is_test_data(p):
+            continue
+        for kind, excerpt in literal_secret_hits(p, t):
+            fails.append(f"{p}:{n}: {kind} written out in the diff")
+    return fails
+
+
 def tool_rule(paths: list[str], added: list[tuple[str, int, str]]) -> list[str]:
     """R6, lane 1: a new agent tool ships with a policy grant and an eval case in the same change."""
     tools = [(p, n) for p, n, t in added if TOOL_DECORATOR.match(t) and not is_test_data(p)]

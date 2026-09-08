@@ -1,4 +1,4 @@
-# Gatehouse judge rubric, version 1.4. Changing this file changes the judge; it goes
+# Gatehouse judge rubric, version 1.5. Changing this file changes the judge; it goes
 # through the same gate as everything else, and a version bump re-runs the eval set.
 #
 # Every item: a stable id, the lane that enforces it, what is checked, what counts
@@ -37,10 +37,18 @@
 #   - R4 retires to human review: what remains, whether the threat-model change
 #     describes the boundary correctly, is a judgment the fixtures cannot yet test.
 #   - The judge keeps R1 and R5.
+# v1.5 (after eight live false positives of one kind: references read as secrets):
+#   - R10 added, lane 1: a written-out secret in an added line fails the required
+#     check. The definition of a written-out value lives in scripts/lane1_rules.py and
+#     the parser reports the same hits. `secret = var.x`, `${VAR}`, a secret-store key
+#     reference, and a public vendor endpoint are references, never findings.
+#   - R5 keeps only the judgment half, internal identifiers, and its gate no longer
+#     opens on public URLs. Its wording changed, so its live count restarts (ADR-005);
+#     the reset is recorded on the analysis page and in the adjustments ledger.
 #
 # Serves: BR-3, BR-4, BR-8, BR-9.
 
-version: "1.4"
+version: "1.5"
 
 finding_rules:
   - Every finding names a file and, where possible, a line.
@@ -112,17 +120,20 @@ items:
     severity: high
 
   - id: R5
-    title: No secrets or internal identifiers introduced
+    title: No internal identifiers introduced
     lane: 2
     applies_to: [docs, code]
     blocking: false
     check: >-
-      Added lines contain no API keys, tokens, private keys, passwords, cloud project
-      ids, internal hostnames, or non-example IP address ranges. Placeholders such as
-      "nvapi-..." and documented example values are allowed. The mechanical signals
-      list secret-pattern hits; examine each.
+      Added lines name no cloud project id, internal hostname, or non-example private
+      address. A value must be written out to count: a secret referenced by name from a
+      secret store, an environment variable read by name, a `${VAR}` substitution, a
+      `secret_key_ref` block, or a public vendor endpoint used as a default is never a
+      finding. Written-out secrets are R10, a script; do not raise them here. The
+      mechanical signals list identifier candidates; examine each.
     fail_when: >-
-      Any added line contains a value that looks like a real credential or identifier.
+      An added line writes out a real internal identifier: a project id, an internal
+      hostname, or a private address that is not a documented example.
     severity: high
 
   - id: R6
@@ -184,4 +195,20 @@ items:
     fail_when: >-
       A boundary-signal line in the diff with no threat-model change in the same pull
       request.
+    severity: high
+
+  - id: R10
+    title: No secret written out
+    lane: 1
+    applies_to: [docs, code]
+    blocking: true
+    check: >-
+      No added line outside test data writes out a secret: a vendor API key, a GitHub
+      or cloud access key, a private key block, a signed token, or a password, secret,
+      token, or API-key assignment whose right-hand side is a literal value. A reference
+      (`var.x`, `${VAR}`, `os.environ.get(...)`, a secret-store key reference) is not a
+      value. Enforced by scripts/check_pr_boundaries.py as a required check; the body
+      cannot exempt it.
+    fail_when: >-
+      A written-out secret in the diff.
     severity: high

@@ -1,0 +1,6 @@
+{
+  "kind": "clean",
+  "should_fail": [],
+  "may_fail": [],
+  "note": "Every line references a secret by name or reads it from the environment; a public vendor endpoint is the default. Nothing is written out. This is the false-positive class the judge produced eight times on live pull requests before v1.5; R5 and R10 must both stay silent."
+}

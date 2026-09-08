@@ -1,10 +1,11 @@
 {
   "kind": "planted",
   "should_fail": [
-    "R5"
+    "R10"
   ],
-  "note": "A literal API key committed to compose. The value is synthetic. R5 must fail with the file and line named. R9 may also fail: the rubric lists a credential as a boundary change.",
+  "note": "A literal API key committed to compose. The value is synthetic. R10 (a script) must fail; R5 may with the file and line named. R9 may also fail: the rubric lists a credential as a boundary change.",
   "may_fail": [
+    "R5",
     "R9"
   ]
 }

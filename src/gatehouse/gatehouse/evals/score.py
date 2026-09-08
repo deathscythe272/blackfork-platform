@@ -76,7 +76,8 @@ def lane1_verdicts(bundle: dict) -> dict[str, bool]:
         removed += rules.removed_lines_from_patch(f["path"], f.get("patch") or "")
     r6_fail = bool(rules.tool_rule(paths, added))
     r9_fail = bool(rules.boundary_rule(paths, added, removed))
-    return {"R3": r3_fail, "R7": r7_fail, "R8": r8_fail, "R6": r6_fail, "R9": r9_fail}
+    r10_fail = bool(rules.secret_rule(added))
+    return {"R3": r3_fail, "R7": r7_fail, "R8": r8_fail, "R6": r6_fail, "R9": r9_fail, "R10": r10_fail}
 
 
 def classify(item: str, failed: bool, exp: dict) -> str | None:

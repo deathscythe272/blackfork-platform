@@ -193,6 +193,9 @@ hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
    were rate limits. Seventh pass, judge waiting 20/40/60 s on a rate limit: R1 and
    R5 at 1.00 precision and recall, zero steer changes, run success 0.93 on six
    unparseable verdicts, no rate limits to absorb (`docs/analysis/judge-precision.md`).
+   Rubric v1.5, after eight live false positives of one kind: written-out secrets
+   became a Lane 1 script (R10); R5 judges internal identifiers only; R5's live count
+   restarted, on the record in `docs/analysis/adjustments.md`.
 5. Promote any rubric item whose measured precision clears the ADR-005 threshold to
    blocking. The live half of the count is now harvested
    (`python -m gatehouse.evals.harvest`): every merged pull request's judge comment,
