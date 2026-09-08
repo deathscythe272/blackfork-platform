@@ -304,8 +304,12 @@ answers the Phase 2 eval. Status: all three met.
    (`docs/20-provenance/agent-plane.md`); (b) done, the Risk Analyst as a separate
    service with its own key over the A2A shape, no grant at the door, a deterministic
    score that text cannot move, and the assessor job that composes mapper and analyst
-   into finding-in, verdict-out; both workflow cases pass locally, in process and through the service: the evidence case rated low with both rows cited from two corroborating sources, the no-evidence case rated high; ADR-004 accepted; boundary B9 with three
-   passing rows; (c) the Report Writer and human sign-off, ADR-007.
+   into finding-in, verdict-out; both workflow cases pass locally, in process and
+   through the service; ADR-004 accepted; boundary B9 with three passing rows; (c)
+   done, the Report Writer and human sign-off: a draft packet whose every statement
+   cites the evidence it rests on, with unsupported statements withheld and counted,
+   role claims on tokens, a signature only a person can give, export refused unsigned
+   or altered; through the service the packet case passes with both statements kept, the sensor's alert row ev-0004 and the audit-log row ev-0003 cited, the no-evidence control rated high, and the packet then signed by a person and exported; an in-process run the same evening recorded one control whose mapping failed on an empty model completion, and the packet reported the failure instead of scoring it, which the eval counts as a fail as designed; ADR-007 accepted.
 4. P4 assurance plane: NeMo Retriever with Milvus, scheduled Garak and output-safety
    runs, and an eval harness that re-scores every agent on every change.
 5. P5 Pipeline Steward: the on-failure agent that diagnoses a broken Dagster job and
@@ -325,7 +329,9 @@ answers the Phase 2 eval. Status: all three met.
    exists, because the judge is its reviewer.
 
 **Done when:** one real Security Onion alert becomes a cited line in a draft packet with
-a human approval step in the loop. For P6: the platform's own context diagram is
+a human approval step in the loop. Status for step 3: met with the fixture's sensor
+rows standing in for the live sensor; the alert row is cited in the packet's
+audit-logging statement and the packet cannot leave until a person signs. For P6: the platform's own context diagram is
 regenerated from state on a merge, passes the redaction lane and the judge, and a
 planted leak in a fixture (a fake project ID) is caught before the pull request opens.
 

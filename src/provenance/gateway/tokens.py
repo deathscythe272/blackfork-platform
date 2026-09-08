@@ -37,16 +37,44 @@ def signing_key() -> str:
 LEEWAY_SECONDS = 30
 
 
-def mint(identity: str, ttl_seconds: int = 3600, key: str | None = None) -> str:
+ROLES = ("agent", "caller", "person")
+
+
+def mint(identity: str, ttl_seconds: int = 3600, key: str | None = None, role: str = "agent") -> str:
+    """A token names an identity and its role. Agents get `agent` (the default, so every
+    job token is one); a person signing a packet needs `person`, which only a person's
+    own tooling mints. The role is a claim the verifier reads, never a naming convention."""
+    if role not in ROLES:
+        raise ValueError(f"role must be one of {ROLES}")
     now = dt.datetime.now(dt.timezone.utc)
     claims = {
         "iss": ISSUER,
         "aud": AUDIENCE,
         "sub": identity,
+        "role": role,
         "iat": int(now.timestamp()),
         "exp": int((now + dt.timedelta(seconds=ttl_seconds)).timestamp()),
     }
     return jwt.encode(claims, key or signing_key(), algorithm=ALGO)
+
+
+def claims(token: str, key: str | None = None) -> dict:
+    """The verified claims: at least `sub` and `role` (tokens minted before roles existed
+    read as agents, the least privilege)."""
+    try:
+        data = jwt.decode(
+            token,
+            key or signing_key(),
+            algorithms=[ALGO],
+            audience=AUDIENCE,
+            issuer=ISSUER,
+            options={"require": ["exp", "iat", "sub", "aud", "iss"]},
+            leeway=LEEWAY_SECONDS,
+        )
+    except jwt.PyJWTError as e:
+        raise IdentityError(f"token rejected: {e.__class__.__name__}") from e
+    data.setdefault("role", "agent")
+    return data
 
 
 def verify(token: str, key: str | None = None) -> str:

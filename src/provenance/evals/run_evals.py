@@ -43,6 +43,11 @@ def _run_in_process(case: dict) -> dict:
         from provenance.agent.assess import main as assess_main
 
         return asyncio.run(assess_main(case["input"]["system_id"], str(case["input"]["control_id"])))
+    if case.get("agent") == "report-writer":
+        from provenance.agent.writer import main as writer_main
+
+        ids = [str(c) for c in (case["input"].get("control_ids") or [])] or None
+        return asyncio.run(writer_main(case["input"]["system_id"], ids))
     from provenance.agent.run import main as agent_main
 
     return asyncio.run(agent_main(case["question"]))
@@ -56,7 +61,7 @@ def _run_via_service(case: dict) -> dict:
 
     url = os.environ.get("AGENT_SERVICE_URL", "http://localhost:8080")
     agent = case.get("agent", "evidence-collector")
-    job_input = case["input"] if agent in ("control-mapper", "assessor") else {"question": case["question"]}
+    job_input = case["input"] if agent in ("control-mapper", "assessor", "report-writer") else {"question": case["question"]}
     r = httpx.post(f"{url}/jobs", json={"agent": agent, "input": job_input},
                    headers={"X-Caller-Token": mint("eval-runner")}, timeout=600)
     if r.status_code != 200:
@@ -101,6 +106,12 @@ def _check(case: dict, result: dict, rows: list[dict]) -> list[str]:
     for needle in exp.get("answer_contains_all", []):
         if needle not in answer:
             failures.append(f"answer missing required text {needle!r}")
+    if "packet_withheld_max" in exp and int(result.get("withheld_statements") or 0) > exp["packet_withheld_max"]:
+        failures.append(f"packet withheld {result.get('withheld_statements')} statement(s), expected at most {exp['packet_withheld_max']}")
+    if "packet_failed_max" in exp and int(result.get("failed_controls") or 0) > exp["packet_failed_max"]:
+        failures.append(f"packet has {result.get('failed_controls')} control(s) whose mapping failed, expected at most {exp['packet_failed_max']}")
+    if "packet_invented_max" in exp and int(result.get("invented_citations") or 0) > exp["packet_invented_max"]:
+        failures.append(f"packet dropped {result.get('invented_citations')} sentence(s) for invented citations, expected at most {exp['packet_invented_max']}")
     verdict = result.get("verdict") or {}
     if "verdict_severity_in" in exp and verdict.get("severity") not in exp["verdict_severity_in"]:
         failures.append(f"verdict severity {verdict.get('severity')!r} not in {exp['verdict_severity_in']}")

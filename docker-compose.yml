@@ -97,6 +97,7 @@ services:
       AGENT_JOBS_LOG: /jobs/jobs.jsonl
       RISK_ANALYST_URL: http://risk-analyst:8090   # over the analysis network; the analyst sees nothing else
       RISK_SIGNING_KEY: ${RISK_SIGNING_KEY}          # as the analyst's client
+      PACKETS_URL: file:///jobs/packets              # drafts and signatures; the bucket in the cloud
     volumes:
       - ./jobs:/jobs
     ports: ["8080:8080"]

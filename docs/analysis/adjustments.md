@@ -12,7 +12,8 @@ flow without changing is a plan nobody tested. This page lists the changes of co
 oldest first: what was found, what was changed, and what the change cost, including
 the cases where the honest cost was throwing away a number. Nothing here is hidden in
 a commit message. The judge's rubric alone has been revised five times, and the fifth
-revision restarts one item's live count from zero; that reset is entry eighteen. The
+revision restarts one item's live count from zero; that reset is entry eighteen, and
+the mapper inventing evidence identifiers is entry nineteen. The
 list is added to whenever the platform changes direction, and the final write-up draws
 its "what went well and what was adjusted" from here.
 
@@ -60,6 +61,7 @@ flowchart LR
 | 15 | Phase 7, step 2 | The catalog is published in a numbering the evidence rows do not use | Every control lookup accepts both numberings | A permanent translation layer | PR 33, PR 36 |
 | 16 | Phase 7, step 2 | The caller quota had nowhere to live in a one-question-per-process agent | The quota moved to the agent service with the reason stated, not a token implementation | A threat-model row waited two phases longer | PR 35, PR 36 |
 | 17 | Phase 7, step 3 | The mapper probed a tool outside its grant, was denied, and the strict eval failed it | The mapper's prompt names its four tools | None; the grant was working, the prompt was vague | PR 36 |
+| 19 | Phase 7, step 3 | The first draft packet cited an "Event Logging Policy (ev-20240115-001)" that exists nowhere; the mapper invented evidence, and a four-digit row-id pattern let the invented id past both the analyst's unknown-citation check and the writer's citation rule, so the verdict came back low | Any `ev-` token is a citation to check against the rows that exist; an invented citation rates high on its own; the writer withholds a statement that cites rows that do not exist, or none of the evidence held, and counts it; the mapper is told never to invent an id, a document, or a policy. On the way, a per-sentence rule was tried and dropped: strict, it threw away honest statements that cite at the end; loosened, it dressed a model's leaked reasoning up as cited | A pattern that matched the fixture's shape instead of the concept; the packet now reports its own withheld and invented counts | The Report Writer pull request |
 | 18 | Phase 7, step 3 | Eight live findings of one kind: the judge read secrets referenced by name as secrets | Rubric v1.5: written-out secrets become a Lane 1 script (R10); R5 judges internal identifiers only and no longer opens on public endpoints | R5's live count restarts from zero under ADR-005, throwing away seven judged pull requests that were built on a known defect | This page's pull request |
 
 **What did not need an entry.** The two-lane design, the promotion rule, the one-door

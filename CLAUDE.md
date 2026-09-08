@@ -147,22 +147,11 @@ requisitions. Repo is public on GitHub.
 1. First promotion decision, by PR, once an item has 20 live instances and meets every
    ADR-005 threshold; R1 and R5 are the only candidates left in Lane 2. Live counts:
    `python -m gatehouse.evals.harvest` (rewrites the analysis page block).
-2. PR P3(c): Report Writer and human sign-off, ADR-007; done-when: one sensor row
-   becomes a cited line in a draft packet with a signature step no agent can perform.
-   P3(b) done: `src/provenance/risk_analyst/` (own key RISK_SIGNING_KEY, A2A shape,
-   deterministic score), `src/provenance/agent/assess.py` (assessor job), Cloud Run
-   `risk-analyst-dev` invoked only by the agent service; secret `risk-signing-key-dev`
-   needs its value before the first apply. P3(a) done: `src/provenance/agent_service/` (POST /jobs, X-Caller-Token,
-   quota per caller, job token per agent), `src/provenance/agent/mapper.py`, policy
-   identity `control-mapper`; eval runner `--via-service`; Cloud Run `agents-dev`
-   needs the NVIDIA key value in Secret Manager before its first apply. Context plane
-   P2 done: `src/provenance/controls_mcp/`, catalog `src/provenance/data/catalog.py`,
-   overlay `src/provenance/data/odp/blackfork.yml` (one planted value), policy grants
-   by framework, gateway rate limit (`gateway/ratelimit.py`) and audit chain
-   (`gateway/chain.py`, verifier `audit_verify.py`). After a policy change,
-   `docker compose restart opa`. Data plane P1 done: `src/provenance/data/`, own venv `.venv-data`
-   from `src/requirements-data.txt`, tests `../.venv-data/Scripts/python -m pytest
-   src/provenance/tests/test_data_plane.py`; the evidence server reads gold from the
-   pointer; gold is in the lakehouse bucket. One writer environment per warehouse:
-   on Compose run the pipeline in its container (`docker compose --profile data run
-   --rm dagster python -m provenance.data.run`), never from the host.
+2. Phase 7 P4 assurance plane: NeMo Retriever with Milvus, scheduled Garak and
+   output-safety runs, an eval harness that re-scores every agent on every change.
+   P3 done: agent service (`src/provenance/agent_service/`), mapper, assessor, Risk
+   Analyst (`src/provenance/risk_analyst/`, own key RISK_SIGNING_KEY; Cloud Run
+   `risk-analyst-dev` needs `risk-signing-key-dev` populated), Report Writer
+   (`src/provenance/agent/writer.py`), packets and sign-off (`src/provenance/packets/`;
+   a person signs with `python -m provenance.packets.cli sign <id> --as <name>`).
+   Tokens carry a role: agent, caller, person.
