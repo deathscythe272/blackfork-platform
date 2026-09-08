@@ -10,6 +10,7 @@ backend.hcl
 __pycache__/
 *.py[cod]
 .venv/
+.venv-data/
 # node
 node_modules/
 # env & os
@@ -18,6 +19,9 @@ node_modules/
 .DS_Store
 # provenance slice: generated data, logs, traces, local env
 data/*.duckdb
+data/warehouse/
+data/catalog.db
+dagster_home/
 audit/
 traces/
 .env

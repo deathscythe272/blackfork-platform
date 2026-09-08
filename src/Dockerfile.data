@@ -1,0 +1,10 @@
+# The data plane: Dagster with the evidence pipeline loaded. The language model the
+# redactor uses is baked in so a run never downloads at start. Serves: BR-2, BR-7.
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements-data.txt .
+RUN pip install --no-cache-dir -r requirements-data.txt \
+    && python -m spacy download en_core_web_lg
+COPY provenance ./provenance
+ENV PYTHONPATH=/app PYTHONUNBUFFERED=1 DAGSTER_HOME=/dagster_home
+RUN mkdir -p /dagster_home /data

@@ -98,7 +98,7 @@ control yet, or the control exists with no test, and the row says which.
 | Spoofing | Traffic to the model endpoint is redirected to a hostile endpoint | TLS to a pinned base URL; when controlled unclassified information (CUI) is in scope the model runs inside the boundary (architecture decision record ADR-008) | T1-MD-01: endpoint pin check in config validation | Planned, phase 6 |
 | Tampering | The model's completion carries a tool call the agent should not make | The agent cannot make a call the gateway does not allow; every completion-driven call still passes B3 | T1-GW-06 | Passing |
 | Tampering | The model obeys an instruction embedded in its input, and the platform's reasoning-off calling convention makes it more likely to | Rails at B1 and parser gates at the judge, never the model's own judgment; parameterized tools and the door bound what obedience can reach | T1-MD-04: Garak prompt-injection probe through the platform's endpoint settings (`docs/analysis/seeded-attacks.md`) | Measured: raw model obeys 82% of plain injections with reasoning off; contained upstream by T1-IN-01/02 and T1-GW-06 |
-| Information disclosure | Sensitive data leaves the boundary inside prompts | Redaction before storage (ADR-006) means Gold rows carry no personal data; agent reads narrow views only | T1-MD-02: prompt payload scan for PII patterns in the trace | Planned, phase 5, using the OpenTelemetry (OTel) spans |
+| Information disclosure | Sensitive data leaves the boundary inside prompts | Redaction before storage (ADR-006) means Gold rows carry no personal data; agent reads narrow views only | T1-MD-02: planted personal data in the fixture never reaches silver or gold, checked by the redactor's detector and an independent pattern layer (`test_data_plane.py`); a prompt-payload scan in the trace remains planned | Passing at the data layer; the prompt scan is planned, phase 7 |
 | Denial of service | Endpoint rate limits or outages stall the agent | Retries with backoff in the client; the agent failing is a result the eval runner records, not a crash | T1-MD-03: eval run with the endpoint blocked returns a failed case, not a hang | Planned, phase 4 |
 | Elevation | The model is swapped for one with different safety behavior | Model name pinned in config; a model change re-runs the eval set and a regression blocks release | T1-SC-02 | Planned, phase 4 |
 
@@ -169,7 +169,8 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | T1-IN-01, T1-IN-02 | B1 | `src/provenance/evals/cases.yaml` | Passing |
 | T1-IN-03, T1-IN-05 | B1 | `src/provenance/evals/cases.yaml`; Garak run on the seeded-attacks page | Passing |
 | T1-IN-04 | B1 | phase 6 quota | Gap |
-| T1-MD-01 to T1-MD-03 | B2 | phase 4 to 6 | Planned |
+| T1-MD-01, T1-MD-03 | B2 | phase 7 | Planned |
+| T1-MD-02 | B2 | `src/provenance/tests/test_data_plane.py` | Passing at the data layer |
 | T1-MD-04 | B2 | Garak through `src/profiling/proxy.py` | Measured; mitigation upstream |
 | T1-GW-01, T1-GW-02, T1-GW-03, T1-GW-06 | B3 | `src/provenance/gateway/smoke.py`, `policy/gateway_test.rego`, eval runner | Passing |
 | T1-GW-04 | B3 | `src/provenance/tests/test_boundaries.py` | Passing |
@@ -182,7 +183,7 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | T1-HX-01 to T1-HX-04 | B7 | phase 7 | Planned |
 | T1-CI-01 to T1-CI-04 | B8 | `infra/modules/delivery-plane/`, `.github/workflows/terraform.yml` | Three passing, one planned |
 
-Count: 39 threat rows, 21 passing, 1 measured with mitigation upstream, 12 planned with a phase, 5 gaps named. The gaps are
+Count: 39 threat rows, 22 passing, 1 measured with mitigation upstream, 11 planned with a phase, 5 gaps named. The gaps are
 transport encryption between containers, rate limiting at two boundaries, audit
 immutability beyond append-only, and dependency hash pinning.
 

@@ -124,7 +124,7 @@ R5, R6 clear every fixture threshold (1.00/1.00); R2 on notice. Required checks 
 main: `check` (docs standard incl. diagram rules), `cites-requirement`, `rego`
 (policy tests), `boundaries`, and `terraform-plan`. Seeded attacks done: zero steer-induced changes on three judge twins;
 seven agent cases contained with zero foreign calls; every answer scored safe; Garak
-run on the model; threat model 21/39 passing (B8 added in phase 6). Phase 4 complete except promotion.
+run on the model; threat model 22/39 passing (B8 added in phase 6; T1-MD-02 at the data layer). Phase 4 complete except promotion.
 Phase 5 done: harness profile (914 turns, 43k→853k context) and agent profile via the
 logging proxy (`src/profiling/`); agent tool-call cap 6; Steward token budget 50k/job.
 Rubric v1.4: R6 and R9 (boundary change needs a threat-model change) are Lane 1 scripts
