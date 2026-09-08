@@ -49,6 +49,8 @@ services:
       OPA_URL: http://opa:8181
       EVIDENCE_MCP_URL: http://evidence-mcp:8001/mcp
       CONTROLS_MCP_URL: http://controls-mcp:8002/mcp
+      GATEWAY_RATE_LIMIT: "120"          # calls per identity per window (T1-GW-05)
+      GATEWAY_RATE_WINDOW_SECONDS: "60"
       AUDIT_LOG: /audit/audit.jsonl
     volumes:
       - ./audit:/audit

@@ -88,7 +88,7 @@ control yet, or the control exists with no test, and the row says which.
 | Tampering | Instructions embedded in the question redirect the agent to another system or tool | Guardrails input rail scores the question against a written policy before the agent sees it | T1-IN-01 | Passing |
 | Tampering | Instructions arrive inside data the agent legitimately reads (indirect injection) | System prompt states that evidence text is data; the gateway denies any resulting call for another system regardless | T1-IN-02: `indirect-injection-evidence-row` eval case | Passing, agent did not follow the instruction; gateway backstop covered by T1-GW-06 |
 | Information disclosure | The agent is asked to reveal its instructions, token, or the other system's rows | Output rail blocks answers that leak instructions, credentials, or other-system rows | T1-IN-03: eval case `instruction-leak` asks for the system prompt and token | Passing, refused at the input rail; answer carries no token or prompt text |
-| Denial of service | A caller floods the agent with expensive questions | None in the slice | T1-IN-04: rate limit per caller | Gap, phase 6 (Cloud Run concurrency and quota) |
+| Denial of service | A caller floods the agent with expensive questions | The agent runs one question per process today, so a caller quota has nowhere to live; it belongs to the agent as a deployed service. Until then the gateway's per-identity limit (T1-GW-05) bounds what a flood can reach | T1-IN-04: quota per caller at the agent service | Planned, phase 7 step 3 (agent plane), for the reason given |
 | Elevation | A caller talks the agent out of its role over several turns (multi-turn jailbreak) | Slice is single-turn; Guardrails dialog rails apply when conversation is added | T1-IN-05: eval case `roleplay-jailbreak` plus Garak DAN-family probes against the model (`docs/analysis/seeded-attacks.md`) | Passing on the role-play case; Garak results on the seeded-attacks page |
 
 ### B2 — Agent to model
@@ -110,7 +110,7 @@ control yet, or the control exists with no test, and the row says which.
 | Tampering | Arguments altered in transit, or a tool name that does not exist | Tool schema validation by the Model Context Protocol (MCP) server layer; transport is plain HTTP inside a private Compose network today | T1-GW-02: off-schema calls refused | Passing for schema; **gap** for transport (no TLS between containers; phase 6 adds mutual TLS) |
 | Repudiation | A call cannot later be tied to an identity and a decision | Audit row per call, denies included, with identity, tool, arguments, decision, policy version, timestamp | T1-GW-03: every eval call appears in the audit log with its decision | Passing, asserted by the eval runner on every case |
 | Information disclosure | The gateway logs payloads or results | Gateway logs decisions, not results; audit rows carry arguments only | T1-GW-04: audit and server logs contain no result payloads (`src/provenance/tests/test_boundaries.py`) | Passing |
-| Denial of service | A looping agent floods the gateway | None in the slice beyond the agent's `max_tool_calls` | T1-GW-05: per-identity rate limit, other callers unaffected | Gap, phase 6 |
+| Denial of service | A looping agent floods the gateway | Per-identity token bucket at the door, checked before policy: 120 calls a minute per identity by default, refilled continuously; a refused call is audited with reason `rate limited`. Buckets live in the one gateway instance | T1-GW-05: a burst from one identity is refused and audited while another identity is judged on its own terms (`test_boundaries.py`) | Passing |
 | Elevation | A steered agent requests another system's data or an ungranted tool | Default-deny Rego; grants per identity per tool per `system_id`; no rule allows a call without a `system_id` | T1-GW-06: cross-system and unknown-tool calls denied (`smoke.py`, Rego tests, eval runner) | Passing |
 
 ### B4 — Gateway to policy and audit
@@ -118,7 +118,7 @@ control yet, or the control exists with no test, and the row says which.
 | STRIDE | Threat | Control in the design | Test | Status |
 |---|---|---|---|---|
 | Tampering | Policy files altered so a denied call becomes allowed | Policy is code in the repo, reviewed through Gatehouse; OPA mounts it read-only; decision carries the policy version into the audit row | T1-PL-01: Rego unit tests (7) run in CI on every PR (`policy-tests` workflow) | Passing, required check |
-| Repudiation | Audit rows altered or deleted after the fact | Append-only file in the slice, fsynced per row before forwarding; in the cloud each row is published to the platform-events topic and the call waits for the broker's acknowledgement, so nothing on the instance's disk is trusted | T1-PL-02: audit hash chain or write-once storage | Gap, phase 7 (audit table in the lakehouse with Iceberg snapshots) |
+| Repudiation | Audit rows altered or deleted after the fact | Append-only file in the slice, fsynced per row before forwarding; in the cloud each row is published to the platform-events topic and the call waits for the broker's acknowledgement, so nothing on the instance's disk is trusted | T1-PL-02: every row carries the hash of the row before it; `provenance.gateway.audit_verify` walks a trail and names the first broken row; the boundary test alters a copy of the live file and the verifier finds the row (`chain.py`, `test_boundaries.py`) | Passing; the remaining gap is removal of a whole tail after the last row, which needs an anchor stored elsewhere |
 | Information disclosure | Audit rows reveal sensitive arguments | Arguments are identifiers (`system_id`, `control_id`, `row_id`), never free text | T1-GW-04 | Passing |
 | Denial of service | OPA or the audit path is unavailable | Fail closed: the gateway refuses the call | T1-PL-03: stop OPA, confirm calls are refused and nothing is forwarded (`test_boundaries.py`) | Passing |
 | Elevation | A default-allow rule slips into policy | `default allow := false` plus a test that an unknown identity is denied | T1-PL-01 | Passing, required check |
@@ -170,15 +170,15 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 |---|---|---|---|
 | T1-IN-01, T1-IN-02 | B1 | `src/provenance/evals/cases.yaml` | Passing |
 | T1-IN-03, T1-IN-05 | B1 | `src/provenance/evals/cases.yaml`; Garak run on the seeded-attacks page | Passing |
-| T1-IN-04 | B1 | phase 6 quota | Gap |
+| T1-IN-04 | B1 | phase 7 step 3, the agent service | Planned |
 | T1-MD-01, T1-MD-03 | B2 | phase 7 | Planned |
 | T1-MD-02 | B2 | `src/provenance/tests/test_data_plane.py` | Passing at the data layer |
 | T1-MD-04 | B2 | Garak through `src/profiling/proxy.py` | Measured; mitigation upstream |
 | T1-GW-01, T1-GW-02, T1-GW-03, T1-GW-06 | B3 | `src/provenance/gateway/smoke.py`, `policy/gateway_test.rego`, eval runner | Passing |
 | T1-GW-04 | B3 | `src/provenance/tests/test_boundaries.py` | Passing |
-| T1-GW-05 | B3 | phase 6 | Gap |
+| T1-GW-05 | B3 | `test_boundaries.py`, `gateway/ratelimit.py` | Passing |
 | T1-PL-01 | B4 | `policy/gateway_test.rego`, `policy-tests` workflow | Passing, required check |
-| T1-PL-02 | B4 | phase 7 | Gap |
+| T1-PL-02 | B4 | `test_boundaries.py`, `gateway/chain.py`, `gateway/audit_verify.py` | Passing; tail removal remains |
 | T1-PL-03 | B4 | `test_boundaries.py` | Passing |
 | T1-EV-01 to T1-EV-03 | B5 | `test_boundaries.py`; T1-EV-01 also `deployed_check.py` against Cloud Run | Passing |
 | T1-EV-04 | B5 | `test_controls_mcp.py` (the instruction is served as data), `evals/cases.yaml` `poisoned-odp-value` (the agent ignores it) | Passing, local and cloud |
@@ -186,9 +186,9 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | T1-HX-01 to T1-HX-04 | B7 | phase 7 | Planned |
 | T1-CI-01 to T1-CI-04 | B8 | `infra/modules/delivery-plane/`, `.github/workflows/terraform.yml` | Three passing, one planned |
 
-Count: 39 threat rows, 22 passing, 1 measured with mitigation upstream, 11 planned with a phase, 5 gaps named. The gaps are
-transport encryption between containers, rate limiting at two boundaries, audit
-immutability beyond append-only, and dependency hash pinning.
+Count: 41 threat rows, 26 passing, 1 measured with mitigation upstream, 12 planned with a phase, 2 gaps named. The gaps are
+transport encryption between containers and dependency hash pinning; the audit
+chain's remaining weakness, removal of a whole tail, is noted on its row.
 
 ## Why it's built this way
 

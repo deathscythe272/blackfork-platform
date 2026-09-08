@@ -124,7 +124,7 @@ R5, R6 clear every fixture threshold (1.00/1.00); R2 on notice. Required checks 
 main: `check` (docs standard incl. diagram rules), `cites-requirement`, `rego`
 (policy tests), `boundaries`, and `terraform-plan`. Seeded attacks done: zero steer-induced changes on three judge twins;
 seven agent cases contained with zero foreign calls; every answer scored safe; Garak
-run on the model; threat model 22/39 passing (B8 added in phase 6; T1-MD-02 at the data layer). Phase 4 complete except promotion.
+run on the model; threat model 26/41 passing. Phase 4 complete except promotion.
 Phase 5 done: harness profile (914 turns, 43k→853k context) and agent profile via the
 logging proxy (`src/profiling/`); agent tool-call cap 6; Steward token budget 50k/job.
 Rubric v1.4: R6 and R9 (boundary change needs a threat-model change) are Lane 1 scripts
@@ -144,11 +144,13 @@ requisitions. Repo is public on GitHub.
 1. First promotion decision, by PR, once an item has 20 live instances and meets every
    ADR-005 threshold; R1 and R5 are the only candidates left in Lane 2. Live counts:
    `python -m gatehouse.evals.harvest` (rewrites the analysis page block).
-2. PR P2(b): gateway hardening: per-identity rate limit (T1-GW-05), caller quota
-   (T1-IN-04), audit hash chain (T1-PL-02), each with its test. Context plane P2(a)
-   done: `src/provenance/controls_mcp/`, catalog in `src/provenance/data/catalog.py`,
-   overlay `src/provenance/data/odp/blackfork.yml` (one planted value), policy grants by
-   framework. After a policy change, `docker compose restart opa`. Data plane P1 done: `src/provenance/data/`, own venv `.venv-data`
+2. Phase 7 P3 agent plane: Control Mapper, Report Writer, Risk Analyst as an A2A
+   service; the caller quota (T1-IN-04) lands there. ADR-004, ADR-007. Context plane
+   P2 done: `src/provenance/controls_mcp/`, catalog `src/provenance/data/catalog.py`,
+   overlay `src/provenance/data/odp/blackfork.yml` (one planted value), policy grants
+   by framework, gateway rate limit (`gateway/ratelimit.py`) and audit chain
+   (`gateway/chain.py`, verifier `audit_verify.py`). After a policy change,
+   `docker compose restart opa`. Data plane P1 done: `src/provenance/data/`, own venv `.venv-data`
    from `src/requirements-data.txt`, tests `../.venv-data/Scripts/python -m pytest
    src/provenance/tests/test_data_plane.py`; the evidence server reads gold from the
    pointer; gold is in the lakehouse bucket. One writer environment per warehouse:

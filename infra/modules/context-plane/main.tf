@@ -213,6 +213,14 @@ resource "google_cloud_run_v2_service" "gateway" {
         value = google_cloud_run_v2_service.controls_mcp.uri
       }
       env {
+        name  = "GATEWAY_RATE_LIMIT"
+        value = "120" # calls per identity per window (T1-GW-05); one instance holds the buckets
+      }
+      env {
+        name  = "GATEWAY_RATE_WINDOW_SECONDS"
+        value = "60"
+      }
+      env {
         name  = "AUDIT_SINK"
         value = "pubsub"
       }

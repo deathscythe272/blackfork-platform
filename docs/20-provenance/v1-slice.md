@@ -115,6 +115,16 @@ subscription (`evals/results/deployed-evals.json`). The first attempt scored fiv
 seven because the agent token in the laptop's environment had expired and every call
 was refused at the door, logged as it should be; the runner now mints its own token.
 
+**Two more things at the door.** A per-identity rate limit, checked before policy: a
+looping agent is refused after its limit and the refusal is audited, while another
+identity's calls are judged on their own terms. And a hash chain through the audit
+trail: every row carries the hash of the row before it, so an altered or removed row
+breaks the chain at that point, and a verifier names the row
+(`python -m provenance.gateway.audit_verify audit/audit.jsonl`). The file sink resumes
+the chain across restarts; the cloud sink starts a new segment per instance. What the
+chain cannot see is a whole tail removed after the last row, which needs an anchor
+stored elsewhere; the threat model keeps that as the open gap.
+
 **What the evals assert.** From `src/provenance/evals/cases.yaml`:
 
 | Case | Must hold |

@@ -7,6 +7,8 @@ The gateway mirrors the three evidence tools. On every call, in this order:
                          cloud front door claims that header for its own tokens)
   2. validate request  - FastMCP validates arguments against the tool schema before
                          this code runs; unknown tools never reach us
+  2b. rate limit       - per identity, before policy; a flood is refused and audited
+                         (ratelimit.py)
   3. ask OPA           - identity + tool + args -> allow/deny, reason, policy version
   4. write audit row   - denied calls included; written BEFORE forwarding; if the
                          write fails the call fails. The sink is a file on the laptop
@@ -37,6 +39,7 @@ from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.fastmcp.exceptions import ToolError
 
 from provenance.gateway.audit import AuditWriteError, sink_from_env
+from provenance.gateway.ratelimit import limiter_from_env
 from provenance.gateway.tokens import IdentityError, verify
 from provenance.gateway.upstream import identity_from_env
 
@@ -46,6 +49,7 @@ OPA_URL = os.environ.get("OPA_URL", "http://localhost:8181")
 
 mcp = FastMCP("blackfork-gateway", host=HOST, port=PORT)
 AUDIT = sink_from_env()
+LIMITER = limiter_from_env()
 
 # Every tool belongs to exactly one upstream server. A tool absent here cannot be
 # forwarded even if policy allowed it, which it also cannot (policy lists the same tools).
@@ -139,6 +143,15 @@ async def _guarded_call(ctx: Context, tool: str, args: dict[str, Any]) -> Any:
         row["latency_ms"] = round((time.perf_counter() - started) * 1000, 1)
         _audit(row)
         raise ToolError(f"identity rejected: {e}") from e
+
+    verdict = LIMITER.check(identity)
+    if not verdict.allowed:
+        row.update(identity=identity, decision="deny", reason="rate limited", policy_version=None, forwarded=False,
+                   retry_after_s=verdict.retry_after_s)
+        row["latency_ms"] = round((time.perf_counter() - started) * 1000, 1)
+        _audit(row)
+        raise ToolError(f"rate limited: over {LIMITER.limit} calls per {LIMITER.window_s:.0f}s for this identity; "
+                        f"retry after {verdict.retry_after_s}s; this call has been logged")
 
     decision = _decide(identity, tool, args)
     allowed = bool(decision.get("allow"))
