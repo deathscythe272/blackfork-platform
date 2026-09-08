@@ -173,7 +173,8 @@ items:
     blocking: true
     check: >-
       An added line that introduces a URL, an endpoint or credential environment
-      variable, a Compose service, an outbound call, or a tool, outside test data,
+      variable, a Compose service, an outbound call, or a tool, outside test data and
+      outside docs pages (which describe boundaries but cannot introduce them),
       requires docs/02-architecture/agent-threat-model.md to change in the same pull
       request. Enforced by scripts/check_pr_boundaries.py as a required check; the body
       cannot exempt it. A URL, variable, service, call, or decorator that also appears in

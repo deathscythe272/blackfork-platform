@@ -133,6 +133,8 @@ def test_boundary_rule_skips_docs_hyperlinks_and_test_data():
     rules = importlib.util.module_from_spec(spec); spec.loader.exec_module(rules)
     link = [("docs/01-business-case.md", 3, "See https://www.nist.gov/ for the catalog.")]
     assert rules.boundary_rule(["docs/01-business-case.md"], link) == []
+    prose = [("docs/analysis/judge-precision.md", 9, "The diff adds PUBSUB_URL and a service; the judge flagged it.")]
+    assert rules.boundary_rule(["docs/analysis/judge-precision.md"], prose) == []  # a page quoting a name is not a boundary
     fixture = [("src/gatehouse/gatehouse/judge/fixtures/x/server.py", 1, "@mcp.tool()")]
     assert rules.tool_rule([fixture[0][0]], fixture) == [] and rules.boundary_rule([fixture[0][0]], fixture) == []
     real = [("src/provenance/evidence_mcp/server.py", 40, "@mcp.tool()")]

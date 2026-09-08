@@ -171,8 +171,8 @@ def boundary_rule(paths: list[str], added: list[tuple[str, int, str]],
                 continue  # the same URL, variable, service, or call was removed: moved, not added
             if kind not in kinds:
                 kinds.append(kind)
-        if p.endswith(".md") and kinds == ["url"]:
-            continue  # a hyperlink on a docs page is a citation, not a trust boundary
+        if p.endswith(".md"):
+            continue  # a docs page describes boundaries; only code and config introduce them
         if kinds:
             hits.append((p, n, kinds))
     if not hits:
