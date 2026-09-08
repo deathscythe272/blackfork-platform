@@ -20,7 +20,6 @@ import pathlib
 
 import fsspec
 import pyarrow as pa
-from pyiceberg.catalog.sql import SqlCatalog
 from pyiceberg.exceptions import NoSuchNamespaceError, NoSuchTableError
 from pyiceberg.table import StaticTable, Table
 
@@ -37,14 +36,18 @@ def catalog_uri() -> str:
     return os.environ.get("LAKEHOUSE_CATALOG") or f"sqlite:///{(REPO_ROOT / 'data' / 'catalog.db').as_posix()}"
 
 
-def catalog() -> SqlCatalog:
+def catalog():
+    """The writer's catalog. Imported here so a reader (the evidence server) needs neither
+    the catalog library nor its database driver; readers use the pointer."""
+    from pyiceberg.catalog.sql import SqlCatalog
+
     if catalog_uri().startswith("sqlite:///"):
         pathlib.Path(catalog_uri()[len("sqlite:///"):]).parent.mkdir(parents=True, exist_ok=True)
     return SqlCatalog("blackfork", uri=catalog_uri(), warehouse=warehouse(), **IO_PROPS)
 
 
-def pointer_url(layer: str, name: str) -> str:
-    return f"{warehouse().rstrip('/')}/{layer}/{name}/{POINTER}"
+def pointer_url(layer: str, name: str, root: str | None = None) -> str:
+    return f"{(root or warehouse()).rstrip('/')}/{layer}/{name}/{POINTER}"
 
 
 def write_table(layer: str, name: str, data: pa.Table, partition_by: str | None = None) -> Table:
@@ -69,19 +72,20 @@ def write_table(layer: str, name: str, data: pa.Table, partition_by: str | None 
     return table
 
 
-def read_pointer(layer: str, name: str) -> str | None:
+def read_pointer(layer: str, name: str, root: str | None = None) -> str | None:
     try:
-        with fsspec.open(pointer_url(layer, name), "r") as f:
+        with fsspec.open(pointer_url(layer, name, root), "r") as f:
             return f.read().strip() or None
     except FileNotFoundError:
         return None
 
 
-def load_static(layer: str, name: str) -> StaticTable:
-    """The table as a reader sees it: from the pointer, no catalog, any file layer."""
-    location = read_pointer(layer, name)
+def load_static(layer: str, name: str, root: str | None = None) -> StaticTable:
+    """The table as a reader sees it: from the pointer, no catalog, any file layer.
+    `root` overrides the warehouse setting, so a reader never touches the environment."""
+    location = read_pointer(layer, name, root)
     if not location:
-        raise FileNotFoundError(f"no pointer at {pointer_url(layer, name)}; run the pipeline first")
+        raise FileNotFoundError(f"no pointer at {pointer_url(layer, name, root)}; run the pipeline first")
     return StaticTable.from_metadata(location, properties=IO_PROPS)
 
 

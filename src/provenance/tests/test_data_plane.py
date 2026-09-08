@@ -93,3 +93,23 @@ def test_redactor_is_narrow_on_purpose():
     r = redact("Approved by Jane Doe (jane.doe@windrow-corp.com) from 10.20.30.40")
     assert r.text == "Approved by <PERSON> (<EMAIL>) from <IP>"
     assert sorted(r.entities) == ["EMAIL_ADDRESS", "IP_ADDRESS", "PERSON"]
+
+
+def test_evidence_store_serves_gold_from_the_pointer_and_falls_back(warehouse, tmp_path):
+    """The evidence server's store: gold when the pointer exists, the baked file when not."""
+    import duckdb
+
+    from provenance.evidence_mcp.store import open_store
+
+    wh = (warehouse["dir"] / "warehouse").as_uri()
+    store = open_store({"LAKEHOUSE_WAREHOUSE": wh})
+    assert store.source.startswith("gold:") and store.rows == 16
+    summaries = "\n".join(r[0] for r in store.con.execute("select summary from evidence where control_id = '3.5.2'").fetchall())
+    for planted in PLANTED:
+        assert planted not in summaries
+    assert "<PERSON>" in summaries
+
+    baked = tmp_path / "evidence.duckdb"
+    con = duckdb.connect(str(baked)); con.execute("create table evidence as select 'ev-x' as row_id, 'sys-windrow-prod' as system_id"); con.close()
+    store = open_store({"LAKEHOUSE_WAREHOUSE": (tmp_path / "empty").as_uri(), "EVIDENCE_DB": str(baked)})
+    assert store.source.startswith("baked:") and store.rows == 1

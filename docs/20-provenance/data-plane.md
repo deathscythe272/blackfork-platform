@@ -68,9 +68,25 @@ py -3 -m venv .venv-data && .venv-data/Scripts/pip install -r src/requirements-d
 cd src && ../.venv-data/Scripts/python -m provenance.data.run
 ```
 
-That writes `data/warehouse/` and `data/catalog.db` on this machine. Set
-`LAKEHOUSE_WAREHOUSE=gs://<bucket>/warehouse` and the same run writes to the cloud with
-whatever identity the shell holds. The Dagster user interface runs in a container:
+That writes `data/warehouse/` and `data/catalog.db` on this machine, for the tests and
+for a laptop-only look. Set `LAKEHOUSE_WAREHOUSE=gs://<bucket>/warehouse` and the same
+run writes to the cloud with whatever identity the shell holds.
+
+**One writer environment per warehouse.** Iceberg records absolute locations: the
+pointer names the metadata file, and the manifests name every data file. A warehouse
+written from the host under `file:///C:/...` cannot be read from a container that
+mounts the same folder at `/data`, and the first Compose test proved it by falling back
+to the baked fixture. So the Compose evidence server reads a warehouse written by the
+Compose pipeline, in its own container, at the same address both see:
+
+```
+docker compose --profile data run --rm dagster python -m provenance.data.run
+docker compose restart evidence-mcp
+```
+
+Delete `data/warehouse/` and `data/catalog.db` before switching a folder from one
+writer to the other. In the cloud there is no such split: writer and reader both use
+`gs://<bucket>/warehouse`. The Dagster user interface runs the same container:
 `docker compose --profile data up dagster`, then open port 3000.
 
 **Layers as Iceberg tables.** Iceberg gives each layer a schema, snapshots, and a
@@ -98,10 +114,18 @@ own, and plain patterns for the structured kinds. The first pipeline run showed 
 this matters: a planted phone number was too short to be a real number, the detector
 ignored it, and the redactor-only check passed. The pattern layer would have failed it.
 
-**What is not here yet.** The evidence server still serves its baked-in copy of the
-fixture rows; reading gold from the pointer is the next pull request. Collectors that
-write bronze from real sources, and the schedule that runs the pipeline, come with the
-rest of phase 7.
+**The evidence server reads gold.** At startup the server loads the gold table from
+its pointer into memory and serves from there: the local folder on the laptop, the
+lakehouse bucket on Cloud Run, where its identity holds bucket read and nothing else.
+If no pointer exists yet, it serves the fixture baked into its image and says so in its
+log, so a fresh deploy answers before the pipeline has ever run. The reader needs
+neither the catalog library nor a database driver; the first container build proved
+that by crashing when the reader imported the writer's catalog at module load.
+
+**What is not here yet.** Collectors that write bronze from real sources, the schedule
+that runs the pipeline, and a reload when the pointer changes (today a new gold table
+is picked up on the next start, which at scale to zero is the next request after
+idle). These come with the rest of phase 7.
 
 ## Why it's built this way
 

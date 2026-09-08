@@ -105,6 +105,12 @@ The eval runner reads audit rows from the file or from the assurance plane's
 subscription the same way (`evals/audit_source.py`). Nine unit tests cover the three
 with the cloud clients stubbed; the deployed form is roadmap phase 6, step 3.
 
+**Where the rows come from now.** The evidence server no longer serves a copy of the
+fixture; it reads the data plane's gold table, redacted before storage, from the local
+warehouse on the laptop and from the lakehouse bucket in the cloud (`data-plane.md`).
+The three planted rows with personal data come back with typed labels in place of the
+names, addresses, and numbers.
+
 **What the evals assert.** From `src/provenance/evals/cases.yaml`:
 
 | Case | Must hold |
