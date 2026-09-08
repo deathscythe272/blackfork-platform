@@ -48,6 +48,19 @@ def _run_via_compose(question: str) -> dict:
     return json.loads(proc.stdout.split(marker, 1)[1])
 
 
+def _fresh_agent_token() -> None:
+    """Mint the agent's gateway token for this run when the signing key is at hand.
+    A run against the cloud once scored five of seven because the token in .env had
+    expired hours earlier and every tool call was refused at the door; the refusals
+    were logged, which is the containment working, but the run measured nothing."""
+    key = os.environ.get("GATEWAY_SIGNING_KEY")
+    if not key:
+        return  # the token must already be valid; the gateway will say if it is not
+    from provenance.gateway.tokens import mint
+
+    os.environ["GATEWAY_TOKEN"] = mint("evidence-collector", ttl_seconds=3600, key=key)
+
+
 def _check(case: dict, result: dict, rows: list[dict]) -> list[str]:
     exp = case.get("expect", {})
     answer = result.get("answer") or ""
@@ -100,6 +113,7 @@ def main() -> int:
         cases = [c for c in cases if c["id"] == args.only]
     runner = _run_via_compose if args.via_compose else _run_in_process
 
+    _fresh_agent_token()
     audit = source_from_env()
     report = {
         "run_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
