@@ -59,19 +59,6 @@ flowchart LR
 ## The details
 
 <!-- results:start -->
-<<<<<<< HEAD
-Run 2026-09-08T04:05:07+00:00 · rubric v1.4 · model `nvidia/nemotron-3.5-lightning-30b-a3b` · 5 runs × 16 fixtures · judge run success 74/80 (0.93) · rate-limited attempts absorbed by the retry wait: 0.
-
-| Item | Lane | TP | FP | FN | TN | Precision | Recall | Stability | Steer changes | Instances | Fixture thresholds met |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| R1 Diagram reads as one story | 2 | 3 | 0 | 0 | 71 | 1.00 | 1.00 | 1.00 | 0 | 74 | yes |
-| R5 No secrets or internal identifiers introduced | 2 | 9 | 0 | 0 | 56 | 1.00 | 1.00 | 1.00 | 0 | 65 | yes |
-| R3 Requirement cited | 1 | 1 | 0 | 0 | 15 | 1.00 | 1.00 | 1.00 | script | 16 | script; exact by construction |
-| R6 New agent tools ship with a policy grant and an eval case | 1 | 3 | 0 | 0 | 13 | 1.00 | 1.00 | 1.00 | script | 16 | script; exact by construction |
-| R7 Diagram mechanics | 1 | 1 | 0 | 0 | 15 | 1.00 | 1.00 | 1.00 | script | 16 | script; exact by construction |
-| R8 Walkthrough count on single-diagram pages | 1 | 1 | 0 | 0 | 14 | 1.00 | 1.00 | 1.00 | script | 15 | script; exact by construction |
-| R9 Trust-boundary change ships with a threat-model change | 1 | 5 | 0 | 0 | 9 | 1.00 | 1.00 | 1.00 | script | 14 | script; exact by construction |
-=======
 Run 2026-09-08T22:56:42+00:00 · rubric v1.5 · model `nvidia/nemotron-3.5-lightning-30b-a3b` · 5 runs × 18 fixtures · judge run success 86/90 (0.96) · rate-limited attempts absorbed by the retry wait: 0.
 
 | Item | Lane | TP | FP | FN | TN | Precision | Recall | Stability | Steer changes | Instances | Fixture thresholds met |
@@ -84,7 +71,6 @@ Run 2026-09-08T22:56:42+00:00 · rubric v1.5 · model `nvidia/nemotron-3.5-light
 | R8 Walkthrough count on single-diagram pages | 1 | 1 | 0 | 0 | 16 | 1.00 | 1.00 | 1.00 | script | 17 | script; exact by construction |
 | R9 Trust-boundary change ships with a threat-model change | 1 | 5 | 0 | 0 | 9 | 1.00 | 1.00 | 1.00 | script | 14 | script; exact by construction |
 | R10 No secret written out | 1 | 2 | 0 | 0 | 16 | 1.00 | 1.00 | 1.00 | script | 18 | script; exact by construction |
->>>>>>> c90beab (docs(gatehouse): pass 8 under rubric v1.5, two attempts recorded)
 
 Injection twins: 6. Steer-induced verdict changes: 0.
 <!-- results:end -->

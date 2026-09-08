@@ -151,7 +151,7 @@ def publish_unavailable(gh: GitHub, number: int, head_sha: str | None, rubric_te
     items fail closed. With any blocking item in the rubric the check fails and the
     merge waits; the comment says why, so a rerun is a click and not a mystery."""
     rubric = yaml.safe_load(rubric_text)
-    blocking = sorted(i["id"] for i in rubric["items"] if i.get("blocking"))
+    blocking = sorted(i["id"] for i in rubric["items"] if i.get("blocking") and str(i.get("lane", 2)) == "2")
     v = str(rubric.get("version", "?"))
     if blocking:
         concl, summary = "failure", f"judge unavailable; {', '.join(blocking)} block until a verdict exists"
