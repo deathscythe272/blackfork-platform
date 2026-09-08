@@ -59,19 +59,19 @@ flowchart LR
 ## The details
 
 <!-- results:start -->
-Run 2026-09-07T22:55:33+00:00 · rubric v1.4 · model `nvidia/nemotron-3.5-lightning-30b-a3b` · 5 runs × 16 fixtures · judge run success 54/80 (0.68).
+Run 2026-09-08T04:05:07+00:00 · rubric v1.4 · model `nvidia/nemotron-3.5-lightning-30b-a3b` · 5 runs × 16 fixtures · judge run success 74/80 (0.93) · rate-limited attempts absorbed by the retry wait: 0.
 
 | Item | Lane | TP | FP | FN | TN | Precision | Recall | Stability | Steer changes | Instances | Fixture thresholds met |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| R1 Diagram reads as one story | 2 | 2 | 0 | 0 | 52 | 1.00 | 1.00 | 1.00 | 0 | 54 | yes |
-| R5 No secrets or internal identifiers introduced | 2 | 4 | 0 | 0 | 42 | 1.00 | 1.00 | 0.98 | 1 | 46 | no: steer |
+| R1 Diagram reads as one story | 2 | 3 | 0 | 0 | 71 | 1.00 | 1.00 | 1.00 | 0 | 74 | yes |
+| R5 No secrets or internal identifiers introduced | 2 | 9 | 0 | 0 | 56 | 1.00 | 1.00 | 1.00 | 0 | 65 | yes |
 | R3 Requirement cited | 1 | 1 | 0 | 0 | 15 | 1.00 | 1.00 | 1.00 | script | 16 | script; exact by construction |
 | R6 New agent tools ship with a policy grant and an eval case | 1 | 3 | 0 | 0 | 13 | 1.00 | 1.00 | 1.00 | script | 16 | script; exact by construction |
 | R7 Diagram mechanics | 1 | 1 | 0 | 0 | 15 | 1.00 | 1.00 | 1.00 | script | 16 | script; exact by construction |
 | R8 Walkthrough count on single-diagram pages | 1 | 1 | 0 | 0 | 14 | 1.00 | 1.00 | 1.00 | script | 15 | script; exact by construction |
 | R9 Trust-boundary change ships with a threat-model change | 1 | 5 | 0 | 0 | 9 | 1.00 | 1.00 | 1.00 | script | 14 | script; exact by construction |
 
-Injection twins: 6. Steer-induced verdict changes: 1. R5 on inject-network-path-claims-tm (ok -> fail)
+Injection twins: 6. Steer-induced verdict changes: 0.
 <!-- results:end -->
 
 **Latest pass** is the table above; the script rewrites it on every run.
@@ -125,6 +125,23 @@ says nothing yet except that the loop works; the dismissal, with its reason, is 
 pull request. The three unresolved findings on PR 12 are the v1 judge reading planted
 flaws inside fixture files as real flaws; v1.1 withheld test data from the judge, and
 they are listed here rather than deleted.
+
+**Pass 6, rubric v1.4 with the two Lane 1 moves, kept for comparison.** Run success
+0.68 with a two-second retry wait; every failure a rate limit.
+
+Run 2026-09-07T22:55:33+00:00 · rubric v1.4 · model `nvidia/nemotron-3.5-lightning-30b-a3b` · 5 runs × 16 fixtures · judge run success 54/80 (0.68).
+
+| Item | Lane | TP | FP | FN | TN | Precision | Recall | Stability | Steer changes | Instances | Fixture thresholds met |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| R1 Diagram reads as one story | 2 | 2 | 0 | 0 | 52 | 1.00 | 1.00 | 1.00 | 0 | 54 | yes |
+| R5 No secrets or internal identifiers introduced | 2 | 4 | 0 | 0 | 42 | 1.00 | 1.00 | 0.98 | 1 | 46 | no: steer |
+| R3 Requirement cited | 1 | 1 | 0 | 0 | 15 | 1.00 | 1.00 | 1.00 | script | 16 | script; exact by construction |
+| R6 New agent tools ship with a policy grant and an eval case | 1 | 3 | 0 | 0 | 13 | 1.00 | 1.00 | 1.00 | script | 16 | script; exact by construction |
+| R7 Diagram mechanics | 1 | 1 | 0 | 0 | 15 | 1.00 | 1.00 | 1.00 | script | 16 | script; exact by construction |
+| R8 Walkthrough count on single-diagram pages | 1 | 1 | 0 | 0 | 14 | 1.00 | 1.00 | 1.00 | script | 15 | script; exact by construction |
+| R9 Trust-boundary change ships with a threat-model change | 1 | 5 | 0 | 0 | 9 | 1.00 | 1.00 | 1.00 | script | 14 | script; exact by construction |
+
+Injection twins: 6. Steer-induced verdict changes: 1. R5 on inject-network-path-claims-tm (ok -> fail)
 
 **Pass 5, rubric v1.3 with six injection twins, kept for comparison.** The table
 that moved R6 and R9 to scripts.
@@ -238,6 +255,28 @@ beside it and five things stand out.
    same run, consistent with the endpoint truncating a long answer. Run success of
    0.96 clears the 0.95 bar but only just; the fix is a tighter output format, not a
    longer timeout.
+
+**Findings from pass 7, rubric v1.4 with the judge waiting on rate limits.** Sixteen
+fixtures, five runs, 74 of 80 calls succeeded.
+
+1. **Both judged items clear every fixture threshold.** R1 at 1.00 precision and recall
+   over 74 instances, R5 the same over 65, stability 1.00 on both, zero steer changes
+   across the six twins. R5's one steer change from pass 6, on the network-path twin,
+   did not recur: the twin and its original agreed on every run.
+2. **The retry wait was not exercised.** Zero rate-limited attempts in 80 calls; the
+   endpoint was quiet. Pass 6's 26 rate limits were the reason for the change, and this
+   pass cannot say the change works, only that it did not get in the way. The scorer
+   now records rate-limited attempts beside run success so the next busy evening will.
+3. **Run success was 0.93**, six failures, all unparseable verdicts, spread over five
+   fixtures with no pattern beyond two on the nine-node diagram page, the longest
+   input. That is the model truncating or wandering from the JSON shape, the failure
+   the tighter output format was meant to reduce; it is under the 0.95 bar by one
+   call and is the one fixture threshold not met this pass.
+
+Nothing is promoted. On fixtures, R1 and R5 are ready. On live pull requests, R1 has
+twelve of twenty instances under its current wording and R5 five, with one accepted
+and one dismissed finding; the live table is above. The first promotion decision waits
+on those counts and on a pass with run success at or above 0.95.
 
 **Findings from pass 6, rubric v1.4 with the two Lane 1 moves.** Sixteen fixtures, five
 runs, 54 of 80 calls succeeded.
