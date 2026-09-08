@@ -277,8 +277,9 @@ answers the Phase 2 eval. Status: all three met.
    the redactor missed, so the silver check gained an independent pattern layer.
    (b) done, the evidence server reads gold from the pointer, on the laptop and on
    Cloud Run, with the baked fixture as fallback; the pipeline ran once against the
-   lakehouse bucket from a laptop and the deployed check and evals ran against
-   redacted gold data. The redactor also learned to leave the platform's vocabulary
+   lakehouse bucket from a laptop; against redacted gold in the cloud the deployed
+   check passed four of four and the evals seven of seven (first attempt five of
+   seven: the laptop's agent token had expired, so the runner now mints its own). The redactor also learned to leave the platform's vocabulary
    alone after it erased a sensor engine's name as a person.
 2. P2 context plane: `controls-mcp` with OSCAL (machine-readable) control catalogs; gateway hardened per Phase 3
    findings. ADR-003.

@@ -109,7 +109,11 @@ with the cloud clients stubbed; the deployed form is roadmap phase 6, step 3.
 fixture; it reads the data plane's gold table, redacted before storage, from the local
 warehouse on the laptop and from the lakehouse bucket in the cloud (`data-plane.md`).
 The three planted rows with personal data come back with typed labels in place of the
-names, addresses, and numbers.
+names, addresses, and numbers. Against that gold data in the cloud, the deployed check
+passed four of four and the seven evals seven of seven, audit rows read from the
+subscription (`evals/results/deployed-evals.json`). The first attempt scored five of
+seven because the agent token in the laptop's environment had expired and every call
+was refused at the door, logged as it should be; the runner now mints its own token.
 
 **What the evals assert.** From `src/provenance/evals/cases.yaml`:
 
