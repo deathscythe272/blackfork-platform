@@ -88,7 +88,7 @@ comment and rewrites the block below; the file it writes is
 `src/gatehouse/gatehouse/evals/results/live.json`.
 
 <!-- live:start -->
-Harvested 2026-09-08T02:31:54+00:00 from 16 merged pull requests with a judge comment.
+Harvested 2026-09-08T02:36:10+00:00 from 16 merged pull requests with a judge comment.
 
 | Item | Counted since | Judged | Accepted (fixed) | Dismissed | Live precision | To 20 instances |
 |---|---|---|---|---|---|---|
@@ -110,9 +110,9 @@ Per rubric version (judged / fixed / dismissed / open):
 
 Unresolved findings on merged pull requests (count for nothing, listed so they do not hide):
 
-- PR 12, `R4-3c6a9b` at `src/gatehouse/gatehouse/judge/fixtures/new-network-path-no-threat-model/pr.md:5`: The diff adds PUBSUB_URL and a pubsub service to docker-compose, introducing a new outbound network path and a new service that sits on both networks, with no t
-- PR 12, `R5-f2aa96` at `src/gatehouse/gatehouse/judge/fixtures/secret-in-compose/pr.md:3`: The diff adds a real cloud project ID (blackfork-dev) and a token-like value in docker-compose.yml that looks like a credential or internal identifier.
-- PR 12, `R6-4b221e` at `src/gatehouse/gatehouse/judge/fixtures/new-tool-no-grant/pr.md:5`: The diff adds a new @mcp.tool() in gateway/server.py with no corresponding Rego policy grant and no eval case in the same pull request.
+- PR 12, `R4-3c6a9b` at `src/gatehouse/gatehouse/judge/fixtures/new-network-path-no-threat-model/pr.md:5`
+- PR 12, `R5-f2aa96` at `src/gatehouse/gatehouse/judge/fixtures/secret-in-compose/pr.md:3`
+- PR 12, `R6-4b221e` at `src/gatehouse/gatehouse/judge/fixtures/new-tool-no-grant/pr.md:5`
 <!-- live:end -->
 
 **What the first harvest says.** R1 is eight judged pull requests short of twenty

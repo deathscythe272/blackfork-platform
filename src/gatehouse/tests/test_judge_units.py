@@ -207,3 +207,5 @@ def test_harvest_parses_a_judge_comment_and_counts_by_adr_005():
     assert r1["judged"] == 1  # the v1.1 pass predates the current wording and is not counted
     assert r1["by_version"]["1.1"]["judged"] == 1 and r1["instances_needed"] == 19
     assert [f["id"] for f in s["open_findings"]] == ["R1-bbbbbb"]
+    rendered = harvest.render({"harvested_at": "now", "pull_requests": report["pull_requests"], "summary": s})
+    assert "R1-bbbbbb" in rendered and "vague" not in rendered  # finding text never reaches the page

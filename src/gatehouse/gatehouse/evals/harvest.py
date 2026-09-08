@@ -64,8 +64,10 @@ def parse_comment(body: str) -> dict:
         fid, status, sev, where, why = (g.strip() for g in m.groups())
         state = "dismissed" if status.startswith("dismissed") else ("fixed" if status == "fixed" else "open")
         reason = status.split(":", 1)[1].strip() if state == "dismissed" and ":" in status else None
+        # The finding text itself is not kept: it is quoted from the judge and can carry
+        # the very identifiers R5 exists to keep out of the repo. The id points at it.
         findings.append({"id": fid, "item": fid.split("-")[0], "status": state, "reason": reason,
-                         "where": where.replace("`", ""), "why": why[:160]})
+                         "where": where.replace("`", "")})
     return {"rubric_version": version.group(1) if version else "?", "items": items, "findings": findings}
 
 
@@ -141,8 +143,10 @@ def render(report: dict) -> str:
         lines.append(f"- {item}: " + "; ".join(parts))
     if s["open_findings"]:
         lines += ["", "Unresolved findings on merged pull requests (count for nothing, listed so they do not hide):", ""]
+        # Id and location only. Finding text is quoted from the judge and can carry the
+        # very identifiers R5 exists to keep out of the repo; the first harvest did.
         for f in s["open_findings"]:
-            lines.append(f"- PR {f['pr']}, `{f['id']}` at `{f['where']}`: {f['why']}")
+            lines.append(f"- PR {f['pr']}, `{f['id']}` at `{f['where']}`")
     return "\n".join(lines)
 
 

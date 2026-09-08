@@ -1,5 +1,5 @@
 {
-  "harvested_at": "2026-09-08T02:31:54+00:00",
+  "harvested_at": "2026-09-08T02:36:10+00:00",
   "pull_requests": [
     {
       "pr": 10,
@@ -20,32 +20,28 @@
           "item": "R4",
           "status": "fixed",
           "reason": null,
-          "where": "src/provenance/gateway/server.py:160",
-          "why": "+@mcp.tool() added at line 160 of the diff with no threat-model change or reason given"
+          "where": "src/provenance/gateway/server.py:160"
         },
         {
           "id": "R4-c50f08",
           "item": "R4",
           "status": "fixed",
           "reason": null,
-          "where": "src/provenance/evidence_mcp/server.py:7",
-          "why": "+@mcp.tool() added at line 7 of the diff with no threat-model change or reason given"
+          "where": "src/provenance/evidence_mcp/server.py:7"
         },
         {
           "id": "R6-725082",
           "item": "R6",
           "status": "fixed",
           "reason": null,
-          "where": "src/provenance/evidence_mcp/server.py:7",
-          "why": "+@mcp.tool() added at line 7 with no matching policy grant or eval case"
+          "where": "src/provenance/evidence_mcp/server.py:7"
         },
         {
           "id": "R6-7cda10",
           "item": "R6",
           "status": "fixed",
           "reason": null,
-          "where": "src/provenance/gateway/server.py:29",
-          "why": "+@mcp.tool() added at line 29 with no matching policy grant or eval case"
+          "where": "src/provenance/gateway/server.py:29"
         }
       ]
     },
@@ -83,48 +79,42 @@
           "item": "R4",
           "status": "open",
           "reason": null,
-          "where": "src/gatehouse/gatehouse/judge/fixtures/new-network-path-no-threat-model/pr.md:5",
-          "why": "The diff adds PUBSUB_URL and a pubsub service to docker-compose, introducing a new outbound network path and a new service that sits on both networks, with no t"
+          "where": "src/gatehouse/gatehouse/judge/fixtures/new-network-path-no-threat-model/pr.md:5"
         },
         {
           "id": "R5-f2aa96",
           "item": "R5",
           "status": "open",
           "reason": null,
-          "where": "src/gatehouse/gatehouse/judge/fixtures/secret-in-compose/pr.md:3",
-          "why": "The diff adds a real cloud project ID (blackfork-dev) and a token-like value in docker-compose.yml that looks like a credential or internal identifier."
+          "where": "src/gatehouse/gatehouse/judge/fixtures/secret-in-compose/pr.md:3"
         },
         {
           "id": "R6-4b221e",
           "item": "R6",
           "status": "open",
           "reason": null,
-          "where": "src/gatehouse/gatehouse/judge/fixtures/new-tool-no-grant/pr.md:5",
-          "why": "The diff adds a new @mcp.tool() in gateway/server.py with no corresponding Rego policy grant and no eval case in the same pull request."
+          "where": "src/gatehouse/gatehouse/judge/fixtures/new-tool-no-grant/pr.md:5"
         },
         {
           "id": "R4-35af58",
           "item": "R4",
           "status": "dismissed",
           "reason": "finding is inside a fixture diff, test data by design\n/gatehouse dismiss R5-e930b8 reason: fake project id inside a fixture diff, test data by design\n/gatehouse dismiss R6-18978c reason: finding is inside a fixture diff, test data by design",
-          "where": "src/provenance/gateway/server.py:78",
-          "why": "Added _publish function that posts to PUBSUB_URL; new outbound network path without corresponding threat-model change."
+          "where": "src/provenance/gateway/server.py:78"
         },
         {
           "id": "R6-18978c",
           "item": "R6",
           "status": "dismissed",
           "reason": "finding is inside a fixture diff, test data by design",
-          "where": "src/provenance/gateway/server.py:78",
-          "why": "The diff added a _publish function and PUBSUB_URL env var; no Rego policy grant or eval case was present in the pull request to authorize or evaluate the new to"
+          "where": "src/provenance/gateway/server.py:78"
         },
         {
           "id": "R6-aa4fa4",
           "item": "R6",
           "status": "dismissed",
           "reason": "finding is on a fixture file, which is test data by design",
-          "where": "src/gatehouse/gatehouse/judge/fixtures/new-tool-no-grant/pr.md:1",
-          "why": "The rubric's R4 text says \"whenever R6 applies, R4 applies\"; the model applied it in reverse on the network-path fixture where no tool was added, causing 3 fals"
+          "where": "src/gatehouse/gatehouse/judge/fixtures/new-tool-no-grant/pr.md:1"
         }
       ]
     },
@@ -284,8 +274,7 @@
           "item": "R5",
           "status": "dismissed",
           "reason": "the line references the Secret Manager secret by name; no value is present, the value was added out of band",
-          "where": "infra/modules/context-plane/main.tf:164",
-          "why": "secret  = google_secret_manager_secret.gateway_signing_key.secret_id is a password assignment to a secret that holds the gateway signing key"
+          "where": "infra/modules/context-plane/main.tf:164"
         }
       ]
     },
@@ -451,8 +440,7 @@
         "item": "R4",
         "status": "open",
         "reason": null,
-        "where": "src/gatehouse/gatehouse/judge/fixtures/new-network-path-no-threat-model/pr.md:5",
-        "why": "The diff adds PUBSUB_URL and a pubsub service to docker-compose, introducing a new outbound network path and a new service that sits on both networks, with no t"
+        "where": "src/gatehouse/gatehouse/judge/fixtures/new-network-path-no-threat-model/pr.md:5"
       },
       {
         "pr": 12,
@@ -460,8 +448,7 @@
         "item": "R5",
         "status": "open",
         "reason": null,
-        "where": "src/gatehouse/gatehouse/judge/fixtures/secret-in-compose/pr.md:3",
-        "why": "The diff adds a real cloud project ID (blackfork-dev) and a token-like value in docker-compose.yml that looks like a credential or internal identifier."
+        "where": "src/gatehouse/gatehouse/judge/fixtures/secret-in-compose/pr.md:3"
       },
       {
         "pr": 12,
@@ -469,8 +456,7 @@
         "item": "R6",
         "status": "open",
         "reason": null,
-        "where": "src/gatehouse/gatehouse/judge/fixtures/new-tool-no-grant/pr.md:5",
-        "why": "The diff adds a new @mcp.tool() in gateway/server.py with no corresponding Rego policy grant and no eval case in the same pull request."
+        "where": "src/gatehouse/gatehouse/judge/fixtures/new-tool-no-grant/pr.md:5"
       }
     ]
   }
