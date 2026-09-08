@@ -1,0 +1,14 @@
+# The system registry, source of record (docs/10-foundation/13-taxonomy.md). Every
+# evidence row carries one of these ids; gold refuses rows that do not. Fictional
+# customer, fictional systems.
+systems:
+  - system_id: sys-windrow-prod
+    name: Windrow Core Platform, production
+    owner: platform-eng
+    data_sensitivity: cui
+    frameworks: [800-171, soc2]
+  - system_id: sys-windrow-dev
+    name: Windrow Core Platform, development
+    owner: platform-eng
+    data_sensitivity: internal
+    frameworks: [800-171]

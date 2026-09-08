@@ -69,6 +69,19 @@ services:
     networks: [edge]
     labels: {plane: agent, system: provenance, env: dev, serves-br: "BR-7,BR-8,BR-9"}
 
+  dagster:
+    build: {context: ./src, dockerfile: Dockerfile.data}
+    profiles: [data]  # started explicitly: docker compose --profile data up dagster
+    command: ["dagster", "dev", "-h", "0.0.0.0", "-p", "3000", "-m", "provenance.data.assets"]
+    environment:
+      LAKEHOUSE_WAREHOUSE: file:///data/warehouse
+      LAKEHOUSE_CATALOG: sqlite:////data/catalog.db
+    volumes:
+      - ./data:/data
+    ports: ["3000:3000"]
+    networks: [edge]
+    labels: {plane: data, system: provenance, env: dev, serves-br: "BR-1,BR-2,BR-7"}
+
 networks:
   core:
     internal: true
