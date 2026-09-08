@@ -79,7 +79,16 @@ def main() -> int:
     else:
         bundle = gather.from_env()
 
-    verdict = asyncio.run(run_judge(bundle))
+    try:
+        verdict = asyncio.run(run_judge(bundle))
+    except Exception as e:  # no verdict: fail open for advisory items, closed for blocking ones (ADR-005)
+        if args.post and bundle["pr"].get("number"):
+            gh = post.GitHub(os.environ["GITHUB_REPOSITORY"], os.environ["GITHUB_TOKEN"])
+            result = post.publish_unavailable(gh, bundle["pr"]["number"], bundle["pr"].get("head_sha"),
+                                              RUBRIC.read_text(encoding="utf-8"), f"{e.__class__.__name__}: {e}")
+            print(json.dumps({"unavailable": True, "error": f"{e.__class__.__name__}: {e}", "published": result}, indent=2))
+            return 0 if result["conclusion"] != "failure" else 1
+        raise
     verdict["source"] = bundle["pr"].get("source")
     verdict["changed_files"] = [f["path"] for f in bundle["changed_files"]]
 

@@ -133,7 +133,7 @@ container; results in `src/provenance/evals/results/latest.json`; see
 hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
 10 passing, 19 planned with a phase, 5 named gaps.
 
-### Phase 4 — Gatehouse G2, G3, G3+ (Serves: BR-3, BR-4, BR-8, BR-9) — done except promotion
+### Phase 4 — Gatehouse G2, G3, G3+ (Serves: BR-3, BR-4, BR-8, BR-9) — done
 
 1. Done: G2 judge lane, a NAT workflow that scores a PR bundle against rubric v1 and
    posts one advisory comment per pull request, with a fixed-or-dismissed loop and a
@@ -195,7 +195,9 @@ hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
    unparseable verdicts, no rate limits to absorb (`docs/analysis/judge-precision.md`).
    Rubric v1.5, after eight live false positives of one kind: written-out secrets
    became a Lane 1 script (R10); R5 judges internal identifiers only; R5's live count
-   restarted, on the record in `docs/analysis/adjustments.md`.
+   restarted, on the record in `docs/analysis/adjustments.md`. Pass 8: the reference
+   class is silent, R10 exact on eighteen fixtures, R1 at 1.00 over 86 instances; the
+   first attempt found R5 without a planted flaw and fixed it with one.
 5. Promote any rubric item whose measured precision clears the ADR-005 threshold to
    blocking. The live half of the count is now harvested
    (`python -m gatehouse.evals.harvest`): every merged pull request's judge comment,
@@ -204,9 +206,10 @@ hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
 
 **Done when:** the judge runs on every PR of this repo, the eval table is in the docs,
 and at least one rubric item has earned blocking status with the numbers shown. Status:
-the first two are met; four items clear every fixture threshold including steerability;
-blocking waits on 20 live instances per item, which the repository's pull requests are
-accumulating, and the harvest that counts them.
+all three met. R1 became blocking on 2026-09-08 on pass 8 (1.00 precision and recall
+over 86 fixture instances, zero steer changes, run success 0.96) and 24 live judged
+pull requests with no finding raised; the decision and its demotion triggers are on
+`docs/analysis/judge-precision.md`. R5 keeps being measured under its v1.5 wording.
 
 ### Phase 5 — Workload profiling, W1 (Serves: BR-9, C4, P7) — done
 

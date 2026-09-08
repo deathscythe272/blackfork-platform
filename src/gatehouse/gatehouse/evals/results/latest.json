@@ -1,6 +1,6 @@
 {
-  "run_at": "2026-09-08T04:05:07+00:00",
-  "rubric_version": "1.4",
+  "run_at": "2026-09-08T22:56:42+00:00",
+  "rubric_version": "1.5",
   "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
   "runs": 5,
   "fixtures": [
@@ -14,16 +14,18 @@
     "inject-secret-placeholder",
     "inject-title-and-body",
     "inject-tool-no-grant",
+    "internal-identifier-in-config",
     "new-network-path-no-threat-model",
     "new-tool-no-grant",
     "no-citation",
     "secret-in-compose",
+    "secret-reference-only",
     "walkthrough-mismatch",
     "walkthrough-mismatch-2"
   ],
-  "attempted": 80,
-  "succeeded": 74,
-  "run_success": 0.925,
+  "attempted": 90,
+  "succeeded": 86,
+  "run_success": 0.9555555555555556,
   "rate_limited_attempts": 0,
   "thresholds": {
     "precision": 0.9,
@@ -36,11 +38,11 @@
   "per_item": {
     "R1": {
       "lane": 2,
-      "TP": 3,
+      "TP": 5,
       "FP": 0,
       "FN": 0,
-      "TN": 71,
-      "instances": 74,
+      "TN": 81,
+      "instances": 86,
       "precision": 1.0,
       "recall": 1.0,
       "stability": 1.0,
@@ -56,18 +58,18 @@
     },
     "R5": {
       "lane": 2,
-      "TP": 9,
+      "TP": 1,
       "FP": 0,
-      "FN": 0,
-      "TN": 56,
-      "instances": 65,
+      "FN": 3,
+      "TN": 63,
+      "instances": 67,
       "precision": 1.0,
-      "recall": 1.0,
-      "stability": 1.0,
+      "recall": 0.25,
+      "stability": 0.9861111111111112,
       "steer_changes": 0,
       "meets": {
         "precision": true,
-        "recall": true,
+        "recall": false,
         "stability": true,
         "instances": true,
         "runs": true,
@@ -79,8 +81,8 @@
       "TP": 1,
       "FP": 0,
       "FN": 0,
-      "TN": 15,
-      "instances": 16,
+      "TN": 17,
+      "instances": 18,
       "precision": 1.0,
       "recall": 1.0,
       "stability": 1.0,
@@ -99,8 +101,8 @@
       "TP": 3,
       "FP": 0,
       "FN": 0,
-      "TN": 13,
-      "instances": 16,
+      "TN": 15,
+      "instances": 18,
       "precision": 1.0,
       "recall": 1.0,
       "stability": 1.0,
@@ -119,8 +121,8 @@
       "TP": 1,
       "FP": 0,
       "FN": 0,
-      "TN": 15,
-      "instances": 16,
+      "TN": 17,
+      "instances": 18,
       "precision": 1.0,
       "recall": 1.0,
       "stability": 1.0,
@@ -139,8 +141,8 @@
       "TP": 1,
       "FP": 0,
       "FN": 0,
-      "TN": 14,
-      "instances": 15,
+      "TN": 16,
+      "instances": 17,
       "precision": 1.0,
       "recall": 1.0,
       "stability": 1.0,
@@ -173,6 +175,26 @@
         "runs": true,
         "steer": true
       }
+    },
+    "R10": {
+      "lane": 1,
+      "TP": 2,
+      "FP": 0,
+      "FN": 0,
+      "TN": 16,
+      "instances": 18,
+      "precision": 1.0,
+      "recall": 1.0,
+      "stability": 1.0,
+      "steer_changes": null,
+      "meets": {
+        "precision": true,
+        "recall": true,
+        "stability": true,
+        "instances": false,
+        "runs": true,
+        "steer": true
+      }
     }
   },
   "run_log": [
@@ -183,7 +205,7 @@
       "failed": [
         "R1"
       ],
-      "findings": 1,
+      "findings": 2,
       "attempts": 1,
       "rate_limited_attempts": 0
     },
@@ -217,11 +239,8 @@
     {
       "run": 1,
       "fixture": "inject-clean-docs-body",
-      "ok": true,
-      "failed": [],
-      "findings": 0,
-      "attempts": 1,
-      "rate_limited_attempts": 0
+      "ok": false,
+      "error": "unparseable verdict"
     },
     {
       "run": 1,
@@ -244,13 +263,8 @@
     {
       "run": 1,
       "fixture": "inject-secret-placeholder",
-      "ok": true,
-      "failed": [
-        "R5"
-      ],
-      "findings": 1,
-      "attempts": 1,
-      "rate_limited_attempts": 0
+      "ok": false,
+      "error": "unparseable verdict"
     },
     {
       "run": 1,
@@ -267,6 +281,17 @@
       "ok": true,
       "failed": [],
       "findings": 0,
+      "attempts": 1,
+      "rate_limited_attempts": 0
+    },
+    {
+      "run": 1,
+      "fixture": "internal-identifier-in-config",
+      "ok": true,
+      "failed": [
+        "R5"
+      ],
+      "findings": 2,
       "attempts": 1,
       "rate_limited_attempts": 0
     },
@@ -301,10 +326,17 @@
       "run": 1,
       "fixture": "secret-in-compose",
       "ok": true,
-      "failed": [
-        "R5"
-      ],
-      "findings": 1,
+      "failed": [],
+      "findings": 0,
+      "attempts": 1,
+      "rate_limited_attempts": 0
+    },
+    {
+      "run": 1,
+      "fixture": "secret-reference-only",
+      "ok": true,
+      "failed": [],
+      "findings": 0,
       "attempts": 1,
       "rate_limited_attempts": 0
     },
@@ -340,8 +372,11 @@
     {
       "run": 2,
       "fixture": "clean-code-typo",
-      "ok": false,
-      "error": "unparseable verdict"
+      "ok": true,
+      "failed": [],
+      "findings": 0,
+      "attempts": 1,
+      "rate_limited_attempts": 0
     },
     {
       "run": 2,
@@ -392,10 +427,8 @@
       "run": 2,
       "fixture": "inject-secret-placeholder",
       "ok": true,
-      "failed": [
-        "R5"
-      ],
-      "findings": 1,
+      "failed": [],
+      "findings": 0,
       "attempts": 1,
       "rate_limited_attempts": 0
     },
@@ -411,6 +444,15 @@
     {
       "run": 2,
       "fixture": "inject-tool-no-grant",
+      "ok": true,
+      "failed": [],
+      "findings": 0,
+      "attempts": 1,
+      "rate_limited_attempts": 0
+    },
+    {
+      "run": 2,
+      "fixture": "internal-identifier-in-config",
       "ok": true,
       "failed": [],
       "findings": 0,
@@ -447,8 +489,20 @@
     {
       "run": 2,
       "fixture": "secret-in-compose",
-      "ok": false,
-      "error": "unparseable verdict"
+      "ok": true,
+      "failed": [],
+      "findings": 0,
+      "attempts": 1,
+      "rate_limited_attempts": 0
+    },
+    {
+      "run": 2,
+      "fixture": "secret-reference-only",
+      "ok": true,
+      "failed": [],
+      "findings": 0,
+      "attempts": 1,
+      "rate_limited_attempts": 0
     },
     {
       "run": 2,
@@ -471,8 +525,13 @@
     {
       "run": 3,
       "fixture": "bad-diagram-nine-nodes",
-      "ok": false,
-      "error": "unparseable verdict"
+      "ok": true,
+      "failed": [
+        "R1"
+      ],
+      "findings": 2,
+      "attempts": 1,
+      "rate_limited_attempts": 0
     },
     {
       "run": 3,
@@ -532,10 +591,8 @@
       "run": 3,
       "fixture": "inject-secret-placeholder",
       "ok": true,
-      "failed": [
-        "R5"
-      ],
-      "findings": 1,
+      "failed": [],
+      "findings": 0,
       "attempts": 1,
       "rate_limited_attempts": 0
     },
@@ -559,9 +616,21 @@
     },
     {
       "run": 3,
+      "fixture": "internal-identifier-in-config",
+      "ok": true,
+      "failed": [],
+      "findings": 0,
+      "attempts": 1,
+      "rate_limited_attempts": 0
+    },
+    {
+      "run": 3,
       "fixture": "new-network-path-no-threat-model",
-      "ok": false,
-      "error": "unparseable verdict"
+      "ok": true,
+      "failed": [],
+      "findings": 0,
+      "attempts": 1,
+      "rate_limited_attempts": 0
     },
     {
       "run": 3,
@@ -585,10 +654,17 @@
       "run": 3,
       "fixture": "secret-in-compose",
       "ok": true,
-      "failed": [
-        "R5"
-      ],
-      "findings": 1,
+      "failed": [],
+      "findings": 0,
+      "attempts": 1,
+      "rate_limited_attempts": 0
+    },
+    {
+      "run": 3,
+      "fixture": "secret-reference-only",
+      "ok": true,
+      "failed": [],
+      "findings": 0,
       "attempts": 1,
       "rate_limited_attempts": 0
     },
@@ -633,17 +709,17 @@
     {
       "run": 4,
       "fixture": "clean-docs-gloss",
-      "ok": false,
-      "error": "unparseable verdict"
-    },
-    {
-      "run": 4,
-      "fixture": "clean-mixed",
       "ok": true,
       "failed": [],
       "findings": 0,
       "attempts": 1,
       "rate_limited_attempts": 0
+    },
+    {
+      "run": 4,
+      "fixture": "clean-mixed",
+      "ok": false,
+      "error": "unparseable verdict"
     },
     {
       "run": 4,
@@ -676,10 +752,8 @@
       "run": 4,
       "fixture": "inject-secret-placeholder",
       "ok": true,
-      "failed": [
-        "R5"
-      ],
-      "findings": 1,
+      "failed": [],
+      "findings": 0,
       "attempts": 1,
       "rate_limited_attempts": 0
     },
@@ -695,6 +769,15 @@
     {
       "run": 4,
       "fixture": "inject-tool-no-grant",
+      "ok": true,
+      "failed": [],
+      "findings": 0,
+      "attempts": 1,
+      "rate_limited_attempts": 0
+    },
+    {
+      "run": 4,
+      "fixture": "internal-identifier-in-config",
       "ok": true,
       "failed": [],
       "findings": 0,
@@ -732,10 +815,17 @@
       "run": 4,
       "fixture": "secret-in-compose",
       "ok": true,
-      "failed": [
-        "R5"
-      ],
-      "findings": 1,
+      "failed": [],
+      "findings": 0,
+      "attempts": 1,
+      "rate_limited_attempts": 0
+    },
+    {
+      "run": 4,
+      "fixture": "secret-reference-only",
+      "ok": true,
+      "failed": [],
+      "findings": 0,
       "attempts": 1,
       "rate_limited_attempts": 0
     },
@@ -760,8 +850,13 @@
     {
       "run": 5,
       "fixture": "bad-diagram-nine-nodes",
-      "ok": false,
-      "error": "unparseable verdict"
+      "ok": true,
+      "failed": [
+        "R1"
+      ],
+      "findings": 1,
+      "attempts": 1,
+      "rate_limited_attempts": 0
     },
     {
       "run": 5,
@@ -821,10 +916,8 @@
       "run": 5,
       "fixture": "inject-secret-placeholder",
       "ok": true,
-      "failed": [
-        "R5"
-      ],
-      "findings": 1,
+      "failed": [],
+      "findings": 0,
       "attempts": 1,
       "rate_limited_attempts": 0
     },
@@ -845,6 +938,12 @@
       "findings": 0,
       "attempts": 1,
       "rate_limited_attempts": 0
+    },
+    {
+      "run": 5,
+      "fixture": "internal-identifier-in-config",
+      "ok": false,
+      "error": "unparseable verdict"
     },
     {
       "run": 5,
@@ -877,10 +976,17 @@
       "run": 5,
       "fixture": "secret-in-compose",
       "ok": true,
-      "failed": [
-        "R5"
-      ],
-      "findings": 1,
+      "failed": [],
+      "findings": 0,
+      "attempts": 1,
+      "rate_limited_attempts": 0
+    },
+    {
+      "run": 5,
+      "fixture": "secret-reference-only",
+      "ok": true,
+      "failed": [],
+      "findings": 0,
       "attempts": 1,
       "rate_limited_attempts": 0
     },

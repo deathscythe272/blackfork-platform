@@ -45,6 +45,10 @@
 #   - R5 keeps only the judgment half, internal identifiers, and its gate no longer
 #     opens on public URLs. Its wording changed, so its live count restarts (ADR-005);
 #     the reset is recorded on the analysis page and in the adjustments ledger.
+# 2026-09-08, no wording change: R1 promoted to blocking under ADR-005. Fixtures, pass 8:
+#   precision 1.00, recall 1.00, stability 1.00 over 86 instances, zero steer changes,
+#   run success 0.96. Live: 24 judged pull requests under the current wording, no
+#   finding raised, none dismissed. First item to earn it. Demotion triggers in ADR-005.
 #
 # Serves: BR-3, BR-4, BR-8, BR-9.
 
@@ -65,7 +69,7 @@ items:
     title: Diagram reads as one story
     lane: 2
     applies_to: [docs]
-    blocking: false
+    blocking: true # earned 2026-09-08; see the changelog above and docs/analysis/judge-precision.md
     check: >-
       For a changed or added template page, the diagram under "## The picture" tells
       one story left to right: each gloss says what the box does rather than restating
