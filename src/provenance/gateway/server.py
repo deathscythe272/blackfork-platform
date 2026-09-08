@@ -181,19 +181,19 @@ async def get_evidence_row(system_id: str, row_id: str, ctx: Context) -> Any:
 
 @mcp.tool()
 async def get_control(framework: str, control_id: str, ctx: Context) -> Any:
-    """One control's statement, guidance, and assessment objectives. Accepts `3.3.1` or `03.03.01`."""
+    """One control's statement, guidance, and assessment objectives. framework is the id, exactly "800-171"; control_id accepts `3.3.1` or `03.03.01`."""
     return await _guarded_call(ctx, "get_control", {"framework": framework, "control_id": control_id})
 
 
 @mcp.tool()
 async def list_family(framework: str, family_id: str, ctx: Context) -> Any:
-    """The controls in one family (for example `03.03`, Audit and Accountability), with status."""
+    """The controls in one family (for example `03.03`, Audit and Accountability), with status. framework is the id, exactly "800-171"."""
     return await _guarded_call(ctx, "list_family", {"framework": framework, "family_id": family_id})
 
 
 @mcp.tool()
 async def search_controls(framework: str, query: str, ctx: Context, limit: int = 10) -> Any:
-    """Active controls whose title or statement contains the words given."""
+    """Active controls whose title or statement contains the words given. framework is the id, exactly "800-171"."""
     return await _guarded_call(ctx, "search_controls", {"framework": framework, "query": query, "limit": limit})
 
 
