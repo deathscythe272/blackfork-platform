@@ -1,0 +1,31 @@
+{
+  "run_at": "2026-09-08T00:16:50+00:00",
+  "gateway": "https://gateway-dev-argmvjjruq-uk.a.run.app/mcp",
+  "evidence": "https://evidence-mcp-dev-argmvjjruq-uk.a.run.app",
+  "checks": [
+    {
+      "id": "T1-EV-01",
+      "what": "evidence server without an identity token",
+      "passed": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "id": "T1-GW-01",
+      "what": "gateway with a forged token",
+      "passed": true,
+      "detail": "Error executing tool list_controls: identity rejected: token rejected: InvalidSignatureError"
+    },
+    {
+      "id": "T1-GW-02",
+      "what": "valid identity, other system's rows",
+      "passed": true,
+      "detail": "Error executing tool get_evidence: denied by policy (system_id not granted to identity); this call has been logged"
+    },
+    {
+      "id": "allowed-path",
+      "what": "valid identity, own system, gateway to evidence and back",
+      "passed": true,
+      "detail": "{\n  \"control_id\": \"3.1.1\",\n  \"control_name\": \"Limit system access to authorized users\",\n  \"framework\": \"NIST SP 800-171\",\n  \"evidence_count\": 2\n}; {\n  \"control_"
+    }
+  ]
+}

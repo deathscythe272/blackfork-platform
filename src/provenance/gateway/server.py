@@ -2,7 +2,9 @@
 
 The gateway mirrors the three evidence tools. On every call, in this order:
 
-  1. verify identity   - bearer token in the Authorization header -> agent identity
+  1. verify identity   - signed token in the X-Agent-Token header -> agent identity
+                         (Authorization: Bearer is accepted too, for the laptop; the
+                         cloud front door claims that header for its own tokens)
   2. validate request  - FastMCP validates arguments against the tool schema before
                          this code runs; unknown tools never reach us
   3. ask OPA           - identity + tool + args -> allow/deny, reason, policy version
@@ -49,12 +51,23 @@ UPSTREAM = identity_from_env()
 
 # --- 1. identity -----------------------------------------------------------------
 
+TOKEN_HEADER = "x-agent-token"
+
+
 def _identity(ctx: Context) -> str:
+    """The agent's signed token. Preferred in X-Agent-Token, because the cloud front
+    door inspects Authorization on every request and rejects tokens it did not issue
+    before the gateway could see them. Authorization: Bearer still works on the laptop."""
     request = ctx.request_context.request
-    header = request.headers.get("authorization", "") if request is not None else ""
-    if not header.lower().startswith("bearer "):
-        raise IdentityError("missing bearer token")
-    return verify(header[7:].strip())
+    if request is None:
+        raise IdentityError("no request context")
+    token = request.headers.get(TOKEN_HEADER, "").strip()
+    if not token:
+        header = request.headers.get("authorization", "")
+        if not header.lower().startswith("bearer "):
+            raise IdentityError("missing agent token")
+        token = header[7:].strip()
+    return verify(token)
 
 
 # --- 3. policy -------------------------------------------------------------------

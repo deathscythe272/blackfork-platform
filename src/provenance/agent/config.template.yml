@@ -27,7 +27,7 @@ function_groups:
       transport: streamable-http
       url: __GATEWAY_URL__
       custom_headers:
-        Authorization: "Bearer __GATEWAY_TOKEN__"
+        X-Agent-Token: "__GATEWAY_TOKEN__"
     tool_call_timeout: 30
 
 llms:

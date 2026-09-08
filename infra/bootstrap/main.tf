@@ -11,6 +11,41 @@
 provider "google" {
   project = var.project_id
   region  = var.region
+
+  # The budget API bills its quota to a project and refuses requests that name none;
+  # these two settings make every call carry this project as its quota project.
+  user_project_override = true
+  billing_project       = var.project_id
+}
+
+# The cost claim, enforced: a small monthly budget with alerts at half, ninety percent,
+# and full, sent to the billing account's default recipients (the owner). C4.
+resource "google_billing_budget" "platform" {
+  count           = var.billing_account == "" ? 0 : 1
+  billing_account = var.billing_account
+  display_name    = "blackfork platform, ${var.project_id}"
+
+  budget_filter {
+    projects = ["projects/${data.google_project.this.number}"]
+  }
+
+  amount {
+    specified_amount {
+      currency_code = "USD"
+      units         = tostring(var.budget_amount_usd)
+    }
+  }
+
+  dynamic "threshold_rules" {
+    for_each = [0.5, 0.9, 1.0]
+    content {
+      threshold_percent = threshold_rules.value
+    }
+  }
+}
+
+data "google_project" "this" {
+  project_id = var.project_id
 }
 
 module "delivery" {

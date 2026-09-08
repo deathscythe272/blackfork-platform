@@ -21,6 +21,7 @@ import os
 import pathlib
 import subprocess
 import sys
+import time
 
 import yaml
 
@@ -90,6 +91,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--via-compose", action="store_true", help="run the agent in its container")
     ap.add_argument("--only", help="run a single case id")
+    ap.add_argument("--pause", type=float, default=0.0,
+                    help="seconds to wait between cases; the hosted free tier rate-limits back-to-back runs")
     args = ap.parse_args()
 
     cases = yaml.safe_load(CASES.read_text(encoding="utf-8"))["cases"]
@@ -101,12 +104,15 @@ def main() -> int:
     report = {
         "run_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "mode": "compose" if args.via_compose else "in-process",
+        "pause_seconds": args.pause,
         "audit_source": os.environ.get("AUDIT_SOURCE", "file"),
         "gateway": os.environ.get("GATEWAY_URL", "http://localhost:8000/mcp"),
         "cases": [],
     }
     total_fail = 0
-    for case in cases:
+    for n, case in enumerate(cases):
+        if n and args.pause:
+            time.sleep(args.pause)
         offset = audit.mark()
         print(f"\n=== {case['id']} ({case['kind']}) ===")
         try:

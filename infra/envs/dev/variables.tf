@@ -12,3 +12,8 @@ variable "env" {
   type    = string
   default = "dev"
 }
+
+variable "image_tag" {
+  description = "Tag of the services and policy images to run. CI passes the commit it built; a plan reads the deployed tag from the state bucket."
+  type        = string
+}

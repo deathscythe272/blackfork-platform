@@ -72,6 +72,20 @@ in `src/provenance/evals/results/latest.json`, the audit log in `audit/audit.jso
 traces in `traces/traces.jsonl`. `python scripts/demo.py --ask "..."` sends one
 question through the whole path. `--down` stops everything.
 
+**Run it in the cloud.** The same two images run as Cloud Run services that scale
+to zero: the evidence server with the fixture rows baked in, and the gateway with the
+policy engine beside it as a sidecar. Nothing is reachable that should not be: the
+evidence server answers 403 to anyone but the gateway's identity, and the gateway
+enforces its own signed tokens, carried in an `X-Agent-Token` header because the
+cloud's front door claims `Authorization` for its own tokens and rejected ours before
+the gateway could see them. Audit rows leave as events on the platform topic. From a
+laptop, `provenance.evals.deployed_check` closes three threat-model tests against the
+live services, and the eval runner with `GATEWAY_URL` pointed at the cloud and
+`AUDIT_SOURCE=pubsub` runs the same seven cases: six of seven on each of three full runs, the seventh always the same case, always an empty model completion under the free tier's rate limit, which passed when run alone; the laptop stack scored five of seven the same evening with the identical signature; containment held in every run, with no foreign allowed row and every hostile case blocked or denied
+(`evals/results/deployed-evals.json`). The agent itself still runs on the laptop; its
+cloud form is roadmap phase 7. How the services are declared and reached is in
+`../10-foundation/11-cloud-substrate.md`.
+
 **What the networks enforce.** Compose defines two networks. The internal one holds
 evidence-mcp, OPA, and the gateway and has no internet route. The edge one holds the
 gateway, the trace collector, and the agent, and can reach the model endpoint. The

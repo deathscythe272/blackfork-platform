@@ -15,6 +15,18 @@ output "service_accounts" {
   }
 }
 
+output "gateway_url" {
+  value = module.context.gateway_url
+}
+
+output "evidence_mcp_url" {
+  value = module.context.evidence_mcp_url
+}
+
+output "audit_subscription" {
+  value = module.assurance.audit_subscription
+}
+
 output "nvidia_api_key_secret" {
   value = module.context.nvidia_api_key_secret
 }

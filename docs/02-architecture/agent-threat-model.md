@@ -106,7 +106,7 @@ control yet, or the control exists with no test, and the row says which.
 
 | STRIDE | Threat | Control in the design | Test | Status |
 |---|---|---|---|---|
-| Spoofing | A forged or replayed token acts as the Evidence Collector | Signed tokens with issuer, audience, and expiry; unknown or invalid tokens are refused before policy runs | T1-GW-01: forged token rejected and audited (`smoke.py`) | Passing |
+| Spoofing | A forged or replayed token acts as the Evidence Collector | Signed tokens with issuer, audience, and expiry; unknown or invalid tokens are refused before policy runs | T1-GW-01: forged token rejected and audited (`smoke.py`; `deployed_check.py` against the cloud gateway) | Passing, laptop and cloud |
 | Tampering | Arguments altered in transit, or a tool name that does not exist | Tool schema validation by the Model Context Protocol (MCP) server layer; transport is plain HTTP inside a private Compose network today | T1-GW-02: off-schema calls refused | Passing for schema; **gap** for transport (no TLS between containers; phase 6 adds mutual TLS) |
 | Repudiation | A call cannot later be tied to an identity and a decision | Audit row per call, denies included, with identity, tool, arguments, decision, policy version, timestamp | T1-GW-03: every eval call appears in the audit log with its decision | Passing, asserted by the eval runner on every case |
 | Information disclosure | The gateway logs payloads or results | Gateway logs decisions, not results; audit rows carry arguments only | T1-GW-04: audit and server logs contain no result payloads (`src/provenance/tests/test_boundaries.py`) | Passing |
@@ -127,7 +127,7 @@ control yet, or the control exists with no test, and the row says which.
 
 | STRIDE | Threat | Control in the design | Test | Status |
 |---|---|---|---|---|
-| Spoofing | Something other than the gateway calls the evidence server | Evidence server sits on an internal network with no route from the agent or outside; in the cloud it admits only a signed identity token for its own address, and only the gateway's identity is granted that (`gateway/upstream.py`; deployed form in phase 6 step 3) | T1-EV-01: from the agent container, the evidence server does not resolve (`test_boundaries.py`) | Passing, automated |
+| Spoofing | Something other than the gateway calls the evidence server | Evidence server sits on an internal network with no route from the agent or outside; in the cloud it admits only a signed identity token for its own address, and only the gateway's identity is granted that (`gateway/upstream.py`; deployed form in phase 6 step 3) | T1-EV-01: from the agent container, the evidence server does not resolve (`test_boundaries.py`); from the open internet, the deployed evidence server answers 403 without the gateway's identity (`deployed_check.py`) | Passing, laptop and cloud |
 | Tampering | A query is shaped to read outside its scope | No free-form query tool; every tool takes `system_id` and filters on it inside the query | T1-EV-02: `get_evidence_row` with a row from another system returns nothing (`test_boundaries.py`) | Passing |
 | Information disclosure | The evidence server returns more than asked | Narrow Gold views; result limit capped at 50 | T1-EV-02 | Passing |
 | Elevation | The evidence server has write access to data | Read-only DuckDB connection; data volume mounted read-only | T1-EV-03: write attempt fails (`test_boundaries.py`) | Passing |
@@ -177,7 +177,7 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | T1-PL-01 | B4 | `policy/gateway_test.rego`, `policy-tests` workflow | Passing, required check |
 | T1-PL-02 | B4 | phase 7 | Gap |
 | T1-PL-03 | B4 | `test_boundaries.py` | Passing |
-| T1-EV-01 to T1-EV-03 | B5 | `test_boundaries.py` | Passing |
+| T1-EV-01 to T1-EV-03 | B5 | `test_boundaries.py`; T1-EV-01 also `deployed_check.py` against Cloud Run | Passing |
 | T1-SC-01 to T1-SC-04 | B6 | phase 4, phase 6 | Planned / gap |
 | T1-HX-01 to T1-HX-04 | B7 | phase 7 | Planned |
 | T1-CI-01 to T1-CI-04 | B8 | `infra/modules/delivery-plane/`, `.github/workflows/terraform.yml` | Three passing, one planned |
