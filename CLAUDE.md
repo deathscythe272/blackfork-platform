@@ -144,4 +144,10 @@ requisitions. Repo is public on GitHub.
 1. First promotion decision, by PR, once an item has 20 live instances and meets every
    ADR-005 threshold; R1 and R5 are the only candidates left in Lane 2. Live counts:
    `python -m gatehouse.evals.harvest` (rewrites the analysis page block).
-2. Phase 7 P1 data plane (Dagster, Iceberg on the lakehouse bucket, DuckDB, Presidio).
+2. Phase 7 P2 context plane (controls-mcp with OSCAL catalogs; gateway hardened per
+   the threat model). Data plane P1 done: `src/provenance/data/`, own venv `.venv-data`
+   from `src/requirements-data.txt`, tests `../.venv-data/Scripts/python -m pytest
+   src/provenance/tests/test_data_plane.py`; the evidence server reads gold from the
+   pointer; gold is in the lakehouse bucket. One writer environment per warehouse:
+   on Compose run the pipeline in its container (`docker compose --profile data run
+   --rm dagster python -m provenance.data.run`), never from the host.

@@ -82,7 +82,11 @@ resource "google_cloud_run_v2_service" "evidence_mcp" {
 
       env {
         name  = "EVIDENCE_DB"
-        value = "/data/evidence.duckdb"
+        value = "/data/evidence.duckdb" # fallback until the pipeline has run
+      }
+      env {
+        name  = "LAKEHOUSE_WAREHOUSE"
+        value = "gs://${var.lakehouse_bucket}/warehouse" # gold from the data plane, bucket read only
       }
       env {
         name  = "EVIDENCE_MCP_PORT"

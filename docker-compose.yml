@@ -24,7 +24,8 @@ services:
     build: {context: ./src, dockerfile: Dockerfile.services}
     command: ["python", "-m", "provenance.evidence_mcp.server"]
     environment:
-      EVIDENCE_DB: /data/evidence.duckdb
+      EVIDENCE_DB: /data/evidence.duckdb          # fallback until the pipeline has run
+      LAKEHOUSE_WAREHOUSE: file:///data/warehouse  # gold from the data plane, read only
     volumes:
       - ./data:/data:ro
     networks: [core]

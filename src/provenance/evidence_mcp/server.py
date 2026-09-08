@@ -1,5 +1,9 @@
 """evidence-mcp: parameterized, read-only tools over the Gold `evidence` view.
 
+The rows come from the data plane's gold table, loaded from its pointer at startup
+(store.py); the fixture baked into the image is the fallback for a deploy that runs
+before the pipeline has.
+
 Three tools, every one of them scoped by `system_id`. There is no free-form query
 tool on purpose: the shape of what an agent may ask is part of the security boundary
 (ADR-003). This server is reachable only from the gateway (ADR-001); it does
@@ -10,28 +14,38 @@ Serves: BR-2, BR-7, BR-8.
 
 from __future__ import annotations
 
+import logging
 import os
-import pathlib
 from typing import Any
 
-import duckdb
 from mcp.server.fastmcp import FastMCP
 
-DB_PATH = pathlib.Path(os.environ.get("EVIDENCE_DB", "data/evidence.duckdb"))
+from provenance.evidence_mcp.store import open_store
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 HOST = os.environ.get("EVIDENCE_MCP_HOST", "0.0.0.0")
 PORT = int(os.environ.get("EVIDENCE_MCP_PORT", "8001"))
 
 mcp = FastMCP("evidence-mcp", host=HOST, port=PORT)
+_STORE = None
+
+
+def _store():
+    """Opened on first use, not at import, so tools and tests can import this module."""
+    global _STORE
+    if _STORE is None:
+        _STORE = open_store()
+    return _STORE
 
 
 def _query(sql: str, params: list[Any]) -> list[dict[str, Any]]:
-    con = duckdb.connect(str(DB_PATH), read_only=True)
+    cur = _store().con.cursor()  # one connection, a cursor per call; the store is read only
     try:
-        cur = con.execute(sql, params)
+        cur.execute(sql, params)
         cols = [d[0] for d in cur.description]
         return [dict(zip(cols, (str(v) if hasattr(v, "isoformat") else v for v in row))) for row in cur.fetchall()]
     finally:
-        con.close()
+        cur.close()
 
 
 @mcp.tool()
@@ -72,4 +86,5 @@ def get_evidence_row(system_id: str, row_id: str) -> dict[str, Any] | None:
 
 
 if __name__ == "__main__":
+    _store()  # load before serving so the first caller does not pay for it, and a bad warehouse fails loudly
     mcp.run(transport="streamable-http")

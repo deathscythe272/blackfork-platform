@@ -275,8 +275,11 @@ answers the Phase 2 eval. Status: all three met.
    no catalog, its own environment and container (`docs/20-provenance/data-plane.md`);
    first run found that a check re-using the redactor's detector cannot catch what
    the redactor missed, so the silver check gained an independent pattern layer.
-   (b) the evidence server reads gold from the pointer, on the laptop and on Cloud
-   Run, with the pipeline run once against the lakehouse bucket.
+   (b) done, the evidence server reads gold from the pointer, on the laptop and on
+   Cloud Run, with the baked fixture as fallback; the pipeline ran once against the
+   lakehouse bucket from a laptop and the deployed check and evals ran against
+   redacted gold data. The redactor also learned to leave the platform's vocabulary
+   alone after it erased a sensor engine's name as a person.
 2. P2 context plane: `controls-mcp` with OSCAL (machine-readable) control catalogs; gateway hardened per Phase 3
    findings. ADR-003.
 3. P3 agent plane: Control Mapper, Report Writer, and Risk Analyst as a separate

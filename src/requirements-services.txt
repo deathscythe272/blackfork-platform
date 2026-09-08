@@ -2,6 +2,8 @@ mcp==1.29.1
 duckdb==1.5.5
 PyJWT==2.13.0
 httpx>=0.27
+# the evidence server reads the data plane's gold table from its pointer (ADR-002)
+pyiceberg[gcsfs,pyarrow]==0.12.0
 # cloud path only: audit rows to Pub/Sub, identity token for the evidence server
 google-cloud-pubsub==2.40.0
 google-auth==2.57.1

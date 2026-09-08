@@ -130,7 +130,7 @@ control yet, or the control exists with no test, and the row says which.
 | Spoofing | Something other than the gateway calls the evidence server | Evidence server sits on an internal network with no route from the agent or outside; in the cloud it admits only a signed identity token for its own address, and only the gateway's identity is granted that (`gateway/upstream.py`; deployed form in phase 6 step 3) | T1-EV-01: from the agent container, the evidence server does not resolve (`test_boundaries.py`); from the open internet, the deployed evidence server answers 403 without the gateway's identity (`deployed_check.py`) | Passing, laptop and cloud |
 | Tampering | A query is shaped to read outside its scope | No free-form query tool; every tool takes `system_id` and filters on it inside the query | T1-EV-02: `get_evidence_row` with a row from another system returns nothing (`test_boundaries.py`) | Passing |
 | Information disclosure | The evidence server returns more than asked | Narrow Gold views; result limit capped at 50 | T1-EV-02 | Passing |
-| Elevation | The evidence server has write access to data | Read-only DuckDB connection; data volume mounted read-only | T1-EV-03: write attempt fails (`test_boundaries.py`) | Passing |
+| Elevation | The evidence server has write access to data | Gold is loaded into memory from a pointer; the server has no write path to the table, the data volume is mounted read-only, and its cloud identity holds bucket read only | T1-EV-03: write attempt fails (`test_boundaries.py`) | Passing |
 
 ### B6 — Repo and supply chain to agent
 
