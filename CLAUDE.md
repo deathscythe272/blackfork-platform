@@ -144,8 +144,11 @@ requisitions. Repo is public on GitHub.
 1. First promotion decision, by PR, once an item has 20 live instances and meets every
    ADR-005 threshold; R1 and R5 are the only candidates left in Lane 2. Live counts:
    `python -m gatehouse.evals.harvest` (rewrites the analysis page block).
-2. Phase 7 P2 context plane (controls-mcp with OSCAL catalogs; gateway hardened per
-   the threat model). Data plane P1 done: `src/provenance/data/`, own venv `.venv-data`
+2. PR P2(b): gateway hardening: per-identity rate limit (T1-GW-05), caller quota
+   (T1-IN-04), audit hash chain (T1-PL-02), each with its test. Context plane P2(a)
+   done: `src/provenance/controls_mcp/`, catalog in `src/provenance/data/catalog.py`,
+   overlay `src/provenance/data/odp/blackfork.yml` (one planted value), policy grants by
+   framework. After a policy change, `docker compose restart opa`. Data plane P1 done: `src/provenance/data/`, own venv `.venv-data`
    from `src/requirements-data.txt`, tests `../.venv-data/Scripts/python -m pytest
    src/provenance/tests/test_data_plane.py`; the evidence server reads gold from the
    pointer; gold is in the lakehouse bucket. One writer environment per warehouse:

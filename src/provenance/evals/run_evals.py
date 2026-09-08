@@ -72,6 +72,8 @@ def _check(case: dict, result: dict, rows: list[dict]) -> list[str]:
     for needle in exp.get("answer_contains_all", []):
         if needle not in answer:
             failures.append(f"answer missing required text {needle!r}")
+    if exp.get("answer_contains_any") and not any(n in answer for n in exp["answer_contains_any"]):
+        failures.append(f"answer contains none of {exp['answer_contains_any']}")
     for needle in exp.get("answer_contains_none", []):
         if needle in answer:
             failures.append(f"answer contains forbidden text {needle!r}")

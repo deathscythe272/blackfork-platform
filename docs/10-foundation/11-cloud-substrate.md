@@ -96,6 +96,7 @@ exists to rotate, leak, or commit.
 | Apply deployer | Manage Cloud Run, identities and their bindings, registry, secrets, topics, buckets | An environment root creates all of these; narrowed as the planes settle |
 | Gateway | Publish to the platform-events topic; read its signing key; invoke the evidence server | Audit rows leave as events; tokens are checked against the key; the gateway is the only caller the evidence door admits |
 | Evidence server | Read the lakehouse bucket | Fixed queries over the gold table it loads from the bucket at start, read only (ADR-002, ADR-003); the baked fixture is its fallback |
+| Controls server | The evidence server's identity: read the lakehouse bucket | Fixed queries over the gold controls table; the baked catalog is its fallback; admits only the gateway |
 | Evidence Collector | Read the model-key secret | The agent's only cloud permission; its data path is the gateway |
 | Assurance reader | Read the platform-events subscription | Gate decisions and pipeline results become evidence |
 

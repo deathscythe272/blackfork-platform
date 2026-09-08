@@ -31,6 +31,16 @@ services:
     networks: [core]
     labels: {plane: context, system: provenance, env: dev, serves-br: "BR-2,BR-7"}
 
+  controls-mcp:
+    build: {context: ./src, dockerfile: Dockerfile.services}
+    command: ["python", "-m", "provenance.controls_mcp.server"]
+    environment:
+      LAKEHOUSE_WAREHOUSE: file:///data/warehouse  # gold controls from the data plane; the baked catalog otherwise
+    volumes:
+      - ./data:/data:ro
+    networks: [core]
+    labels: {plane: context, system: provenance, env: dev, serves-br: "BR-2,BR-7"}
+
   gateway:
     build: {context: ./src, dockerfile: Dockerfile.services}
     command: ["python", "-m", "provenance.gateway.server"]
@@ -38,10 +48,11 @@ services:
       GATEWAY_SIGNING_KEY: ${GATEWAY_SIGNING_KEY}
       OPA_URL: http://opa:8181
       EVIDENCE_MCP_URL: http://evidence-mcp:8001/mcp
+      CONTROLS_MCP_URL: http://controls-mcp:8002/mcp
       AUDIT_LOG: /audit/audit.jsonl
     volumes:
       - ./audit:/audit
-    depends_on: [opa, evidence-mcp]
+    depends_on: [opa, evidence-mcp, controls-mcp]
     ports: ["8000:8000"]
     networks: [core, edge]
     labels: {plane: context, system: provenance, env: dev, serves-br: "BR-7,BR-8"}

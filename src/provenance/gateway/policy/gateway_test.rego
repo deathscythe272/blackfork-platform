@@ -62,3 +62,37 @@ test_decision_carries_version_and_reason if {
 	d.allow == false
 	d.reason == "unknown identity"
 }
+
+# --- catalog tools are scoped by framework, never by system ---------------------
+
+test_collector_may_read_its_framework if {
+	gateway.allow with input as {
+		"identity": "evidence-collector",
+		"tool": "get_control",
+		"args": {"framework": "800-171", "control_id": "3.3.1"},
+	}
+}
+
+test_collector_denied_other_framework if {
+	gateway.reason == "framework not granted to identity" with input as {
+		"identity": "evidence-collector",
+		"tool": "search_controls",
+		"args": {"framework": "soc2", "query": "logging"},
+	}
+}
+
+test_framework_arg_cannot_open_an_evidence_tool if {
+	not gateway.allow with input as {
+		"identity": "evidence-collector",
+		"tool": "get_evidence",
+		"args": {"framework": "800-171", "system_id": "sys-windrow-dev", "control_id": "3.3.1"},
+	}
+}
+
+test_system_arg_cannot_open_a_catalog_tool if {
+	not gateway.allow with input as {
+		"identity": "evidence-collector",
+		"tool": "get_control",
+		"args": {"system_id": "sys-windrow-prod", "control_id": "3.3.1"},
+	}
+}

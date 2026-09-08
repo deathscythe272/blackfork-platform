@@ -282,7 +282,13 @@ answers the Phase 2 eval. Status: all three met.
    seven: the laptop's agent token had expired, so the runner now mints its own). The redactor also learned to leave the platform's vocabulary
    alone after it erased a sensor engine's name as a person.
 2. P2 context plane: `controls-mcp` with OSCAL (machine-readable) control catalogs; gateway hardened per Phase 3
-   findings. ADR-003.
+   findings. ADR-003. Two pull requests: (a) done, the controls server: NIST SP
+   800-171 rev. 3 as published, bronze as received and gold rendered with the
+   organization's parameter values, three fixed tools mirrored through the gateway,
+   policy scoped by framework with eleven tests, a planted instruction in the
+   organization's own values with the eval that proves it is ignored
+   (`docs/20-provenance/context-plane.md`); (b) the gateway's remaining gaps:
+   per-identity rate limit, caller quota, audit hash chain.
 3. P3 agent plane: Control Mapper, Report Writer, and Risk Analyst as a separate
    agent-to-agent (A2A) service. The Risk Analyst plus the exploitability verdicts form the platform's
    investigation-automation workflow: finding in, ranked and explained verdict out.

@@ -22,7 +22,7 @@ import pyarrow.csv as pacsv
 import yaml
 from dagster import AssetCheckResult, AssetExecutionContext, Definitions, MaterializeResult, asset, asset_check
 
-from provenance.data import lakehouse
+from provenance.data import catalog, lakehouse
 from provenance.data.redact import find, find_patterns, redact
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -109,6 +109,44 @@ def layers_reconcile() -> AssetCheckResult:
     return AssetCheckResult(passed=same, metadata={layer: len(v) for layer, v in ids.items()})
 
 
-ASSETS = [bronze_evidence, silver_evidence, gold_evidence]
-CHECKS = [silver_has_no_personal_data, gold_systems_registered, layers_reconcile]
+CONTROL_SCHEMA = pa.schema([(c, pa.string()) for c in
+                            ("framework", "revision", "control_id", "legacy_id", "family_id", "family", "title", "status",
+                             "statement", "guidance", "objectives", "parameters")])
+
+
+@asset(group_name="catalogs", description="The control catalog as published, placeholders unfilled.")
+def bronze_controls(context: AssetExecutionContext) -> MaterializeResult:
+    table = pa.Table.from_pylist(catalog.rows("800-171", rendered=False), schema=CONTROL_SCHEMA)
+    lakehouse.write_table("bronze", "controls", table)
+    context.log.info("bronze controls: %d rows", table.num_rows)
+    return MaterializeResult(metadata={"rows": table.num_rows})
+
+
+@asset(group_name="catalogs", deps=[bronze_controls], description="The catalog rendered with the organization's parameter values. Public text: no redaction step.")
+def gold_controls(context: AssetExecutionContext) -> MaterializeResult:
+    table = pa.Table.from_pylist(catalog.rows("800-171", rendered=True), schema=CONTROL_SCHEMA)
+    lakehouse.write_table("gold", "controls", table, partition_by="framework")
+    context.log.info("gold controls: %d rows", table.num_rows)
+    return MaterializeResult(metadata={"rows": table.num_rows})
+
+
+@asset_check(asset=gold_controls, description="No parameter placeholder survives rendering.")
+def gold_controls_rendered() -> AssetCheckResult:
+    gold = lakehouse.read_arrow("gold", "controls")
+    left = sum("{{ insert" in (v or "") for col in ("statement", "guidance", "objectives") for v in gold.column(col).to_pylist())
+    return AssetCheckResult(passed=left == 0, metadata={"unrendered": left})
+
+
+@asset_check(asset=gold_controls, additional_deps=[gold_evidence], description="Every control the evidence cites exists and is active in the catalog.")
+def evidence_controls_exist() -> AssetCheckResult:
+    evidence = lakehouse.read_arrow("gold", "evidence")
+    controls = lakehouse.read_arrow("gold", "controls")
+    active = {r["legacy_id"] for r in controls.to_pylist() if r["status"] == "active"}
+    cited = set(evidence.column("control_id").to_pylist())
+    missing = sorted(cited - active)
+    return AssetCheckResult(passed=not missing, metadata={"missing_or_withdrawn": missing})
+
+
+ASSETS = [bronze_evidence, silver_evidence, gold_evidence, bronze_controls, gold_controls]
+CHECKS = [silver_has_no_personal_data, gold_systems_registered, layers_reconcile, gold_controls_rendered, evidence_controls_exist]
 defs = Definitions(assets=ASSETS, asset_checks=CHECKS)

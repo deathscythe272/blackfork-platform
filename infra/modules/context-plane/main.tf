@@ -102,6 +102,57 @@ resource "google_cloud_run_v2_service" "evidence_mcp" {
   }
 }
 
+# The controls server: fixed queries over the control catalogs. Same door as the
+# evidence server: only the gateway's identity may invoke it.
+resource "google_cloud_run_v2_service" "controls_mcp" {
+  name                = "controls-mcp-${var.env}"
+  location            = var.region
+  ingress             = "INGRESS_TRAFFIC_ALL"
+  labels              = local.labels
+  deletion_protection = false
+
+  template {
+    service_account = google_service_account.evidence_mcp.email
+    labels          = local.labels
+
+    scaling {
+      min_instance_count = 0
+      max_instance_count = 1
+    }
+
+    containers {
+      image   = "${var.image_registry}/services:${var.image_tag}"
+      command = ["python", "-m", "provenance.controls_mcp.server"]
+
+      ports {
+        container_port = 8002
+      }
+
+      env {
+        name  = "LAKEHOUSE_WAREHOUSE"
+        value = "gs://${var.lakehouse_bucket}/warehouse" # gold controls from the data plane; the baked catalog otherwise
+      }
+      env {
+        name  = "CONTROLS_MCP_PORT"
+        value = "8002"
+      }
+
+      resources {
+        limits            = { cpu = "1", memory = "512Mi" }
+        cpu_idle          = true
+        startup_cpu_boost = true
+      }
+    }
+  }
+}
+
+resource "google_cloud_run_v2_service_iam_member" "controls_mcp_invoker_gateway" {
+  name     = google_cloud_run_v2_service.controls_mcp.name
+  location = var.region
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${google_service_account.gateway.email}"
+}
+
 resource "google_cloud_run_v2_service_iam_member" "evidence_mcp_invoker_gateway" {
   name     = google_cloud_run_v2_service.evidence_mcp.name
   location = var.region
@@ -152,6 +203,14 @@ resource "google_cloud_run_v2_service" "gateway" {
       env {
         name  = "EVIDENCE_MCP_AUDIENCE"
         value = google_cloud_run_v2_service.evidence_mcp.uri
+      }
+      env {
+        name  = "CONTROLS_MCP_URL"
+        value = "${google_cloud_run_v2_service.controls_mcp.uri}/mcp"
+      }
+      env {
+        name  = "CONTROLS_MCP_AUDIENCE"
+        value = google_cloud_run_v2_service.controls_mcp.uri
       }
       env {
         name  = "AUDIT_SINK"

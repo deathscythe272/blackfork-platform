@@ -44,7 +44,7 @@ def monkeypatch_module():
 
 def test_pipeline_runs_and_every_check_passes(warehouse):
     assert warehouse["ok"], warehouse["checks"]
-    assert set(warehouse["checks"]) == {"silver_has_no_personal_data", "gold_systems_registered", "layers_reconcile"}
+    assert set(warehouse["checks"]) == {"silver_has_no_personal_data", "gold_systems_registered", "layers_reconcile", "gold_controls_rendered", "evidence_controls_exist"}
     assert all(warehouse["checks"].values())
 
 
@@ -77,6 +77,19 @@ def test_gold_is_the_narrow_typed_view_and_loads_without_a_catalog(warehouse):
     assert [f.name for f in static.spec().fields] == ["system_id"]  # partitioned by system
     con = static.scan().to_duckdb("gold")
     assert con.execute("select count(*) from gold where system_id = 'sys-windrow-prod'").fetchone()[0] >= 9
+
+
+def test_catalog_lands_in_the_lakehouse_and_reconciles_with_evidence(warehouse):
+    from provenance.data import lakehouse
+
+    checks = warehouse["checks"]
+    assert checks["gold_controls_rendered"] and checks["evidence_controls_exist"]
+    bronze = lakehouse.read_arrow("bronze", "controls"); gold = lakehouse.read_arrow("gold", "controls")
+    assert bronze.num_rows == gold.num_rows > 90
+    assert any("{{ insert" in (v or "") for v in bronze.column("statement").to_pylist())  # as published
+    assert not any("{{ insert" in (v or "") for v in gold.column("statement").to_pylist())  # rendered
+    static = lakehouse.load_static("gold", "controls")
+    assert [f.name for f in static.spec().fields] == ["framework"]
 
 
 def test_redactor_is_narrow_on_purpose():
