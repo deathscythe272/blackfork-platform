@@ -1,5 +1,5 @@
 {
-  "harvested_at": "2026-09-08T02:36:10+00:00",
+  "harvested_at": "2026-09-08T23:11:20+00:00",
   "pull_requests": [
     {
       "pr": 10,
@@ -288,6 +288,211 @@
         "R5": "n/a"
       },
       "findings": []
+    },
+    {
+      "pr": 27,
+      "merged_at": "2026-09-08",
+      "title": "feat(gatehouse): harvest the judge's live record from merged pull requests",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "n/a"
+      },
+      "findings": [
+        {
+          "id": "R5-df88f3",
+          "item": "R5",
+          "status": "fixed",
+          "reason": null,
+          "where": "docs/analysis/judge-precision.md:113"
+        }
+      ]
+    },
+    {
+      "pr": 28,
+      "merged_at": "2026-09-08",
+      "title": "feat(gatehouse): the judge waits for a rate limit instead of retrying through it",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "n/a"
+      },
+      "findings": []
+    },
+    {
+      "pr": 29,
+      "merged_at": "2026-09-08",
+      "title": "feat(provenance): P1 data plane: bronze, silver, gold as Iceberg tables with red",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "pass"
+      },
+      "findings": []
+    },
+    {
+      "pr": 30,
+      "merged_at": "2026-09-08",
+      "title": "fix(provenance): the redactor leaves the platform's own vocabulary alone",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "n/a"
+      },
+      "findings": []
+    },
+    {
+      "pr": 31,
+      "merged_at": "2026-09-08",
+      "title": "feat(provenance): the evidence server reads gold from the pointer; baked fixture",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "n/a"
+      },
+      "findings": []
+    },
+    {
+      "pr": 32,
+      "merged_at": "2026-09-08",
+      "title": "docs(provenance): cloud evals against gold, seven of seven; the runner mints its",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "n/a"
+      },
+      "findings": []
+    },
+    {
+      "pr": 33,
+      "merged_at": "2026-09-08",
+      "title": "feat(provenance): P2 controls server: the NIST catalog behind the same gateway, ",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "pass"
+      },
+      "findings": []
+    },
+    {
+      "pr": 34,
+      "merged_at": "2026-09-08",
+      "title": "docs(provenance): the controls server against the cloud; tool descriptions state",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "n/a"
+      },
+      "findings": []
+    },
+    {
+      "pr": 35,
+      "merged_at": "2026-09-08",
+      "title": "feat(gateway): per-identity rate limit before policy, and a hash chain through t",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "n/a"
+      },
+      "findings": []
+    },
+    {
+      "pr": 36,
+      "merged_at": "2026-09-08",
+      "title": "feat(provenance): P3 agent service with a quota per caller, and the Control Mapp",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "fail"
+      },
+      "findings": [
+        {
+          "id": "R5-6718ed",
+          "item": "R5",
+          "status": "open",
+          "reason": null,
+          "where": "infra/modules/agent-plane/main.tf:89"
+        },
+        {
+          "id": "R5-96ada4",
+          "item": "R5",
+          "status": "open",
+          "reason": null,
+          "where": "infra/modules/agent-plane/main.tf:80"
+        },
+        {
+          "id": "R5-2497db",
+          "item": "R5",
+          "status": "dismissed",
+          "reason": "the Compose line references the key from the shell environment by name, the same pattern the agent job has used since phase 2; no value is present",
+          "where": "docker-compose.yml:86"
+        }
+      ]
+    },
+    {
+      "pr": 37,
+      "merged_at": "2026-09-08",
+      "title": "feat(provenance): P3 Risk Analyst as a separate service with its own key; the in",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "fail"
+      },
+      "findings": [
+        {
+          "id": "R5-01c8d4",
+          "item": "R5",
+          "status": "open",
+          "reason": null,
+          "where": "docker-compose.yml:111"
+        },
+        {
+          "id": "R5-590164",
+          "item": "R5",
+          "status": "dismissed",
+          "reason": "references the secret by name; no value present. /gatehouse dismiss R5-73a949 reason: references the secret by name; no value present. /gatehouse dismiss R5-a01204 reason: references the secret by name; no value present. /gatehouse dismiss R5-dabec4 reason: reads the key from the shell environment b",
+          "where": "infra/modules/agent-plane/main.tf:88"
+        },
+        {
+          "id": "R5-73a949",
+          "item": "R5",
+          "status": "fixed",
+          "reason": null,
+          "where": "infra/modules/agent-plane/main.tf:209"
+        },
+        {
+          "id": "R5-a01204",
+          "item": "R5",
+          "status": "fixed",
+          "reason": null,
+          "where": "infra/modules/agent-plane/main.tf:218"
+        },
+        {
+          "id": "R5-dabec4",
+          "item": "R5",
+          "status": "fixed",
+          "reason": null,
+          "where": "docker-compose.yml:113"
+        },
+        {
+          "id": "R5-ec7e15",
+          "item": "R5",
+          "status": "fixed",
+          "reason": null,
+          "where": "docker-compose.yml:114"
+        }
+      ]
+    },
+    {
+      "pr": 38,
+      "merged_at": "2026-09-08",
+      "title": "feat(gatehouse): rubric v1.5: written-out secrets are a script; R5 judges identi",
+      "rubric_version": "1.5",
+      "items": {
+        "R1": "pass",
+        "R5": "n/a"
+      },
+      "findings": []
     }
   ],
   "summary": {
@@ -311,16 +516,20 @@
             "pass": 1
           },
           "1.4": {
-            "judged": 6,
-            "pass": 6
+            "judged": 17,
+            "pass": 17
+          },
+          "1.5": {
+            "judged": 1,
+            "pass": 1
           }
         },
         "counts_from": "1.2",
-        "judged": 12,
+        "judged": 24,
         "accepted": 0,
         "dismissed": 0,
         "live_precision": null,
-        "instances_needed": 8
+        "instances_needed": 0
       },
       "R2": {
         "by_version": {
@@ -374,17 +583,20 @@
             "pass": 1
           },
           "1.4": {
-            "judged": 4,
-            "pass": 4,
-            "dismissed": 1
+            "judged": 8,
+            "pass": 6,
+            "dismissed": 3,
+            "fixed": 5,
+            "fail": 2,
+            "open": 3
           }
         },
-        "counts_from": "1.2",
-        "judged": 5,
+        "counts_from": "1.5",
+        "judged": 0,
         "accepted": 0,
-        "dismissed": 1,
-        "live_precision": 0.0,
-        "instances_needed": 15
+        "dismissed": 0,
+        "live_precision": null,
+        "instances_needed": 20
       },
       "R4": {
         "by_version": {
@@ -457,6 +669,30 @@
         "status": "open",
         "reason": null,
         "where": "src/gatehouse/gatehouse/judge/fixtures/new-tool-no-grant/pr.md:5"
+      },
+      {
+        "pr": 36,
+        "id": "R5-6718ed",
+        "item": "R5",
+        "status": "open",
+        "reason": null,
+        "where": "infra/modules/agent-plane/main.tf:89"
+      },
+      {
+        "pr": 36,
+        "id": "R5-96ada4",
+        "item": "R5",
+        "status": "open",
+        "reason": null,
+        "where": "infra/modules/agent-plane/main.tf:80"
+      },
+      {
+        "pr": 37,
+        "id": "R5-01c8d4",
+        "item": "R5",
+        "status": "open",
+        "reason": null,
+        "where": "docker-compose.yml:111"
       }
     ]
   }

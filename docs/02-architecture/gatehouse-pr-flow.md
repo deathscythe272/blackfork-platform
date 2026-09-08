@@ -91,7 +91,7 @@ flowchart LR
 
 **Fail-open versus fail-closed.** If the deterministic lane cannot run, the merge is
 blocked, because a rule that cannot be evaluated cannot be passed. If the judge cannot
-run, the merge proceeds without its comment, because an advisory check that is down
+run, the merge proceeds without its comment for advisory items, because an advisory check that is down
 should not stop shipping. Blocking rubric items are treated like the deterministic lane
 once promoted. The full rule is ADR-005.
 

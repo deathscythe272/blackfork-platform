@@ -122,9 +122,9 @@ advisory Actions workflow on every PR with the built-in token; `NVIDIA_API_KEY` 
 repository secret. Rubric v1.2: R3, R7, R8 are Lane 1 scripts; judged items R1, R4,
 R5, R6 clear every fixture threshold (1.00/1.00); R2 on notice. Required checks on
 main: `check` (docs standard incl. diagram rules), `cites-requirement`, `rego`
-(policy tests), `boundaries`, and `terraform-plan`. Seeded attacks done: zero steer-induced changes on three judge twins;
+(policy tests), `boundaries`, `terraform-plan`, and `gatehouse/judge` (R1 blocking). Seeded attacks done: zero steer-induced changes on three judge twins;
 seven agent cases contained with zero foreign calls; every answer scored safe; Garak
-run on the model; threat model 31/45 passing. Phase 4 complete except promotion.
+run on the model; threat model 32/46 passing. Phase 4 complete except promotion.
 Phase 5 done: harness profile (914 turns, 43k→853k context) and agent profile via the
 logging proxy (`src/profiling/`); agent tool-call cap 6; Steward token budget 50k/job.
 Rubric v1.4: R6 and R9 (boundary change needs a threat-model change) are Lane 1 scripts
@@ -144,10 +144,7 @@ requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. First promotion decision, by PR, once an item has 20 live instances and meets every
-   ADR-005 threshold; R1 and R5 are the only candidates left in Lane 2. Live counts:
-   `python -m gatehouse.evals.harvest` (rewrites the analysis page block).
-2. Phase 7 P4 assurance plane: NeMo Retriever with Milvus, scheduled Garak and
+1. Phase 7 P4 assurance plane: NeMo Retriever with Milvus, scheduled Garak and
    output-safety runs, an eval harness that re-scores every agent on every change.
    P3 done: agent service (`src/provenance/agent_service/`), mapper, assessor, Risk
    Analyst (`src/provenance/risk_analyst/`, own key RISK_SIGNING_KEY; Cloud Run
@@ -155,3 +152,23 @@ requisitions. Repo is public on GitHub.
    (`src/provenance/agent/writer.py`), packets and sign-off (`src/provenance/packets/`;
    a person signs with `python -m provenance.packets.cli sign <id> --as <name>`).
    Tokens carry a role: agent, caller, person.
+   (R1 promoted to blocking 2026-09-08; `gatehouse/judge` is a required check; the judge
+   fails closed when it cannot run. R5 counts from v1.5; harvest with
+   `python -m gatehouse.evals.harvest`.)
+2. Record. P3(b): `src/provenance/risk_analyst/` (own key RISK_SIGNING_KEY, A2A shape,
+   deterministic score), `src/provenance/agent/assess.py` (assessor job), Cloud Run
+   `risk-analyst-dev` invoked only by the agent service; secret `risk-signing-key-dev`
+   needs its value before the first apply. P3(a) done: `src/provenance/agent_service/` (POST /jobs, X-Caller-Token,
+   quota per caller, job token per agent), `src/provenance/agent/mapper.py`, policy
+   identity `control-mapper`; eval runner `--via-service`; Cloud Run `agents-dev`
+   needs the NVIDIA key value in Secret Manager before its first apply. Context plane
+   P2 done: `src/provenance/controls_mcp/`, catalog `src/provenance/data/catalog.py`,
+   overlay `src/provenance/data/odp/blackfork.yml` (one planted value), policy grants
+   by framework, gateway rate limit (`gateway/ratelimit.py`) and audit chain
+   (`gateway/chain.py`, verifier `audit_verify.py`). After a policy change,
+   `docker compose restart opa`. Data plane P1 done: `src/provenance/data/`, own venv `.venv-data`
+   from `src/requirements-data.txt`, tests `../.venv-data/Scripts/python -m pytest
+   src/provenance/tests/test_data_plane.py`; the evidence server reads gold from the
+   pointer; gold is in the lakehouse bucket. One writer environment per warehouse:
+   on Compose run the pipeline in its container (`docker compose --profile data run
+   --rm dagster python -m provenance.data.run`), never from the host.

@@ -85,7 +85,7 @@ so under ADR-005 its live count restarted; the adjustments ledger records it.
 
 | Item | Lane | Checks |
 |---|---|---|
-| R1 | 2 | The diagram reads as one story: glosses say what a box does, the boxes form one path, no legend needed |
+| R1 | 2 | The diagram reads as one story: glosses say what a box does, the boxes form one path, no legend needed. **Blocking since 2026-09-08**, the first item to earn it; the numbers are on the analysis page |
 | R2 | human | The numbered walkthrough matches the diagram box for box, in order. Removed from the judge after two passes (one hit in ten chances); the count is R8, the rest is human review |
 | R3 | 1 | The pull-request body cites an existing requirement or constraint (`scripts/check_pr_body.py`) |
 | R4 | human | When a boundary change arrives with its threat-model change, the new row names the right boundary, mitigation, and test. R9 checks that the change is there; a person checks that it is right |

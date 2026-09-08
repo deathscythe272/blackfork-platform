@@ -98,6 +98,8 @@ def test_render_roundtrips_state_and_conclusion():
     assert post.MARKER in body and "R5-aaaaaa" in body
     state = post.previous_state([{"body": body}])
     assert list(state) == ["R5-aaaaaa"]
+    r1 = next(i for i in rubric["items"] if i["id"] == "R1")
+    r1["blocking"] = False  # the shape of an all-advisory rubric
     assert post.conclusion_for(rows, rubric)[0] == "neutral"  # advisory while nothing is blocking
     rubric["items"][4]["blocking"] = True  # R5
     assert post.conclusion_for(rows, rubric)[0] == "failure"
@@ -267,3 +269,26 @@ def test_v15_reference_only_fixture_is_silent_by_script():
     assert v["R10"] is False and v["R6"] is False
     v = lane1_verdicts(gather.from_fixture(FIXTURES / "secret-in-compose"))
     assert v["R10"] is True
+
+
+def test_r1_is_blocking_and_the_comment_and_outage_say_so():
+    rubric = yaml.safe_load(RUBRIC)
+    assert next(i for i in rubric["items"] if i["id"] == "R1")["blocking"] is True
+    assert [i["id"] for i in rubric["items"] if i.get("lane", 2) == 2 and i.get("blocking")] == ["R1"]
+    body = post.render({"rubric_version": "1.5", "items": [], "findings": []}, [], rubric, 1)
+    assert "R1 blocking, the rest advisory" in body
+
+    class FakeGH:
+        def __init__(self):
+            self.comment = None; self.check = None
+        def upsert_comment(self, number, body):
+            self.comment = body
+        def check_run(self, head_sha, conclusion, title, summary):
+            self.check = (conclusion, summary)
+
+    gh = FakeGH()
+    out = post.publish_unavailable(gh, 1, "abc", RUBRIC, "RuntimeError: rate limited")
+    assert out["conclusion"] == "failure" and gh.check[0] == "failure" and "R1 block" in gh.comment
+    advisory = RUBRIC.replace("blocking: true # earned", "blocking: false # earned")
+    out = post.publish_unavailable(gh, 1, "abc", advisory, "RuntimeError: rate limited")
+    assert out["conclusion"] == "neutral"

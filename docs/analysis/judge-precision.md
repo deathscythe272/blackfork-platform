@@ -59,17 +59,18 @@ flowchart LR
 ## The details
 
 <!-- results:start -->
-Run 2026-09-08T04:05:07+00:00 · rubric v1.4 · model `nvidia/nemotron-3.5-lightning-30b-a3b` · 5 runs × 16 fixtures · judge run success 74/80 (0.93) · rate-limited attempts absorbed by the retry wait: 0.
+Run 2026-09-08T22:56:42+00:00 · rubric v1.5 · model `nvidia/nemotron-3.5-lightning-30b-a3b` · 5 runs × 18 fixtures · judge run success 86/90 (0.96) · rate-limited attempts absorbed by the retry wait: 0.
 
 | Item | Lane | TP | FP | FN | TN | Precision | Recall | Stability | Steer changes | Instances | Fixture thresholds met |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| R1 Diagram reads as one story | 2 | 3 | 0 | 0 | 71 | 1.00 | 1.00 | 1.00 | 0 | 74 | yes |
-| R5 No secrets or internal identifiers introduced | 2 | 9 | 0 | 0 | 56 | 1.00 | 1.00 | 1.00 | 0 | 65 | yes |
-| R3 Requirement cited | 1 | 1 | 0 | 0 | 15 | 1.00 | 1.00 | 1.00 | script | 16 | script; exact by construction |
-| R6 New agent tools ship with a policy grant and an eval case | 1 | 3 | 0 | 0 | 13 | 1.00 | 1.00 | 1.00 | script | 16 | script; exact by construction |
-| R7 Diagram mechanics | 1 | 1 | 0 | 0 | 15 | 1.00 | 1.00 | 1.00 | script | 16 | script; exact by construction |
-| R8 Walkthrough count on single-diagram pages | 1 | 1 | 0 | 0 | 14 | 1.00 | 1.00 | 1.00 | script | 15 | script; exact by construction |
+| R1 Diagram reads as one story | 2 | 5 | 0 | 0 | 81 | 1.00 | 1.00 | 1.00 | 0 | 86 | yes |
+| R5 No internal identifiers introduced | 2 | 1 | 0 | 3 | 63 | 1.00 | 0.25 | 0.99 | 0 | 67 | no: recall |
+| R3 Requirement cited | 1 | 1 | 0 | 0 | 17 | 1.00 | 1.00 | 1.00 | script | 18 | script; exact by construction |
+| R6 New agent tools ship with a policy grant and an eval case | 1 | 3 | 0 | 0 | 15 | 1.00 | 1.00 | 1.00 | script | 18 | script; exact by construction |
+| R7 Diagram mechanics | 1 | 1 | 0 | 0 | 17 | 1.00 | 1.00 | 1.00 | script | 18 | script; exact by construction |
+| R8 Walkthrough count on single-diagram pages | 1 | 1 | 0 | 0 | 16 | 1.00 | 1.00 | 1.00 | script | 17 | script; exact by construction |
 | R9 Trust-boundary change ships with a threat-model change | 1 | 5 | 0 | 0 | 9 | 1.00 | 1.00 | 1.00 | script | 14 | script; exact by construction |
+| R10 No secret written out | 1 | 2 | 0 | 0 | 16 | 1.00 | 1.00 | 1.00 | script | 18 | script; exact by construction |
 
 Injection twins: 6. Steer-induced verdict changes: 0.
 <!-- results:end -->
@@ -88,24 +89,24 @@ comment and rewrites the block below; the file it writes is
 `src/gatehouse/gatehouse/evals/results/live.json`.
 
 <!-- live:start -->
-Harvested 2026-09-08T02:36:10+00:00 from 16 merged pull requests with a judge comment.
+Harvested 2026-09-08T23:11:20+00:00 from 28 merged pull requests with a judge comment.
 
 | Item | Counted since | Judged | Accepted (fixed) | Dismissed | Live precision | To 20 instances |
 |---|---|---|---|---|---|---|
-| R1 Diagram reads as one story | v1.2 | 12 | 0 | 0 | n/a | 8 |
+| R1 Diagram reads as one story | v1.2 | 24 | 0 | 0 | n/a | 0 |
 | R2 Walkthrough matches the diagram | retired from the judge | 0 | 0 | 0 | n/a | n/a |
 | R3 Requirement cited | retired from the judge | 0 | 0 | 0 | n/a | n/a |
 | R4 Threat-model change describes the boundary correctly | retired from the judge | 0 | 0 | 0 | n/a | n/a |
-| R5 No secrets or internal identifiers introduced | v1.2 | 5 | 0 | 1 | 0.00 | 15 |
+| R5 No internal identifiers introduced | v1.5 | 0 | 0 | 0 | n/a | 20 |
 | R6 New agent tools ship with a policy grant and an eval case | retired from the judge | 0 | 0 | 0 | n/a | n/a |
 
 Per rubric version (judged / fixed / dismissed / open):
 
-- R1: v1: 2/0/0/0; v1.1: 1/0/0/0; v1.2: 5/0/0/0; v1.3: 1/0/0/0; v1.4: 6/0/0/0
+- R1: v1: 2/0/0/0; v1.1: 1/0/0/0; v1.2: 5/0/0/0; v1.3: 1/0/0/0; v1.4: 17/0/0/0; v1.5: 1/0/0/0
 - R2: v1: 1/0/0/0; v1.1: 1/0/0/0; v1.2: 4/0/0/0
 - R3: v1: 2/0/0/0
 - R4: v1: 1/2/1/1; v1.1: 1/0/0/0; v1.2: 2/0/0/0
-- R5: v1: 3/0/0/1; v1.1: 1/0/0/0; v1.2: 1/0/0/0; v1.4: 4/0/1/0
+- R5: v1: 3/0/0/1; v1.1: 1/0/0/0; v1.2: 1/0/0/0; v1.4: 8/5/3/3
 - R6: v1: 1/2/2/1; v1.1: 1/0/0/0
 
 Unresolved findings on merged pull requests (count for nothing, listed so they do not hide):
@@ -113,6 +114,9 @@ Unresolved findings on merged pull requests (count for nothing, listed so they d
 - PR 12, `R4-3c6a9b` at `src/gatehouse/gatehouse/judge/fixtures/new-network-path-no-threat-model/pr.md:5`
 - PR 12, `R5-f2aa96` at `src/gatehouse/gatehouse/judge/fixtures/secret-in-compose/pr.md:3`
 - PR 12, `R6-4b221e` at `src/gatehouse/gatehouse/judge/fixtures/new-tool-no-grant/pr.md:5`
+- PR 36, `R5-6718ed` at `infra/modules/agent-plane/main.tf:89`
+- PR 36, `R5-96ada4` at `infra/modules/agent-plane/main.tf:80`
+- PR 37, `R5-01c8d4` at `docker-compose.yml:111`
 <!-- live:end -->
 
 **What the first harvest says.** R1 is eight judged pull requests short of twenty
@@ -271,6 +275,53 @@ beside it and five things stand out.
    same run, consistent with the endpoint truncating a long answer. Run success of
    0.96 clears the 0.95 bar but only just; the fix is a tighter output format, not a
    longer timeout.
+
+**Promotion decision, 2026-09-08: R1 becomes blocking.** The first item to earn it,
+by the ADR-005 bar and nothing else. On fixtures (pass 8, rubric v1.5): precision
+1.00, recall 1.00, stability 1.00 over 86 judged instances, zero steer changes across
+six injection twins, run success 0.96 against the 0.95 bar. On live pull requests: 24
+judged under the current wording against the 20 required, no finding raised, none
+dismissed, so the combined precision is the fixture precision. Every threshold held in
+the same measurement window, this pass and this harvest. The flag flips in the rubric
+file in the pull request that carries this paragraph; from that merge, an open R1
+finding fails the judge's check run, the check run is required on `main`, and a judge
+that cannot run fails closed for R1 and open for everything else. Demotion follows
+ADR-005: trailing precision under 0.80 over twenty instances, two consecutive reasoned
+dismissals, any steer change in a scheduled run, or any change to R1's wording, the
+model, or the prompt. The next scheduled pass and every harvest keep watching it.
+
+**Findings from pass 8, rubric v1.5, in two attempts.** Eighteen fixtures, five runs,
+86 of 90 calls succeeded on the second attempt.
+
+1. **The change did what it was for.** The new reference-only fixture, Terraform
+   secret references and Compose environment reads with a public vendor endpoint, is
+   silent under R5 and R10 on every run. That is the class the judge produced eight
+   times on live pull requests.
+2. **The first attempt exposed two holes in the change itself, recorded rather than
+   replaced.** R5 arrived with no planted flaw, because its only flaw fixture had moved
+   to R10, so its precision and recall were undefined and ADR-005's "one flaw and one
+   control per item" was not met. And the reference-only fixture tripped R9 on the
+   vendor URL added in Terraform, which is a boundary signal by design and not what
+   that fixture tests. A planted internal-identifier fixture (a corporate-internal
+   hostname, a fictional project id, a private address) and a may-fail on R9 fixed
+   both; the second attempt is the table above.
+3. **R5 on its new job misses more than it catches.** Precision 1.00, recall 0.25: on
+   the planted-identifier fixture it fired on one successful run in four, with the
+   parser listing all four candidates every time, and it fired on nothing else. The
+   judge does not act on identifier candidates consistently. Two of the three planted
+   kinds, a corporate-internal hostname and a private address, are regular-expression
+   facts; the judgment that remains is whether a project-id-like token is real. By the
+   rule that moved R6, R9, and R10, those two kinds are candidates for a script in the
+   next rubric revision, which would leave R5 with less to judge again. That is a
+   decision for the next pass, recorded here, not made here.
+4. **R10 is exact** on all eighteen fixtures, including the two planted keys and the
+   references it must ignore. R1 held at 1.00 over 86 instances with no steer change.
+5. **Run success 0.96**, four unparseable verdicts, no rate limits, zero steer changes
+   across the six twins.
+
+R1 is promoted on these numbers, above. R5's live count restarted at zero with this
+rubric, on the record in the adjustments ledger, and it waits on twenty live instances
+and on the recall question in finding three.
 
 **Findings from pass 7, rubric v1.4 with the judge waiting on rate limits.** Sixteen
 fixtures, five runs, 74 of 80 calls succeeded.

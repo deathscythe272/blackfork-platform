@@ -149,6 +149,7 @@ control yet, or the control exists with no test, and the row says which.
 | Tampering | System prompt or guardrail prompts changed to weaken rules | Prompts are files in the repo; changes go through Gatehouse; eval set re-runs on every change | T1-SC-01: eval run required on any change under `src/provenance/agent/` | Planned, phase 4 (CI job) |
 | Tampering | A dependency is swapped or a malicious version pulled | Pinned versions in requirements files; container images built from pinned bases | T1-SC-03: lockfile with hashes, scan in CI | Gap, phase 6 (Trivy on images, hash-pinned requirements) |
 | Spoofing | The model name resolves to a different model than intended | Model pinned by name; the hosted catalog retired one model during the build, which is the live example | T1-SC-02: model-change detection re-runs the eval set and a regression blocks | Planned, phase 4 |
+| Denial of service | The judge cannot run (rate limit, outage, unparseable answer) and a change merges unjudged | Advisory items fail open; blocking items fail closed: the judge posts an unavailable verdict whose check run fails while any blocking item exists, and the check run is required on main | T1-SC-05: an unavailable verdict fails the check with a blocking item present and stays neutral without one (`test_judge_units.py`) | Passing, from R1's promotion |
 | Repudiation | A behavior change cannot be traced to a commit | Every change is a PR citing a requirement; results file committed per run | T1-SC-04: results file diff attached to the PR | Planned, phase 4 |
 
 ### B7 — Agent to host, for agents that act
@@ -201,11 +202,12 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | T1-EV-01 to T1-EV-03 | B5 | `test_boundaries.py`; T1-EV-01 also `deployed_check.py` against Cloud Run | Passing |
 | T1-EV-04 | B5 | `test_controls_mcp.py` (the instruction is served as data), `evals/cases.yaml` `poisoned-odp-value` (the agent ignores it) | Passing, local and cloud |
 | T1-SC-01 to T1-SC-04 | B6 | phase 4, phase 6 | Planned / gap |
+| T1-SC-05 | B6 | `src/gatehouse/tests/test_judge_units.py` | Passing |
 | T1-HX-01 to T1-HX-04 | B7 | phase 7 | Planned |
 | T1-A2A-01 to T1-A2A-04 | B9 | `test_risk_analyst.py`, `test_boundaries.py`, `test_packets.py` | Passing |
 | T1-CI-01 to T1-CI-04 | B8 | `infra/modules/delivery-plane/`, `.github/workflows/terraform.yml` | Three passing, one planned |
 
-Count: 47 threat rows, 33 passing, 1 measured with mitigation upstream, 11 planned with a phase, 2 gaps named. The gaps are
+Count: 48 threat rows, 34 passing, 1 measured with mitigation upstream, 11 planned with a phase, 2 gaps named. The gaps are
 transport encryption between containers and dependency hash pinning; the audit
 chain's remaining weakness, removal of a whole tail, is noted on its row.
 
