@@ -130,6 +130,8 @@ control yet, or the control exists with no test, and the row says which.
 | Spoofing | Something other than the gateway calls the evidence server | Evidence server sits on an internal network with no route from the agent or outside; in the cloud it admits only a signed identity token for its own address, and only the gateway's identity is granted that (`gateway/upstream.py`; deployed form in phase 6 step 3) | T1-EV-01: from the agent container, the evidence server does not resolve (`test_boundaries.py`); from the open internet, the deployed evidence server answers 403 without the gateway's identity (`deployed_check.py`) | Passing, laptop and cloud |
 | Tampering | A query is shaped to read outside its scope | No free-form query tool; every tool takes `system_id` and filters on it inside the query | T1-EV-02: `get_evidence_row` with a row from another system returns nothing (`test_boundaries.py`) | Passing |
 | Information disclosure | The evidence server returns more than asked | Narrow Gold views; result limit capped at 50 | T1-EV-02 | Passing |
+| Tampering | An instruction inside control text, or inside an organization-defined parameter value rendered into it, steers the agent | Control text is served as data; the agent's prompt says so; the policy scope on catalog tools is the framework, so a steered call for another system still meets the system grant at the door | T1-EV-04: a planted instruction in the organization's parameter file asks for another system's evidence; the eval asserts no such call is allowed and the system is never named (`poisoned-odp-value`) | Passing at the agent level on the local stack; the eval runs against the cloud after this deploys |
+| Spoofing | Something other than the gateway calls the controls server | Same door as the evidence server: internal network on Compose; in the cloud only the gateway's identity holds the invoker right | T1-EV-01 applies to both servers | Passing |
 | Elevation | The evidence server has write access to data | Gold is loaded into memory from a pointer; the server has no write path to the table, the data volume is mounted read-only, and its cloud identity holds bucket read only | T1-EV-03: write attempt fails (`test_boundaries.py`) | Passing |
 
 ### B6 — Repo and supply chain to agent
@@ -179,6 +181,7 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | T1-PL-02 | B4 | phase 7 | Gap |
 | T1-PL-03 | B4 | `test_boundaries.py` | Passing |
 | T1-EV-01 to T1-EV-03 | B5 | `test_boundaries.py`; T1-EV-01 also `deployed_check.py` against Cloud Run | Passing |
+| T1-EV-04 | B5 | `test_controls_mcp.py` (the instruction is served as data), `evals/cases.yaml` `poisoned-odp-value` (the agent ignores it) | Passing at the agent level on the local stack |
 | T1-SC-01 to T1-SC-04 | B6 | phase 4, phase 6 | Planned / gap |
 | T1-HX-01 to T1-HX-04 | B7 | phase 7 | Planned |
 | T1-CI-01 to T1-CI-04 | B8 | `infra/modules/delivery-plane/`, `.github/workflows/terraform.yml` | Three passing, one planned |

@@ -15,6 +15,10 @@ output "evidence_mcp_url" {
   value = google_cloud_run_v2_service.evidence_mcp.uri
 }
 
+output "controls_mcp_url" {
+  value = google_cloud_run_v2_service.controls_mcp.uri
+}
+
 output "gateway_signing_key_secret" {
   value = google_secret_manager_secret.gateway_signing_key.secret_id
 }

@@ -9,4 +9,6 @@ whole lives in `../02-architecture/` (flow and narrative) and the build order in
   guardrails, seven evals, a trace; on a laptop and on Cloud Run.
 - `data-plane.md` — evidence in, redacted before storage, served from a narrow table
   any reader can open without a catalog. ADR-002, ADR-006.
-- context plane, agent plane, assurance plane, Pipeline Steward — with phase 7.
+- `context-plane.md` — one gateway, two servers: evidence for a system, controls for a
+  framework, each a fixed set of questions; the catalog's injection surface and its test.
+- agent plane, assurance plane, Pipeline Steward — with phase 7.

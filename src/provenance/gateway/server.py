@@ -11,9 +11,10 @@ The gateway mirrors the three evidence tools. On every call, in this order:
   4. write audit row   - denied calls included; written BEFORE forwarding; if the
                          write fails the call fails. The sink is a file on the laptop
                          and the platform-events topic in the cloud (audit.py)
-  5. forward           - allowed calls go to evidence-mcp over MCP; the result is
-                         returned unchanged. In the cloud the call carries the
-                         gateway's signed identity (upstream.py)
+  5. forward           - allowed calls go to the server that owns the tool, evidence-mcp
+                         or controls-mcp, over MCP; the result is returned unchanged. In
+                         the cloud the call carries the gateway's signed identity
+                         (upstream.py)
 
 Fail closed: if the token is bad, OPA is unreachable, or the audit write fails, the
 agent gets an error, never data.
@@ -42,11 +43,20 @@ from provenance.gateway.upstream import identity_from_env
 HOST = os.environ.get("GATEWAY_HOST", "0.0.0.0")
 PORT = int(os.environ.get("GATEWAY_PORT", "8000"))
 OPA_URL = os.environ.get("OPA_URL", "http://localhost:8181")
-EVIDENCE_MCP_URL = os.environ.get("EVIDENCE_MCP_URL", "http://localhost:8001/mcp")
 
 mcp = FastMCP("blackfork-gateway", host=HOST, port=PORT)
 AUDIT = sink_from_env()
-UPSTREAM = identity_from_env()
+
+# Every tool belongs to exactly one upstream server. A tool absent here cannot be
+# forwarded even if policy allowed it, which it also cannot (policy lists the same tools).
+UPSTREAMS = {
+    "evidence": {"url": os.environ.get("EVIDENCE_MCP_URL", "http://localhost:8001/mcp"),
+                 "identity": identity_from_env(env={"EVIDENCE_MCP_AUDIENCE": os.environ.get("EVIDENCE_MCP_AUDIENCE", "")})},
+    "controls": {"url": os.environ.get("CONTROLS_MCP_URL", "http://localhost:8002/mcp"),
+                 "identity": identity_from_env(env={"EVIDENCE_MCP_AUDIENCE": os.environ.get("CONTROLS_MCP_AUDIENCE", "")})},
+}
+TOOL_UPSTREAM = {"list_controls": "evidence", "get_evidence": "evidence", "get_evidence_row": "evidence",
+                 "get_control": "controls", "list_family": "controls", "search_controls": "controls"}
 
 
 # --- 1. identity -----------------------------------------------------------------
@@ -97,13 +107,14 @@ def _audit(row: dict[str, Any]) -> None:
 # --- 5. forward ------------------------------------------------------------------
 
 async def _forward(tool: str, args: dict[str, Any]) -> Any:
-    async with streamablehttp_client(EVIDENCE_MCP_URL, headers=UPSTREAM.headers() or None) as (read, write, _):
+    upstream = UPSTREAMS[TOOL_UPSTREAM[tool]]
+    async with streamablehttp_client(upstream["url"], headers=upstream["identity"].headers() or None) as (read, write, _):
         async with ClientSession(read, write) as session:
             await session.initialize()
             result = await session.call_tool(tool, args)
     if result.isError:
         text = "; ".join(getattr(c, "text", "") for c in result.content)
-        raise ToolError(f"evidence-mcp error: {text}")
+        raise ToolError(f"{TOOL_UPSTREAM[tool]}-mcp error: {text}")
     if result.structuredContent is not None:
         sc = result.structuredContent
         return sc.get("result", sc) if isinstance(sc, dict) else sc
@@ -164,6 +175,26 @@ async def get_evidence(system_id: str, control_id: str, ctx: Context, limit: int
 async def get_evidence_row(system_id: str, row_id: str, ctx: Context) -> Any:
     """Return one evidence row by id. The row must belong to the given system."""
     return await _guarded_call(ctx, "get_evidence_row", {"system_id": system_id, "row_id": row_id})
+
+
+# --- the mirrored catalog tools (same names and schemas as controls-mcp) ------------
+
+@mcp.tool()
+async def get_control(framework: str, control_id: str, ctx: Context) -> Any:
+    """One control's statement, guidance, and assessment objectives. Accepts `3.3.1` or `03.03.01`."""
+    return await _guarded_call(ctx, "get_control", {"framework": framework, "control_id": control_id})
+
+
+@mcp.tool()
+async def list_family(framework: str, family_id: str, ctx: Context) -> Any:
+    """The controls in one family (for example `03.03`, Audit and Accountability), with status."""
+    return await _guarded_call(ctx, "list_family", {"framework": framework, "family_id": family_id})
+
+
+@mcp.tool()
+async def search_controls(framework: str, query: str, ctx: Context, limit: int = 10) -> Any:
+    """Active controls whose title or statement contains the words given."""
+    return await _guarded_call(ctx, "search_controls", {"framework": framework, "query": query, "limit": limit})
 
 
 if __name__ == "__main__":
