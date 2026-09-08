@@ -140,11 +140,9 @@ requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. PR: harvest live PR findings (PR 12 already holds four reasoned dismissals against
-   rubric v1, all the same cause: v1 could see test data) (fixed = accepted, dismissed = false positive) into the
-   precision table.
-2. First promotion decision, by PR, once an item has 20 live instances and meets every
-   ADR-005 threshold; R1 and R5 are the only candidates left in Lane 2.
-3. PR: judge retry waits longer on a rate limit (429) so run success measures the
+1. PR: judge retry waits longer on a rate limit (429) so run success measures the
    endpoint, not a two-second backoff; then re-score. Serves: BR-9.
+2. First promotion decision, by PR, once an item has 20 live instances and meets every
+   ADR-005 threshold; R1 and R5 are the only candidates left in Lane 2. Live counts:
+   `python -m gatehouse.evals.harvest` (rewrites the analysis page block).
 4. Phase 7 P1 data plane (Dagster, Iceberg on the lakehouse bucket, DuckDB, Presidio).

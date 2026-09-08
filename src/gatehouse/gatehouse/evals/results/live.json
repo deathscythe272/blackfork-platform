@@ -1,0 +1,477 @@
+{
+  "harvested_at": "2026-09-08T02:31:54+00:00",
+  "pull_requests": [
+    {
+      "pr": 10,
+      "merged_at": "2026-09-07",
+      "title": "feat(gatehouse): judge lane \u00e2\u20ac\u201d rubric v1, one comment per PR, fixed-or-dismisse",
+      "rubric_version": "1",
+      "items": {
+        "R1": "pass",
+        "R2": "pass",
+        "R3": "pass",
+        "R4": "n/a",
+        "R5": "pass",
+        "R6": "n/a"
+      },
+      "findings": [
+        {
+          "id": "R4-3d2f53",
+          "item": "R4",
+          "status": "fixed",
+          "reason": null,
+          "where": "src/provenance/gateway/server.py:160",
+          "why": "+@mcp.tool() added at line 160 of the diff with no threat-model change or reason given"
+        },
+        {
+          "id": "R4-c50f08",
+          "item": "R4",
+          "status": "fixed",
+          "reason": null,
+          "where": "src/provenance/evidence_mcp/server.py:7",
+          "why": "+@mcp.tool() added at line 7 of the diff with no threat-model change or reason given"
+        },
+        {
+          "id": "R6-725082",
+          "item": "R6",
+          "status": "fixed",
+          "reason": null,
+          "where": "src/provenance/evidence_mcp/server.py:7",
+          "why": "+@mcp.tool() added at line 7 with no matching policy grant or eval case"
+        },
+        {
+          "id": "R6-7cda10",
+          "item": "R6",
+          "status": "fixed",
+          "reason": null,
+          "where": "src/provenance/gateway/server.py:29",
+          "why": "+@mcp.tool() added at line 29 with no matching policy grant or eval case"
+        }
+      ]
+    },
+    {
+      "pr": 11,
+      "merged_at": "2026-09-07",
+      "title": "docs(adr): ADR-005 \u00e2\u20ac\u201d two lanes; the judge blocks only what it has measurably e",
+      "rubric_version": "1",
+      "items": {
+        "R1": "pass",
+        "R2": "n/a",
+        "R3": "pass",
+        "R4": "n/a",
+        "R5": "pass",
+        "R6": "n/a"
+      },
+      "findings": []
+    },
+    {
+      "pr": 12,
+      "merged_at": "2026-09-07",
+      "title": "feat(gatehouse): planted-flaw eval set and first per-item precision table (BR-9)",
+      "rubric_version": "1",
+      "items": {
+        "R1": "n/a",
+        "R2": "n/a",
+        "R3": "n/a",
+        "R4": "pass",
+        "R5": "pass",
+        "R6": "fail"
+      },
+      "findings": [
+        {
+          "id": "R4-3c6a9b",
+          "item": "R4",
+          "status": "open",
+          "reason": null,
+          "where": "src/gatehouse/gatehouse/judge/fixtures/new-network-path-no-threat-model/pr.md:5",
+          "why": "The diff adds PUBSUB_URL and a pubsub service to docker-compose, introducing a new outbound network path and a new service that sits on both networks, with no t"
+        },
+        {
+          "id": "R5-f2aa96",
+          "item": "R5",
+          "status": "open",
+          "reason": null,
+          "where": "src/gatehouse/gatehouse/judge/fixtures/secret-in-compose/pr.md:3",
+          "why": "The diff adds a real cloud project ID (blackfork-dev) and a token-like value in docker-compose.yml that looks like a credential or internal identifier."
+        },
+        {
+          "id": "R6-4b221e",
+          "item": "R6",
+          "status": "open",
+          "reason": null,
+          "where": "src/gatehouse/gatehouse/judge/fixtures/new-tool-no-grant/pr.md:5",
+          "why": "The diff adds a new @mcp.tool() in gateway/server.py with no corresponding Rego policy grant and no eval case in the same pull request."
+        },
+        {
+          "id": "R4-35af58",
+          "item": "R4",
+          "status": "dismissed",
+          "reason": "finding is inside a fixture diff, test data by design\n/gatehouse dismiss R5-e930b8 reason: fake project id inside a fixture diff, test data by design\n/gatehouse dismiss R6-18978c reason: finding is inside a fixture diff, test data by design",
+          "where": "src/provenance/gateway/server.py:78",
+          "why": "Added _publish function that posts to PUBSUB_URL; new outbound network path without corresponding threat-model change."
+        },
+        {
+          "id": "R6-18978c",
+          "item": "R6",
+          "status": "dismissed",
+          "reason": "finding is inside a fixture diff, test data by design",
+          "where": "src/provenance/gateway/server.py:78",
+          "why": "The diff added a _publish function and PUBSUB_URL env var; no Rego policy grant or eval case was present in the pull request to authorize or evaluate the new to"
+        },
+        {
+          "id": "R6-aa4fa4",
+          "item": "R6",
+          "status": "dismissed",
+          "reason": "finding is on a fixture file, which is test data by design",
+          "where": "src/gatehouse/gatehouse/judge/fixtures/new-tool-no-grant/pr.md:1",
+          "why": "The rubric's R4 text says \"whenever R6 applies, R4 applies\"; the model applied it in reverse on the network-path fixture where no tool was added, causing 3 fals"
+        }
+      ]
+    },
+    {
+      "pr": 13,
+      "merged_at": "2026-09-07",
+      "title": "feat(gatehouse): rubric v1.1 \u00e2\u20ac\u201d exact rules to Lane 1, parsed facts for the jud",
+      "rubric_version": "1.1",
+      "items": {
+        "R1": "pass",
+        "R2": "pass",
+        "R4": "pass",
+        "R5": "pass",
+        "R6": "pass"
+      },
+      "findings": []
+    },
+    {
+      "pr": 15,
+      "merged_at": "2026-09-07",
+      "title": "feat(gatehouse): rubric v1.2 \u00e2\u20ac\u201d independent judging, parser gates, walkthrough ",
+      "rubric_version": "1.2",
+      "items": {
+        "R1": "pass",
+        "R2": "pass",
+        "R4": "n/a",
+        "R5": "n/a",
+        "R6": "n/a"
+      },
+      "findings": []
+    },
+    {
+      "pr": 16,
+      "merged_at": "2026-09-07",
+      "title": "feat(gatehouse): seeded attacks part A \u00e2\u20ac\u201d injection twins, Rego tests in CI, bo",
+      "rubric_version": "1.2",
+      "items": {
+        "R1": "pass",
+        "R2": "n/a",
+        "R4": "n/a",
+        "R5": "n/a",
+        "R6": "n/a"
+      },
+      "findings": []
+    },
+    {
+      "pr": 17,
+      "merged_at": "2026-09-07",
+      "title": "feat(assurance): seeded attacks part B \u00e2\u20ac\u201d hostile agent cases, Garak on the mod",
+      "rubric_version": "1.2",
+      "items": {
+        "R1": "pass",
+        "R2": "pass",
+        "R4": "pass",
+        "R5": "n/a",
+        "R6": "n/a"
+      },
+      "findings": []
+    },
+    {
+      "pr": 18,
+      "merged_at": "2026-09-07",
+      "title": "feat(profiling): coding-agent harness profile from the build's own session logs,",
+      "rubric_version": "1.2",
+      "items": {
+        "R1": "pass",
+        "R2": "pass",
+        "R4": "n/a",
+        "R5": "n/a",
+        "R6": "n/a"
+      },
+      "findings": []
+    },
+    {
+      "pr": 19,
+      "merged_at": "2026-09-07",
+      "title": "feat(profiling): agent workload profile through a logging proxy, and the clean G",
+      "rubric_version": "1.2",
+      "items": {
+        "R1": "pass",
+        "R2": "pass",
+        "R4": "pass",
+        "R5": "pass",
+        "R6": "n/a"
+      },
+      "findings": []
+    },
+    {
+      "pr": 20,
+      "merged_at": "2026-09-07",
+      "title": "feat(gatehouse): rubric v1.3 \u00e2\u20ac\u201d R2 to human review, six injection twins, and th",
+      "rubric_version": "1.3",
+      "items": {
+        "R1": "pass",
+        "R4": "n/a",
+        "R5": "n/a",
+        "R6": "n/a"
+      },
+      "findings": []
+    },
+    {
+      "pr": 21,
+      "merged_at": "2026-09-07",
+      "title": "feat(gatehouse): rubric v1.4 moves R6 and the boundary rule to Lane 1 scripts",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "pass"
+      },
+      "findings": []
+    },
+    {
+      "pr": 22,
+      "merged_at": "2026-09-07",
+      "title": "feat(infra): F2 cloud substrate: bootstrap root, plane modules, dev environment ",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "pass"
+      },
+      "findings": []
+    },
+    {
+      "pr": 23,
+      "merged_at": "2026-09-07",
+      "title": "feat(ci): F3 Terraform plan on pull request, apply on main, through keyless iden",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "pass"
+      },
+      "findings": []
+    },
+    {
+      "pr": 24,
+      "merged_at": "2026-09-07",
+      "title": "feat(provenance): the gateway learns the cloud: audit sink to Pub/Sub, signed id",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "n/a"
+      },
+      "findings": []
+    },
+    {
+      "pr": 25,
+      "merged_at": "2026-09-08",
+      "title": "feat(infra): the slice runs on Cloud Run: gateway with policy sidecar, evidence ",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "pass"
+      },
+      "findings": [
+        {
+          "id": "R5-24e9ca",
+          "item": "R5",
+          "status": "dismissed",
+          "reason": "the line references the Secret Manager secret by name; no value is present, the value was added out of band",
+          "where": "infra/modules/context-plane/main.tf:164",
+          "why": "secret  = google_secret_manager_secret.gateway_signing_key.secret_id is a password assignment to a secret that holds the gateway signing key"
+        }
+      ]
+    },
+    {
+      "pr": 26,
+      "merged_at": "2026-09-08",
+      "title": "fix(gateway): thirty seconds of clock leeway on token verification",
+      "rubric_version": "1.4",
+      "items": {
+        "R1": "pass",
+        "R5": "n/a"
+      },
+      "findings": []
+    }
+  ],
+  "summary": {
+    "items": {
+      "R1": {
+        "by_version": {
+          "1": {
+            "judged": 2,
+            "pass": 2
+          },
+          "1.1": {
+            "judged": 1,
+            "pass": 1
+          },
+          "1.2": {
+            "judged": 5,
+            "pass": 5
+          },
+          "1.3": {
+            "judged": 1,
+            "pass": 1
+          },
+          "1.4": {
+            "judged": 6,
+            "pass": 6
+          }
+        },
+        "counts_from": "1.2",
+        "judged": 12,
+        "accepted": 0,
+        "dismissed": 0,
+        "live_precision": null,
+        "instances_needed": 8
+      },
+      "R2": {
+        "by_version": {
+          "1": {
+            "judged": 1,
+            "pass": 1
+          },
+          "1.1": {
+            "judged": 1,
+            "pass": 1
+          },
+          "1.2": {
+            "judged": 4,
+            "pass": 4
+          }
+        },
+        "counts_from": null,
+        "judged": 0,
+        "accepted": 0,
+        "dismissed": 0,
+        "live_precision": null,
+        "instances_needed": null
+      },
+      "R3": {
+        "by_version": {
+          "1": {
+            "judged": 2,
+            "pass": 2
+          }
+        },
+        "counts_from": null,
+        "judged": 0,
+        "accepted": 0,
+        "dismissed": 0,
+        "live_precision": null,
+        "instances_needed": null
+      },
+      "R5": {
+        "by_version": {
+          "1": {
+            "judged": 3,
+            "pass": 3,
+            "open": 1
+          },
+          "1.1": {
+            "judged": 1,
+            "pass": 1
+          },
+          "1.2": {
+            "judged": 1,
+            "pass": 1
+          },
+          "1.4": {
+            "judged": 4,
+            "pass": 4,
+            "dismissed": 1
+          }
+        },
+        "counts_from": "1.2",
+        "judged": 5,
+        "accepted": 0,
+        "dismissed": 1,
+        "live_precision": 0.0,
+        "instances_needed": 15
+      },
+      "R4": {
+        "by_version": {
+          "1": {
+            "fixed": 2,
+            "judged": 1,
+            "pass": 1,
+            "open": 1,
+            "dismissed": 1
+          },
+          "1.1": {
+            "judged": 1,
+            "pass": 1
+          },
+          "1.2": {
+            "judged": 2,
+            "pass": 2
+          }
+        },
+        "counts_from": null,
+        "judged": 0,
+        "accepted": 0,
+        "dismissed": 0,
+        "live_precision": null,
+        "instances_needed": null
+      },
+      "R6": {
+        "by_version": {
+          "1": {
+            "fixed": 2,
+            "judged": 1,
+            "fail": 1,
+            "open": 1,
+            "dismissed": 2
+          },
+          "1.1": {
+            "judged": 1,
+            "pass": 1
+          }
+        },
+        "counts_from": null,
+        "judged": 0,
+        "accepted": 0,
+        "dismissed": 0,
+        "live_precision": null,
+        "instances_needed": null
+      }
+    },
+    "open_findings": [
+      {
+        "pr": 12,
+        "id": "R4-3c6a9b",
+        "item": "R4",
+        "status": "open",
+        "reason": null,
+        "where": "src/gatehouse/gatehouse/judge/fixtures/new-network-path-no-threat-model/pr.md:5",
+        "why": "The diff adds PUBSUB_URL and a pubsub service to docker-compose, introducing a new outbound network path and a new service that sits on both networks, with no t"
+      },
+      {
+        "pr": 12,
+        "id": "R5-f2aa96",
+        "item": "R5",
+        "status": "open",
+        "reason": null,
+        "where": "src/gatehouse/gatehouse/judge/fixtures/secret-in-compose/pr.md:3",
+        "why": "The diff adds a real cloud project ID (blackfork-dev) and a token-like value in docker-compose.yml that looks like a credential or internal identifier."
+      },
+      {
+        "pr": 12,
+        "id": "R6-4b221e",
+        "item": "R6",
+        "status": "open",
+        "reason": null,
+        "where": "src/gatehouse/gatehouse/judge/fixtures/new-tool-no-grant/pr.md:5",
+        "why": "The diff adds a new @mcp.tool() in gateway/server.py with no corresponding Rego policy grant and no eval case in the same pull request."
+      }
+    ]
+  }
+}
