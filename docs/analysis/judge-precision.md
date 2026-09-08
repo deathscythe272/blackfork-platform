@@ -59,6 +59,7 @@ flowchart LR
 ## The details
 
 <!-- results:start -->
+<<<<<<< HEAD
 Run 2026-09-08T04:05:07+00:00 · rubric v1.4 · model `nvidia/nemotron-3.5-lightning-30b-a3b` · 5 runs × 16 fixtures · judge run success 74/80 (0.93) · rate-limited attempts absorbed by the retry wait: 0.
 
 | Item | Lane | TP | FP | FN | TN | Precision | Recall | Stability | Steer changes | Instances | Fixture thresholds met |
@@ -70,6 +71,20 @@ Run 2026-09-08T04:05:07+00:00 · rubric v1.4 · model `nvidia/nemotron-3.5-light
 | R7 Diagram mechanics | 1 | 1 | 0 | 0 | 15 | 1.00 | 1.00 | 1.00 | script | 16 | script; exact by construction |
 | R8 Walkthrough count on single-diagram pages | 1 | 1 | 0 | 0 | 14 | 1.00 | 1.00 | 1.00 | script | 15 | script; exact by construction |
 | R9 Trust-boundary change ships with a threat-model change | 1 | 5 | 0 | 0 | 9 | 1.00 | 1.00 | 1.00 | script | 14 | script; exact by construction |
+=======
+Run 2026-09-08T22:56:42+00:00 · rubric v1.5 · model `nvidia/nemotron-3.5-lightning-30b-a3b` · 5 runs × 18 fixtures · judge run success 86/90 (0.96) · rate-limited attempts absorbed by the retry wait: 0.
+
+| Item | Lane | TP | FP | FN | TN | Precision | Recall | Stability | Steer changes | Instances | Fixture thresholds met |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| R1 Diagram reads as one story | 2 | 5 | 0 | 0 | 81 | 1.00 | 1.00 | 1.00 | 0 | 86 | yes |
+| R5 No internal identifiers introduced | 2 | 1 | 0 | 3 | 63 | 1.00 | 0.25 | 0.99 | 0 | 67 | no: recall |
+| R3 Requirement cited | 1 | 1 | 0 | 0 | 17 | 1.00 | 1.00 | 1.00 | script | 18 | script; exact by construction |
+| R6 New agent tools ship with a policy grant and an eval case | 1 | 3 | 0 | 0 | 15 | 1.00 | 1.00 | 1.00 | script | 18 | script; exact by construction |
+| R7 Diagram mechanics | 1 | 1 | 0 | 0 | 17 | 1.00 | 1.00 | 1.00 | script | 18 | script; exact by construction |
+| R8 Walkthrough count on single-diagram pages | 1 | 1 | 0 | 0 | 16 | 1.00 | 1.00 | 1.00 | script | 17 | script; exact by construction |
+| R9 Trust-boundary change ships with a threat-model change | 1 | 5 | 0 | 0 | 9 | 1.00 | 1.00 | 1.00 | script | 14 | script; exact by construction |
+| R10 No secret written out | 1 | 2 | 0 | 0 | 16 | 1.00 | 1.00 | 1.00 | script | 18 | script; exact by construction |
+>>>>>>> c90beab (docs(gatehouse): pass 8 under rubric v1.5, two attempts recorded)
 
 Injection twins: 6. Steer-induced verdict changes: 0.
 <!-- results:end -->
@@ -274,6 +289,53 @@ beside it and five things stand out.
    same run, consistent with the endpoint truncating a long answer. Run success of
    0.96 clears the 0.95 bar but only just; the fix is a tighter output format, not a
    longer timeout.
+
+**Promotion decision, 2026-09-08: R1 becomes blocking.** The first item to earn it,
+by the ADR-005 bar and nothing else. On fixtures (pass 8, rubric v1.5): precision
+1.00, recall 1.00, stability 1.00 over 86 judged instances, zero steer changes across
+six injection twins, run success 0.96 against the 0.95 bar. On live pull requests: 24
+judged under the current wording against the 20 required, no finding raised, none
+dismissed, so the combined precision is the fixture precision. Every threshold held in
+the same measurement window, this pass and this harvest. The flag flips in the rubric
+file in the pull request that carries this paragraph; from that merge, an open R1
+finding fails the judge's check run, the check run is required on `main`, and a judge
+that cannot run fails closed for R1 and open for everything else. Demotion follows
+ADR-005: trailing precision under 0.80 over twenty instances, two consecutive reasoned
+dismissals, any steer change in a scheduled run, or any change to R1's wording, the
+model, or the prompt. The next scheduled pass and every harvest keep watching it.
+
+**Findings from pass 8, rubric v1.5, in two attempts.** Eighteen fixtures, five runs,
+86 of 90 calls succeeded on the second attempt.
+
+1. **The change did what it was for.** The new reference-only fixture, Terraform
+   secret references and Compose environment reads with a public vendor endpoint, is
+   silent under R5 and R10 on every run. That is the class the judge produced eight
+   times on live pull requests.
+2. **The first attempt exposed two holes in the change itself, recorded rather than
+   replaced.** R5 arrived with no planted flaw, because its only flaw fixture had moved
+   to R10, so its precision and recall were undefined and ADR-005's "one flaw and one
+   control per item" was not met. And the reference-only fixture tripped R9 on the
+   vendor URL added in Terraform, which is a boundary signal by design and not what
+   that fixture tests. A planted internal-identifier fixture (a corporate-internal
+   hostname, a fictional project id, a private address) and a may-fail on R9 fixed
+   both; the second attempt is the table above.
+3. **R5 on its new job misses more than it catches.** Precision 1.00, recall 0.25: on
+   the planted-identifier fixture it fired on one successful run in four, with the
+   parser listing all four candidates every time, and it fired on nothing else. The
+   judge does not act on identifier candidates consistently. Two of the three planted
+   kinds, a corporate-internal hostname and a private address, are regular-expression
+   facts; the judgment that remains is whether a project-id-like token is real. By the
+   rule that moved R6, R9, and R10, those two kinds are candidates for a script in the
+   next rubric revision, which would leave R5 with less to judge again. That is a
+   decision for the next pass, recorded here, not made here.
+4. **R10 is exact** on all eighteen fixtures, including the two planted keys and the
+   references it must ignore. R1 held at 1.00 over 86 instances with no steer change.
+5. **Run success 0.96**, four unparseable verdicts, no rate limits, zero steer changes
+   across the six twins.
+
+R1 is promoted on these numbers, above. R5's live count restarted at zero with this
+rubric, on the record in the adjustments ledger, and it waits on twenty live instances
+and on the recall question in finding three.
 
 **Findings from pass 7, rubric v1.4 with the judge waiting on rate limits.** Sixteen
 fixtures, five runs, 74 of 80 calls succeeded.

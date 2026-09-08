@@ -122,9 +122,9 @@ advisory Actions workflow on every PR with the built-in token; `NVIDIA_API_KEY` 
 repository secret. Rubric v1.2: R3, R7, R8 are Lane 1 scripts; judged items R1, R4,
 R5, R6 clear every fixture threshold (1.00/1.00); R2 on notice. Required checks on
 main: `check` (docs standard incl. diagram rules), `cites-requirement`, `rego`
-(policy tests), `boundaries`, and `terraform-plan`. Seeded attacks done: zero steer-induced changes on three judge twins;
+(policy tests), `boundaries`, `terraform-plan`, and `gatehouse/judge` (R1 blocking). Seeded attacks done: zero steer-induced changes on three judge twins;
 seven agent cases contained with zero foreign calls; every answer scored safe; Garak
-run on the model; threat model 31/45 passing. Phase 4 complete except promotion.
+run on the model; threat model 32/46 passing. Phase 4 complete except promotion.
 Phase 5 done: harness profile (914 turns, 43k→853k context) and agent profile via the
 logging proxy (`src/profiling/`); agent tool-call cap 6; Steward token budget 50k/job.
 Rubric v1.4: R6 and R9 (boundary change needs a threat-model change) are Lane 1 scripts
@@ -144,12 +144,12 @@ requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. First promotion decision, by PR, once an item has 20 live instances and meets every
-   ADR-005 threshold; R1 and R5 are the only candidates left in Lane 2. Live counts:
-   `python -m gatehouse.evals.harvest` (rewrites the analysis page block).
-2. PR P3(c): Report Writer and human sign-off, ADR-007; done-when: one sensor row
+1. PR P3(c): Report Writer and human sign-off, ADR-007; done-when: one sensor row
    becomes a cited line in a draft packet with a signature step no agent can perform.
-   P3(b) done: `src/provenance/risk_analyst/` (own key RISK_SIGNING_KEY, A2A shape,
+   (R1 promoted to blocking 2026-09-08; `gatehouse/judge` is a required check; the judge
+   fails closed when it cannot run. R5 counts from v1.5; harvest with
+   `python -m gatehouse.evals.harvest`.)
+2. P3(b) done: `src/provenance/risk_analyst/` (own key RISK_SIGNING_KEY, A2A shape,
    deterministic score), `src/provenance/agent/assess.py` (assessor job), Cloud Run
    `risk-analyst-dev` invoked only by the agent service; secret `risk-signing-key-dev`
    needs its value before the first apply. P3(a) done: `src/provenance/agent_service/` (POST /jobs, X-Caller-Token,

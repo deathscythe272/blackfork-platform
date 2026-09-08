@@ -104,7 +104,7 @@ def render(verdict: dict, rows: list[dict], rubric: dict, n_files: int) -> str:
     judged = [i for i in rubric["items"] if str(i.get("lane", 2)) == "2"]
     scripted = [i for i in rubric["items"] if str(i.get("lane")) == "1"]
     human = [i for i in rubric["items"] if i.get("lane") == "human"]
-    blocking_ids = sorted(blocking)
+    blocking_ids = sorted(i["id"] for i in judged if i.get("blocking"))
     mode = f"{', '.join(blocking_ids)} blocking, the rest advisory" if blocking_ids else "advisory"
     lines = [MARKER, f"### Gatehouse judge · rubric v{v} · {mode}",
              f"Checked {len(judged)} judgment items on {n_files} changed file(s); "
