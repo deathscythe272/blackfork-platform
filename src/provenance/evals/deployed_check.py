@@ -36,7 +36,7 @@ EVIDENCE_URL = os.environ["EVIDENCE_URL"]
 
 def _gateway_call(tool: str, args: dict, token: str) -> tuple[bool, str]:
     async def go():
-        async with streamablehttp_client(GATEWAY_URL, headers={"Authorization": f"Bearer {token}"}) as (r, w, _):
+        async with streamablehttp_client(GATEWAY_URL, headers={"X-Agent-Token": token}) as (r, w, _):
             async with ClientSession(r, w) as s:
                 await s.initialize()
                 res = await s.call_tool(tool, args)
@@ -57,7 +57,7 @@ def main() -> int:
 
     # T1-GW-01: a token signed with the wrong key is refused at the gateway.
     real_key = os.environ.get("GATEWAY_SIGNING_KEY")
-    os.environ["GATEWAY_SIGNING_KEY"] = "not-the-real-key"
+    os.environ["GATEWAY_SIGNING_KEY"] = "not-the-real-key-" * 3  # long enough to mint, wrong for the door
     forged = mint("evidence-collector")
     if real_key:
         os.environ["GATEWAY_SIGNING_KEY"] = real_key

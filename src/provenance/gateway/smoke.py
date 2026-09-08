@@ -25,7 +25,7 @@ AUDIT_LOG = pathlib.Path(os.environ.get("AUDIT_LOG", "audit/audit.jsonl"))
 
 
 async def call(token: str, tool: str, args: dict) -> tuple[bool, str]:
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {"X-Agent-Token": token}
     async with streamablehttp_client(GATEWAY_URL, headers=headers) as (r, w, _):
         async with ClientSession(r, w) as s:
             await s.initialize()

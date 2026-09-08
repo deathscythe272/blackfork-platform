@@ -36,7 +36,7 @@ def _compose(*args: str) -> subprocess.CompletedProcess:
 
 def _call(tool: str, args: dict, identity: str = "evidence-collector") -> tuple[bool, str]:
     async def go():
-        headers = {"Authorization": f"Bearer {mint(identity)}"}
+        headers = {"X-Agent-Token": mint(identity)}
         async with streamablehttp_client(GATEWAY_URL, headers=headers) as (r, w, _):
             async with ClientSession(r, w) as s:
                 await s.initialize()
