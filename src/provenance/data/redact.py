@@ -19,12 +19,13 @@ from presidio_anonymizer.entities import OperatorConfig
 
 ENTITIES = ["PERSON", "EMAIL_ADDRESS", "IP_ADDRESS", "PHONE_NUMBER"]
 
-# The platform's own vocabulary, never redacted. The language model read the product
-# name "Security Onion" at the start of a summary as a person and erased it from two
+# The platform's own vocabulary, never redacted. The language model read "Suricata",
+# the sensor engine named at the start of a summary, as a person and erased it from two
 # evidence rows on the first full scan; every name here was added because a row showed
 # the need, per ADR-006, and each carries the row that proved it.
 ALLOW_LIST = [
-    "Security Onion",   # ev-0004, ev-0103: the sensor that raised the alert
+    "Suricata",         # ev-0004, ev-0103: the sensor engine that raised the alert
+    "Security Onion",
     "Nmap", "Trivy", "Grype", "Terraform", "Dagster", "SIEM", "Windrow", "Blackfork",
 ]
 PLACEHOLDERS = {"PERSON": "<PERSON>", "EMAIL_ADDRESS": "<EMAIL>", "IP_ADDRESS": "<IP>", "PHONE_NUMBER": "<PHONE>"}
