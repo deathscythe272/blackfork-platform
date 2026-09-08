@@ -37,13 +37,16 @@ flowchart LR
   REPO["Repo and supply chain<br><i>prompts, rails, deps, model pin</i>"] -->|"B6"| AGENT["Agent<br><i>same agent as Part 1</i>"]
   AGENT -.->|"B7, agents that act"| HOST["Host<br><i>commands, files, network</i>"]
   REPO -->|"B8"| CLOUD["Cloud project<br><i>records, identities, resources</i>"]
+  AGENT -->|"B9"| ANALYST["Risk Analyst<br><i>separate service, own key</i>"]
 ```
 
-Eight boundaries. B1 through B6 exist in the V1 slice today. B7 is drawn dashed because
+Nine boundaries. B1 through B6 exist in the V1 slice today. B7 is drawn dashed because
 no agent in the slice runs commands; it applies to the Pipeline Steward (roadmap phase
 7) and is modeled now so the sandbox is a requirement before the first such agent is
 built (C5). B8 exists from roadmap phase 6: the repository's automation can change the
-cloud project, so what may become which identity is a boundary in its own right.
+cloud project, so what may become which identity is a boundary in its own right. B9
+exists from phase 7 step 3: one agent hands another a finding across a real network
+and authentication boundary.
 
 ## How it works
 
@@ -68,6 +71,9 @@ cloud project, so what may become which identity is a boundary in its own right.
    a signed token from GitHub and is handed a cloud identity in return. What that
    identity may do, and which jobs may hold it, decides whether a pull request can
    change the running platform.
+9. **B9, agent to agent.** The agent service hands the Risk Analyst a finding over the
+   agent-to-agent protocol. The analyst has its own key and no reach into anything
+   else; what it can be told and what it can do with it are the boundary.
 
 Each boundary gets a STRIDE pass below. STRIDE is the six-part checklist used in
 threat modeling: spoofing, tampering, repudiation, information disclosure, denial of
@@ -165,6 +171,14 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | Tampering | Terraform records altered or deleted so the next apply does the wrong thing | Versioned bucket with public access prevented at the bucket; only the two deployers and the operator may write | T1-CI-03: versioning and public-access prevention verified on the bucket | Passing (verified on the bucket after bootstrap apply) |
 | Repudiation | A change to the cloud cannot be traced to a merged pull request | Apply runs only on `main`, from a workflow whose run URL is recorded with the plan; no human holds the apply identity | T1-CI-04: every apply maps to a run and a merge commit; the record is written beside the state by the apply job | Passing from the first apply on main (`.github/workflows/terraform.yml`) |
 
+### B9 — Agent to agent
+
+| STRIDE | Threat | Control in the design | Test | Status |
+|---|---|---|---|---|
+| Spoofing | Something other than the agent service asks the analyst for a verdict | The analyst admits only tokens signed with its own key, which the gateway's key is not; in the cloud only the agent service's identity may invoke it at the platform level as well | T1-A2A-01: no token and the gateway's token are both refused (`test_risk_analyst.py`) | Passing |
+| Elevation | A compromised analyst reaches the evidence door or the bucket | The analyst holds no identity in the gateway's policy, no gateway address, no bucket, and on Compose no route to any of them | T1-A2A-02: from the analyst's container the gateway does not resolve, and a token in the analyst's name is unknown at the door (`test_boundaries.py`) | Passing |
+| Tampering | Instructions inside the finding, a statement or a requirement, steer the verdict | The score is computed from facts about the evidence; text reaches only the explanation, which is checked to still name the given severity and score | T1-A2A-03: a planted instruction in the statement leaves severity and score unchanged (`test_risk_analyst.py`) | Passing |
+
 ### Test index
 
 | Test | Boundary | Where it lives today | Status |
@@ -185,9 +199,10 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | T1-EV-04 | B5 | `test_controls_mcp.py` (the instruction is served as data), `evals/cases.yaml` `poisoned-odp-value` (the agent ignores it) | Passing, local and cloud |
 | T1-SC-01 to T1-SC-04 | B6 | phase 4, phase 6 | Planned / gap |
 | T1-HX-01 to T1-HX-04 | B7 | phase 7 | Planned |
+| T1-A2A-01 to T1-A2A-03 | B9 | `test_risk_analyst.py`, `test_boundaries.py` | Passing |
 | T1-CI-01 to T1-CI-04 | B8 | `infra/modules/delivery-plane/`, `.github/workflows/terraform.yml` | Three passing, one planned |
 
-Count: 42 threat rows, 28 passing, 1 measured with mitigation upstream, 11 planned with a phase, 2 gaps named. The gaps are
+Count: 45 threat rows, 31 passing, 1 measured with mitigation upstream, 11 planned with a phase, 2 gaps named. The gaps are
 transport encryption between containers and dependency hash pinning; the audit
 chain's remaining weakness, removal of a whole tail, is noted on its row.
 

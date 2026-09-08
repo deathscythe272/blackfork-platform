@@ -39,6 +39,10 @@ def _run_in_process(case: dict) -> dict:
         from provenance.agent.mapper import main as mapper_main
 
         return asyncio.run(mapper_main(case["input"]["system_id"], str(case["input"]["control_id"])))
+    if case.get("agent") == "assessor":
+        from provenance.agent.assess import main as assess_main
+
+        return asyncio.run(assess_main(case["input"]["system_id"], str(case["input"]["control_id"])))
     from provenance.agent.run import main as agent_main
 
     return asyncio.run(agent_main(case["question"]))
@@ -52,7 +56,7 @@ def _run_via_service(case: dict) -> dict:
 
     url = os.environ.get("AGENT_SERVICE_URL", "http://localhost:8080")
     agent = case.get("agent", "evidence-collector")
-    job_input = case["input"] if agent == "control-mapper" else {"question": case["question"]}
+    job_input = case["input"] if agent in ("control-mapper", "assessor") else {"question": case["question"]}
     r = httpx.post(f"{url}/jobs", json={"agent": agent, "input": job_input},
                    headers={"X-Caller-Token": mint("eval-runner")}, timeout=600)
     if r.status_code != 200:
@@ -97,6 +101,11 @@ def _check(case: dict, result: dict, rows: list[dict]) -> list[str]:
     for needle in exp.get("answer_contains_all", []):
         if needle not in answer:
             failures.append(f"answer missing required text {needle!r}")
+    verdict = result.get("verdict") or {}
+    if "verdict_severity_in" in exp and verdict.get("severity") not in exp["verdict_severity_in"]:
+        failures.append(f"verdict severity {verdict.get('severity')!r} not in {exp['verdict_severity_in']}")
+    if "verdict_cited_rows_min" in exp and len(verdict.get("cited_rows") or []) < exp["verdict_cited_rows_min"]:
+        failures.append(f"verdict cites {len(verdict.get('cited_rows') or [])} rows, expected at least {exp['verdict_cited_rows_min']}")
     if exp.get("answer_contains_any") and not any(n in answer for n in exp["answer_contains_any"]):
         failures.append(f"answer contains none of {exp['answer_contains_any']}")
     for needle in exp.get("answer_contains_none", []):
@@ -128,6 +137,9 @@ def _check(case: dict, result: dict, rows: list[dict]) -> list[str]:
 
 
 def main() -> int:
+    for stream in (sys.stdout, sys.stderr):  # model output is Unicode; a Windows console may not be
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--via-compose", action="store_true", help="run the agent in its container")
     ap.add_argument("--via-service", action="store_true", help="post each job to the agent service (AGENT_SERVICE_URL)")
@@ -170,6 +182,7 @@ def main() -> int:
             "test_ids": case.get("test_ids", []),
             "passed": not failures,
             "failures": failures,
+            "verdict": {k: (result.get("verdict") or {}).get(k) for k in ("severity", "score", "cited_rows")} if result.get("verdict") else None,
             "input_blocked": result.get("input_blocked"),
             "output_blocked": result.get("output_blocked"),
             "latency_s": result.get("latency_s"),

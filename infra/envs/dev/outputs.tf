@@ -23,6 +23,10 @@ output "evidence_mcp_url" {
   value = module.context.evidence_mcp_url
 }
 
+output "risk_analyst_url" {
+  value = module.agent.risk_analyst_url
+}
+
 output "agent_service_url" {
   value = module.agent.agent_service_url
 }

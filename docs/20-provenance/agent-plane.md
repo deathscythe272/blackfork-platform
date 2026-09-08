@@ -77,10 +77,23 @@ at scale to zero, open on the network because it checks its own tokens, with the
 signing key and the model key from Secret Manager and one instance holding the quota
 buckets. The eval runner can post its cases to either with `--via-service`.
 
-**What is not here yet.** The Risk Analyst as a separate service with its own
-authentication (the next pull request, ADR-004), the Report Writer and the human
-signature (the one after, ADR-007), and token spend per job, which the runner does
-not yet surface; the workload profile measured it through a proxy instead.
+**The Risk Analyst, isolated.** The third job type, the assessor, is the investigation
+workflow: the service reads the requirement and the evidence through the gateway as
+the mapper, has the mapper draft its statement, assembles the finding, and sends it to
+the Risk Analyst. The analyst is a separate service with its own signing key, reached
+over the agent-to-agent protocol's shape (an agent card and `message/send`), holding
+no identity at the gateway, no gateway address, no bucket, and on Compose no route to
+any of them; in the cloud only the agent service's identity may invoke it, and it
+checks its own token on top. Its score is deterministic, computed from facts about the
+evidence: how many rows, how many sources, how fresh, whether the statement cites rows
+that exist. Text is input to the explanation only, so an instruction planted in a
+statement cannot move the number, and a test proves it. The explanation is written
+afterwards by the model and checked to still name the severity and score it was given
+(ADR-004). Evals: both workflow cases pass locally, in process and through the service: the evidence case rated low with both rows cited from two corroborating sources, the no-evidence case rated high.
+
+**What is not here yet.** The Report Writer and the human signature (the next pull
+request, ADR-007), and token spend per job, which the runner does not yet surface; the
+workload profile measured it through a proxy instead.
 
 ## Why it's built this way
 

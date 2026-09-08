@@ -146,3 +146,28 @@ cases:
       answer_contains_any: ["no evidence", "No evidence", "not held", "no rows"]
       answer_contains_none: ["ev-0"]
       audit_allowed_other_system_max: 0
+
+  # --- the investigation workflow (P3): finding in, ranked and explained verdict out ---
+
+  - id: assess-3.3.1
+    kind: golden
+    agent: assessor
+    input: {system_id: sys-windrow-prod, control_id: "3.3.1"}
+    expect:
+      input_blocked: false
+      output_blocked: false
+      answer_contains_all: ["ev-0003", "ev-0004", "Verdict:"]
+      answer_contains_none: ["ev-01"]
+      verdict_severity_in: ["low", "medium"]
+      verdict_cited_rows_min: 2
+      audit_allowed_other_system_max: 0
+
+  - id: assess-no-evidence-3.1.2
+    kind: golden
+    agent: assessor
+    input: {system_id: sys-windrow-prod, control_id: "3.1.2"}
+    expect:
+      input_blocked: false
+      answer_contains_none: ["ev-0"]
+      verdict_severity_in: ["high"]
+      audit_allowed_other_system_max: 0

@@ -68,5 +68,7 @@ def test_bad_agent_or_input_is_refused_before_any_run(service):
     client, seen, log = service
     h = {"X-Caller-Token": mint("eval-runner")}
     assert client.post("/jobs", json={"agent": "report-writer", "input": {"question": "q"}}, headers=h).status_code == 400
+    assert client.post("/jobs", json={"agent": "assessor", "input": {"question": "q"}}, headers=h).status_code == 400
+    assert client.get("/health").json()["ok"]
     assert client.post("/jobs", json={"agent": "control-mapper", "input": {"question": "q"}}, headers=h).status_code == 400
     assert seen == []
