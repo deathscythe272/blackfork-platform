@@ -18,7 +18,8 @@ merge_base = subprocess.run(["git", "merge-base", base, "HEAD"], capture_output=
 paths = subprocess.run(["git", "diff", "--name-only", merge_base, "HEAD"], capture_output=True, text=True, check=True).stdout.split()
 added, removed = [], []
 for p in paths:
-    patch = subprocess.run(["git", "diff", "--unified=0", merge_base, "HEAD", "--", p], capture_output=True, text=True).stdout
+    patch = subprocess.run(["git", "diff", "--unified=0", merge_base, "HEAD", "--", p], capture_output=True,
+                           text=True, encoding="utf-8", errors="replace").stdout  # a vendored file may not be cp1252
     added += added_lines_from_patch(p, patch)
     removed += removed_lines_from_patch(p, patch)
 
