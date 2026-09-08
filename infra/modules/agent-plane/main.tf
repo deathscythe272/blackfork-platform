@@ -18,3 +18,106 @@ resource "google_secret_manager_secret_iam_member" "collector_reads_model_key" {
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.evidence_collector.email}"
 }
+
+resource "google_secret_manager_secret_iam_member" "collector_reads_signing_key" {
+  secret_id = var.gateway_signing_key_secret
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.evidence_collector.email}"
+}
+
+# The agent service: agents as a service behind a signed-token door, a quota per
+# caller, a record per job. Open on the network because it checks its own tokens; its
+# only data door is the gateway. One instance holds the quota buckets.
+resource "google_cloud_run_v2_service" "agents" {
+  name                = "agents-${var.env}"
+  location            = var.region
+  ingress             = "INGRESS_TRAFFIC_ALL"
+  labels              = local.labels
+  deletion_protection = false
+
+  template {
+    service_account = google_service_account.evidence_collector.email
+    labels          = local.labels
+    timeout         = "600s"
+
+    scaling {
+      min_instance_count = 0
+      max_instance_count = 1
+    }
+
+    containers {
+      image   = "${var.image_registry}/agent:${var.image_tag}"
+      command = ["python", "-m", "provenance.agent_service.server"]
+
+      ports {
+        container_port = 8080
+      }
+
+      env {
+        name  = "AGENT_SERVICE_PORT"
+        value = "8080"
+      }
+      env {
+        name  = "GATEWAY_URL"
+        value = var.gateway_url
+      }
+      env {
+        name  = "AGENT_JOB_QUOTA"
+        value = "30" # jobs per caller per window (T1-IN-04)
+      }
+      env {
+        name  = "AGENT_JOB_WINDOW_SECONDS"
+        value = "3600"
+      }
+      env {
+        name  = "AGENT_JOBS_LOG"
+        value = "/tmp/jobs.jsonl" # per instance; the durable record is the gateway's audit trail
+      }
+      env {
+        name = "GATEWAY_SIGNING_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = var.gateway_signing_key_secret
+            version = "latest"
+          }
+        }
+      }
+      env {
+        name = "NVIDIA_API_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = var.nvidia_api_key_secret
+            version = "latest"
+          }
+        }
+      }
+
+      startup_probe {
+        tcp_socket {
+          port = 8080
+        }
+        initial_delay_seconds = 5
+        period_seconds        = 3
+        failure_threshold     = 40
+      }
+
+      resources {
+        limits            = { cpu = "1", memory = "2Gi" }
+        cpu_idle          = true
+        startup_cpu_boost = true
+      }
+    }
+  }
+
+  depends_on = [
+    google_secret_manager_secret_iam_member.collector_reads_model_key,
+    google_secret_manager_secret_iam_member.collector_reads_signing_key,
+  ]
+}
+
+resource "google_cloud_run_v2_service_iam_member" "agents_public" {
+  name     = google_cloud_run_v2_service.agents.name
+  location = var.region
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}

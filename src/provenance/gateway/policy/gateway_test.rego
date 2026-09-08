@@ -96,3 +96,31 @@ test_system_arg_cannot_open_a_catalog_tool if {
 		"args": {"system_id": "sys-windrow-prod", "control_id": "3.3.1"},
 	}
 }
+
+# --- the Control Mapper is its own identity with its own, narrower grant --------------
+
+test_mapper_may_read_evidence_and_controls_for_its_system if {
+	gateway.allow with input as {
+		"identity": "control-mapper",
+		"tool": "get_control",
+		"args": {"framework": "800-171", "control_id": "3.3.1"},
+	}
+	gateway.allow with input as {
+		"identity": "control-mapper",
+		"tool": "get_evidence",
+		"args": {"system_id": "sys-windrow-prod", "control_id": "3.3.1"},
+	}
+}
+
+test_mapper_has_no_row_lookup_and_no_search if {
+	gateway.reason == "tool not granted to identity" with input as {
+		"identity": "control-mapper",
+		"tool": "get_evidence_row",
+		"args": {"system_id": "sys-windrow-prod", "row_id": "ev-0003"},
+	}
+	not gateway.allow with input as {
+		"identity": "control-mapper",
+		"tool": "search_controls",
+		"args": {"framework": "800-171", "query": "logging"},
+	}
+}

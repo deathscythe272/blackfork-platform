@@ -20,7 +20,7 @@ package blackfork.gateway
 
 import rego.v1
 
-version := "2026-09-08.1"
+version := "2026-09-08.2"
 
 default allow := false
 
@@ -33,6 +33,14 @@ framework_tools := {"get_control", "list_family", "search_controls"}
 grants := {
 	"evidence-collector": {
 		"tools": {"list_controls", "get_evidence", "get_evidence_row", "get_control", "list_family", "search_controls"},
+		"systems": {"sys-windrow-prod"},
+		"frameworks": {"800-171"},
+	},
+	# the Control Mapper reads the same evidence and catalog for the same system; a
+	# separate identity so its calls are its own on the audit trail and its grant can
+	# diverge from the collector's without touching it
+	"control-mapper": {
+		"tools": {"list_controls", "get_evidence", "get_control", "list_family"},
 		"systems": {"sys-windrow-prod"},
 		"frameworks": {"800-171"},
 	},
