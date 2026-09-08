@@ -209,3 +209,16 @@ def test_harvest_parses_a_judge_comment_and_counts_by_adr_005():
     assert [f["id"] for f in s["open_findings"]] == ["R1-bbbbbb"]
     rendered = harvest.render({"harvested_at": "now", "pull_requests": report["pull_requests"], "summary": s})
     assert "R1-bbbbbb" in rendered and "vague" not in rendered  # finding text never reaches the page
+
+
+def test_rate_limits_wait_longer_than_other_faults():
+    from gatehouse.register import is_rate_limit, wait_before_retry
+
+    class Limited(Exception):
+        pass
+
+    rl = Limited("[429] Too Many Requests")
+    other = TimeoutError("read timed out")
+    assert is_rate_limit(rl) and not is_rate_limit(other)
+    assert [wait_before_retry(a, rl) for a in range(4)] == [20.0, 40.0, 60.0, 60.0]
+    assert [wait_before_retry(a, other) for a in range(3)] == [2.0, 4.0, 8.0]

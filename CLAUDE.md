@@ -132,7 +132,8 @@ in `scripts/check_pr_boundaries.py`, required check `boundaries`; R4 is human re
 the judge scores only R1 and R5. Pass 6: R1 clears every fixture threshold; R5 has one
 steer change on a borderline identifier; run success 0.68, all rate limits. The scoring
 harness gives each judge call its own trace file (a leaked exporter path had been
-failing later calls; pass 5's "timeouts" were mostly that). V1 slice runs locally under `src/provenance/`
+failing later calls; pass 5's "timeouts" were mostly that). The judge waits 20/40/60 s
+on a rate limit (five attempts). Live harvest: `python -m gatehouse.evals.harvest`. V1 slice runs locally under `src/provenance/`
 (evidence-mcp, gateway with OPA + audit, Evidence Collector on NAT with Guardrails,
 OTel, three evals passing; `scripts/demo.py`). Model: nvidia/nemotron-3.5-lightning-30b-a3b
 with `chat_template_kwargs.enable_thinking=false`. Phase 6 done (Terraform plan on PR, apply on main, keyless; gateway and evidence server on Cloud Run at scale to zero, agent token in X-Agent-Token, audit to Pub/Sub, budget alert): GCP project (by hand, billing linked) plus `infra/` bootstrap, plane modules, and the dev root; project id lives only in ignored tfvars and a repository variable. Public docs describe the safety and evaluation emphasis without naming job
@@ -140,9 +141,7 @@ requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. PR: judge retry waits longer on a rate limit (429) so run success measures the
-   endpoint, not a two-second backoff; then re-score. Serves: BR-9.
-2. First promotion decision, by PR, once an item has 20 live instances and meets every
+1. First promotion decision, by PR, once an item has 20 live instances and meets every
    ADR-005 threshold; R1 and R5 are the only candidates left in Lane 2. Live counts:
    `python -m gatehouse.evals.harvest` (rewrites the analysis page block).
-4. Phase 7 P1 data plane (Dagster, Iceberg on the lakehouse bucket, DuckDB, Presidio).
+2. Phase 7 P1 data plane (Dagster, Iceberg on the lakehouse bucket, DuckDB, Presidio).

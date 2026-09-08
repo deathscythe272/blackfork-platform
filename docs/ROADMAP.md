@@ -190,7 +190,9 @@ hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
    change); R4's remaining judgment went to human review. The judge keeps R1 and R5.
    Sixth pass under v1.4: both scripts exact on all sixteen fixtures; R1 clears every
    threshold; R5 shows one steer change on a borderline identifier; 26 of 80 calls
-   were rate limits (`docs/analysis/judge-precision.md`).
+   were rate limits. Seventh pass, judge waiting 20/40/60 s on a rate limit: R1 and
+   R5 at 1.00 precision and recall, zero steer changes, run success 0.93 on six
+   unparseable verdicts, no rate limits to absorb (`docs/analysis/judge-precision.md`).
 5. Promote any rubric item whose measured precision clears the ADR-005 threshold to
    blocking. The live half of the count is now harvested
    (`python -m gatehouse.evals.harvest`): every merged pull request's judge comment,
