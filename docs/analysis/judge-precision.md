@@ -88,24 +88,24 @@ comment and rewrites the block below; the file it writes is
 `src/gatehouse/gatehouse/evals/results/live.json`.
 
 <!-- live:start -->
-Harvested 2026-09-08T02:36:10+00:00 from 16 merged pull requests with a judge comment.
+Harvested 2026-09-08T23:11:20+00:00 from 28 merged pull requests with a judge comment.
 
 | Item | Counted since | Judged | Accepted (fixed) | Dismissed | Live precision | To 20 instances |
 |---|---|---|---|---|---|---|
-| R1 Diagram reads as one story | v1.2 | 12 | 0 | 0 | n/a | 8 |
+| R1 Diagram reads as one story | v1.2 | 24 | 0 | 0 | n/a | 0 |
 | R2 Walkthrough matches the diagram | retired from the judge | 0 | 0 | 0 | n/a | n/a |
 | R3 Requirement cited | retired from the judge | 0 | 0 | 0 | n/a | n/a |
 | R4 Threat-model change describes the boundary correctly | retired from the judge | 0 | 0 | 0 | n/a | n/a |
-| R5 No secrets or internal identifiers introduced | v1.2 | 5 | 0 | 1 | 0.00 | 15 |
+| R5 No internal identifiers introduced | v1.5 | 0 | 0 | 0 | n/a | 20 |
 | R6 New agent tools ship with a policy grant and an eval case | retired from the judge | 0 | 0 | 0 | n/a | n/a |
 
 Per rubric version (judged / fixed / dismissed / open):
 
-- R1: v1: 2/0/0/0; v1.1: 1/0/0/0; v1.2: 5/0/0/0; v1.3: 1/0/0/0; v1.4: 6/0/0/0
+- R1: v1: 2/0/0/0; v1.1: 1/0/0/0; v1.2: 5/0/0/0; v1.3: 1/0/0/0; v1.4: 17/0/0/0; v1.5: 1/0/0/0
 - R2: v1: 1/0/0/0; v1.1: 1/0/0/0; v1.2: 4/0/0/0
 - R3: v1: 2/0/0/0
 - R4: v1: 1/2/1/1; v1.1: 1/0/0/0; v1.2: 2/0/0/0
-- R5: v1: 3/0/0/1; v1.1: 1/0/0/0; v1.2: 1/0/0/0; v1.4: 4/0/1/0
+- R5: v1: 3/0/0/1; v1.1: 1/0/0/0; v1.2: 1/0/0/0; v1.4: 8/5/3/3
 - R6: v1: 1/2/2/1; v1.1: 1/0/0/0
 
 Unresolved findings on merged pull requests (count for nothing, listed so they do not hide):
@@ -113,6 +113,9 @@ Unresolved findings on merged pull requests (count for nothing, listed so they d
 - PR 12, `R4-3c6a9b` at `src/gatehouse/gatehouse/judge/fixtures/new-network-path-no-threat-model/pr.md:5`
 - PR 12, `R5-f2aa96` at `src/gatehouse/gatehouse/judge/fixtures/secret-in-compose/pr.md:3`
 - PR 12, `R6-4b221e` at `src/gatehouse/gatehouse/judge/fixtures/new-tool-no-grant/pr.md:5`
+- PR 36, `R5-6718ed` at `infra/modules/agent-plane/main.tf:89`
+- PR 36, `R5-96ada4` at `infra/modules/agent-plane/main.tf:80`
+- PR 37, `R5-01c8d4` at `docker-compose.yml:111`
 <!-- live:end -->
 
 **What the first harvest says.** R1 is eight judged pull requests short of twenty

@@ -104,7 +104,9 @@ def render(verdict: dict, rows: list[dict], rubric: dict, n_files: int) -> str:
     judged = [i for i in rubric["items"] if str(i.get("lane", 2)) == "2"]
     scripted = [i for i in rubric["items"] if str(i.get("lane")) == "1"]
     human = [i for i in rubric["items"] if i.get("lane") == "human"]
-    lines = [MARKER, f"### Gatehouse judge · rubric v{v} · advisory",
+    blocking_ids = sorted(blocking)
+    mode = f"{', '.join(blocking_ids)} blocking, the rest advisory" if blocking_ids else "advisory"
+    lines = [MARKER, f"### Gatehouse judge · rubric v{v} · {mode}",
              f"Checked {len(judged)} judgment items on {n_files} changed file(s); "
              f"{len(scripted)} exact-rule items run as scripts"
              + (f"; {len(human)} item(s) left to human review" if human else "") + ". "
@@ -142,6 +144,30 @@ def conclusion_for(rows: list[dict], rubric: dict) -> tuple[str, str]:
     if open_rows:
         return "neutral", f"{len(open_rows)} open advisory finding(s)"
     return "success", "no open findings"
+
+
+def publish_unavailable(gh: GitHub, number: int, head_sha: str | None, rubric_text: str, error: str) -> dict[str, Any]:
+    """The judge could not produce a verdict. ADR-005: advisory items fail open, blocking
+    items fail closed. With any blocking item in the rubric the check fails and the
+    merge waits; the comment says why, so a rerun is a click and not a mystery."""
+    rubric = yaml.safe_load(rubric_text)
+    blocking = sorted(i["id"] for i in rubric["items"] if i.get("blocking"))
+    v = str(rubric.get("version", "?"))
+    if blocking:
+        concl, summary = "failure", f"judge unavailable; {', '.join(blocking)} block until a verdict exists"
+    else:
+        concl, summary = "neutral", "judge unavailable; every item is advisory, the merge may proceed"
+    body = "\n".join([MARKER, f"### Gatehouse judge · rubric v{v} · unavailable",
+                      f"The judge could not run: `{error[:200]}`. {summary[0].upper() + summary[1:]}. "
+                      "Rerun the workflow to try again; nothing about the change is judged by this comment.",
+                      f"{STATE_MARKER}[]-->"])
+    gh.upsert_comment(number, body)
+    if head_sha:
+        try:
+            gh.check_run(head_sha, concl, f"Gatehouse judge · rubric v{v} · unavailable", summary)
+        except httpx.HTTPStatusError as e:
+            summary += f" (check run not created: HTTP {e.response.status_code})"
+    return {"conclusion": concl, "summary": summary}
 
 
 def publish(gh: GitHub, number: int, head_sha: str | None, verdict: dict, rubric_text: str, n_files: int) -> dict[str, Any]:
