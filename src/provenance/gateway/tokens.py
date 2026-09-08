@@ -31,6 +31,12 @@ def signing_key() -> str:
     return key
 
 
+# Clocks differ. The first deployed check failed on tokens minted one second in the
+# gateway's future; thirty seconds of leeway on iat and exp is the usual allowance and
+# changes nothing about who a token names.
+LEEWAY_SECONDS = 30
+
+
 def mint(identity: str, ttl_seconds: int = 3600, key: str | None = None) -> str:
     now = dt.datetime.now(dt.timezone.utc)
     claims = {
@@ -53,6 +59,7 @@ def verify(token: str, key: str | None = None) -> str:
             audience=AUDIENCE,
             issuer=ISSUER,
             options={"require": ["exp", "iat", "sub", "aud", "iss"]},
+            leeway=LEEWAY_SECONDS,
         )
     except jwt.PyJWTError as e:
         raise IdentityError(f"token rejected: {e.__class__.__name__}") from e
