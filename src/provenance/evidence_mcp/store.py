@@ -20,6 +20,7 @@ import pathlib
 from dataclasses import dataclass
 
 import duckdb
+import pyarrow as pa
 
 log = logging.getLogger("evidence-mcp")
 
@@ -40,6 +41,13 @@ def _load_gold(warehouse: str) -> Store | None:
         log.warning("no gold table at %s (%s); falling back to the baked fixture", warehouse, e)
         return None
     arrow = table.scan().to_arrow()
+    # Gold stores observed_at as an instant with a zone. Serve it as a plain UTC timestamp,
+    # the shape the baked fixture always had: DuckDB hands zoned values back only through
+    # an extra library the service image does not carry, which the first gold read in a
+    # container found out the hard way.
+    for i, field in enumerate(arrow.schema):
+        if pa.types.is_timestamp(field.type) and field.type.tz is not None:
+            arrow = arrow.set_column(i, field.name, arrow.column(i).cast(pa.timestamp(field.type.unit)))
     con = duckdb.connect(database=":memory:")
     con.register("gold_arrow", arrow)
     con.execute("CREATE TABLE evidence AS SELECT * FROM gold_arrow")

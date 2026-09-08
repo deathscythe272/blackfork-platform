@@ -104,6 +104,8 @@ def test_evidence_store_serves_gold_from_the_pointer_and_falls_back(warehouse, t
     wh = (warehouse["dir"] / "warehouse").as_uri()
     store = open_store({"LAKEHOUSE_WAREHOUSE": wh})
     assert store.source.startswith("gold:") and store.rows == 16
+    ts = store.con.execute("select observed_at from evidence order by observed_at limit 1").fetchone()[0]
+    assert ts.tzinfo is None and ts.year == 2026  # read back without any time-zone library
     summaries = "\n".join(r[0] for r in store.con.execute("select summary from evidence where control_id = '3.5.2'").fetchall())
     for planted in PLANTED:
         assert planted not in summaries
