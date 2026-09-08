@@ -135,7 +135,7 @@ harness gives each judge call its own trace file (a leaked exporter path had bee
 failing later calls; pass 5's "timeouts" were mostly that). V1 slice runs locally under `src/provenance/`
 (evidence-mcp, gateway with OPA + audit, Evidence Collector on NAT with Guardrails,
 OTel, three evals passing; `scripts/demo.py`). Model: nvidia/nemotron-3.5-lightning-30b-a3b
-with `chat_template_kwargs.enable_thinking=false`. Phase 6 F2 and F3 done (Terraform plan on PR, apply on main, keyless): GCP project (by hand, billing linked) plus `infra/` bootstrap, plane modules, and the dev root; project id lives only in ignored tfvars and a repository variable. Public docs describe the safety and evaluation emphasis without naming job
+with `chat_template_kwargs.enable_thinking=false`. Phase 6 done (Terraform plan on PR, apply on main, keyless; gateway and evidence server on Cloud Run at scale to zero, agent token in X-Agent-Token, audit to Pub/Sub, budget alert): GCP project (by hand, billing linked) plus `infra/` bootstrap, plane modules, and the dev root; project id lives only in ignored tfvars and a repository variable. Public docs describe the safety and evaluation emphasis without naming job
 requisitions. Repo is public on GitHub.
 
 ## Immediate queue
@@ -147,10 +147,4 @@ requisitions. Repo is public on GitHub.
    ADR-005 threshold; R1 and R5 are the only candidates left in Lane 2.
 3. PR: judge retry waits longer on a rate limit (429) so run success measures the
    endpoint, not a two-second backoff; then re-score. Serves: BR-9.
-4. PR B: Cloud Run services for the gateway (OPA sidecar, policy baked in) and the
-   evidence server (fixture DB baked in, invoker = gateway identity), scale to zero;
-   gateway signing key as a second secret (value added by the user from a shell);
-   images built and pushed on main before apply; budget alert; done when the laptop
-   eval runner passes 7/7 against the deployed gateway with AUDIT_SOURCE=pubsub.
-   Serves: BR-5, BR-7, BR-8, C4.
-5. Phase 7 P1 data plane (Dagster, Iceberg on the lakehouse bucket, DuckDB, Presidio).
+4. Phase 7 P1 data plane (Dagster, Iceberg on the lakehouse bucket, DuckDB, Presidio).

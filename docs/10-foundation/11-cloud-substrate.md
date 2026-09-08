@@ -47,10 +47,13 @@ flowchart LR
 4. **Environment root.** The `dev` root composes the modules and keeps its records in
    the bootstrap bucket. Automation plans it on every pull request and applies it after
    merge. A `demo` root will be the same modules with a different variable file.
-5. **Resources.** Today: a lakehouse bucket, a platform-events topic and its
-   subscription, one identity per service and agent, and an empty secret for the model
-   key whose value is added from a shell and never through code. The services that use
-   these identities arrive with the next steps of the roadmap.
+5. **Resources.** A lakehouse bucket, a platform-events topic and its subscription,
+   one identity per service and agent, two secrets whose values are added from a
+   shell and never through code, and two Cloud Run services at scale to zero: the
+   evidence server, which admits only the gateway's identity, and the gateway with the
+   policy engine as a sidecar, open on the network because it enforces its own
+   tokens. The apply job builds both images from the merged commit and records the
+   deployed tag beside the state, so a pull-request plan compares against what runs.
 6. **Labels.** Every resource carries `plane`, `system`, `env`, and `serves-br`, so a
    bill, a dashboard, or a search can be cut by layer, environment, or requirement.
 
@@ -91,8 +94,8 @@ exists to rotate, leak, or commit.
 |---|---|---|
 | Plan deployer | Read the project and its permission bindings; read and lock the records | A pull request must show its effect and change nothing |
 | Apply deployer | Manage Cloud Run, identities and their bindings, registry, secrets, topics, buckets | An environment root creates all of these; narrowed as the planes settle |
-| Gateway | Nothing beyond its own identity yet | Token check, policy decision, audit write need no cloud permission of their own |
-| Evidence server | Read the lakehouse bucket | Fixed queries over evidence, read only (ADR-003) |
+| Gateway | Publish to the platform-events topic; read its signing key; invoke the evidence server | Audit rows leave as events; tokens are checked against the key; the gateway is the only caller the evidence door admits |
+| Evidence server | Read the lakehouse bucket | Fixed queries over evidence, read only (ADR-003); today the rows are baked into its image |
 | Evidence Collector | Read the model-key secret | The agent's only cloud permission; its data path is the gateway |
 | Assurance reader | Read the platform-events subscription | Gate decisions and pipeline results become evidence |
 

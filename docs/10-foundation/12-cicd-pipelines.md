@@ -71,8 +71,11 @@ flowchart LR
   run log. Enough to approve effects; not enough to leak a value.
 - **Failure modes are chosen.** Every exact check and the plan job fail closed. The
   judge fails open while advisory and closes per item as promotion earns it (ADR-005).
-- **Not yet built.** Container images and Cloud Run rollouts arrive with the next
-  roadmap step. A `demo` environment deploys on a tagged release only, when it exists.
+- **Images.** The apply job builds the services image and the policy image from the
+  merged commit, pushes them tagged with that commit, applies with that tag, and
+  writes the tag beside the state. A pull request plans against the tag main last
+  deployed, so its plan shows only what the pull request changes.
+- **Not yet built.** A `demo` environment deploys on a tagged release only, when it exists.
   Pipeline runs as evidence rows in Provenance arrive with phase 7. Code ownership
   routing for `infra/` and `policy/` is a one-file change once a second reviewer
   exists.

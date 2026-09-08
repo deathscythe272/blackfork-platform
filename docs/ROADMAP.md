@@ -231,7 +231,7 @@ that builds this repo.
 **Done when:** both profiles have charts in the repo and each names at least one
 decision the data drove. Met.
 
-### Phase 6 — Cloud substrate and CI/CD, F2 and F3 (Serves: BR-5, C4) — in progress
+### Phase 6 — Cloud substrate and CI/CD, F2 and F3 (Serves: BR-5, C4) — done
 
 1. Done: F2. One project made by hand with billing linked. `infra/` holds a bootstrap
    root (records bucket, keyless identity pool locked to this repository, plan and
@@ -248,13 +248,18 @@ decision the data drove. Met.
    from Secret Manager. Two pull requests: (a) done, the gateway learns the cloud
    without infrastructure change: audit sink to the platform-events topic, signed
    identity to the evidence server, eval runner reading the subscription, all behind
-   settings that stay off on the laptop, nine unit tests; (b) the services deploy,
-   images built on main, done when the eval runner on a laptop passes all seven cases
-   against the deployed gateway.
-4. Any cost above free tier is flagged before it is applied.
+   settings that stay off on the laptop, nine unit tests; (b) done, the services
+   deploy: evidence server admitting only the gateway's identity, gateway with the
+   policy sidecar, signing key in Secret Manager, images built on main; the deployed
+   check closes T1-EV-01, T1-GW-01, T1-GW-02 against the live services and the eval
+   runner from a laptop: six of seven on each of three full runs, the seventh always the same case, always an empty model completion under the free tier's rate limit, which passed when run alone; the laptop stack scored five of seven the same evening with the identical signature; containment held in every run, with no foreign allowed row and every hostile case blocked or denied. One finding on the way: the cloud
+   front door rejects any non-Google bearer token, so the agent token moved to its own
+   header.
+4. Done: a budget alert at five dollars a month with alerts at half, ninety percent,
+   and full; everything declared scales to zero or is free at this volume.
 
 **Done when:** a PR shows a Terraform plan, `main` applies it, and the deployed gateway
-answers the Phase 2 eval.
+answers the Phase 2 eval. Status: all three met.
 
 ### Phase 7 — Widen Provenance, P1–P5 (Serves: BR-1, BR-2, BR-5, BR-7)
 
