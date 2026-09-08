@@ -124,3 +124,13 @@ test_mapper_has_no_row_lookup_and_no_search if {
 		"args": {"framework": "800-171", "query": "logging"},
 	}
 }
+
+# --- the Risk Analyst holds no grant at all; that absence is the boundary (ADR-004) ---
+
+test_risk_analyst_is_unknown_at_the_door if {
+	gateway.reason == "unknown identity" with input as {
+		"identity": "risk-analyst",
+		"tool": "get_evidence",
+		"args": {"system_id": "sys-windrow-prod", "control_id": "3.3.1"},
+	}
+}

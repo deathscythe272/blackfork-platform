@@ -1,15 +1,16 @@
 """The agent service: agents as a service behind a signed-token door, with a quota per
 caller and a record per job.
 
-  POST /jobs   {"agent": "evidence-collector" | "control-mapper", "input": {...}}
+  POST /jobs   {"agent": "evidence-collector" | "control-mapper" | "assessor", "input": {...}}
                header X-Caller-Token: a token for the caller's identity, signed with the
                same key the gateway trusts. The service verifies it, applies the
                caller's quota (T1-IN-04), mints a short-lived token for the agent's own
                identity, runs the job with its rails, and records it.
-  GET  /healthz
+  GET  /health   (not /healthz: the cloud's front door reserves that path and answers it itself)
 
-Inputs: the Evidence Collector takes {"question": ...}; the Control Mapper takes
-{"system_id": ..., "control_id": ...}. The caller's identity and the agent's identity
+Inputs: the Evidence Collector takes {"question": ...}; the Control Mapper and the
+assessor take {"system_id": ..., "control_id": ...}. The assessor is the investigation
+workflow: the mapper's statement plus the Risk Analyst's verdict, reached over A2A. The caller's identity and the agent's identity
 are different tokens on purpose: a caller may ask for a job, but only the agent's
 identity is granted tools at the door, and only for the length of one job.
 
@@ -37,7 +38,7 @@ from starlette.routing import Route
 from provenance.gateway.ratelimit import Limiter
 from provenance.gateway.tokens import IdentityError, mint, verify
 
-AGENTS = ("evidence-collector", "control-mapper")
+AGENTS = ("evidence-collector", "control-mapper", "assessor")
 JOB_TOKEN_TTL_S = 900
 
 Runner = Callable[[str, dict[str, Any], str], Awaitable[dict[str, Any]]]
@@ -49,6 +50,10 @@ async def default_runner(agent: str, job_input: dict[str, Any], token: str) -> d
         from provenance.agent.mapper import main as mapper_main
 
         return await mapper_main(str(job_input["system_id"]), str(job_input["control_id"]), token=token)
+    if agent == "assessor":
+        from provenance.agent.assess import main as assess_main
+
+        return await assess_main(str(job_input["system_id"]), str(job_input["control_id"]), token=token)
     from provenance.agent.run import main as run_main
 
     return await run_main(str(job_input["question"]), agent=agent, token=token)
@@ -59,7 +64,7 @@ def validate_input(agent: str, job_input: Any) -> str | None:
         return f"unknown agent; known: {list(AGENTS)}"
     if not isinstance(job_input, dict):
         return "input must be an object"
-    need = ("system_id", "control_id") if agent == "control-mapper" else ("question",)
+    need = ("system_id", "control_id") if agent in ("control-mapper", "assessor") else ("question",)
     missing = [k for k in need if not str(job_input.get(k, "")).strip()]
     return f"input needs {', '.join(need)}" if missing else None
 
@@ -118,7 +123,8 @@ def build_app(runner: Runner = default_runner, env: dict[str, str] | None = None
             return JSONResponse({"error": f"quota: over {quota.limit} jobs per {quota.window_s:.0f}s for this caller",
                                  "retry_after_s": verdict.retry_after_s}, status_code=429)
 
-        agent_token = mint(agent, ttl_seconds=JOB_TOKEN_TTL_S)  # the agent's own identity, for this job only
+        # the agent's own identity, for this job only; the assessor works as the mapper at the door
+        agent_token = mint("control-mapper" if agent == "assessor" else agent, ttl_seconds=JOB_TOKEN_TTL_S)
         try:
             result = await runner(agent, job_input, agent_token)
             status = "ok" if not result.get("error") else "agent error"
@@ -131,7 +137,7 @@ def build_app(runner: Runner = default_runner, env: dict[str, str] | None = None
         log.write(record)
         return JSONResponse({"job_id": job_id, "agent": agent, "caller": caller, "status": status, **result})
 
-    return Starlette(routes=[Route("/healthz", healthz), Route("/jobs", jobs, methods=["POST"])])
+    return Starlette(routes=[Route("/health", healthz), Route("/jobs", jobs, methods=["POST"])])
 
 
 app = build_app()

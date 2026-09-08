@@ -298,8 +298,11 @@ answers the Phase 2 eval. Status: all three met.
    ADR-004, and ADR-007 on human sign-off. Three pull requests: (a) done, agents as
    a service with a quota per caller and a job-long token per agent identity, and the
    Control Mapper with its own narrower grant; both mapper cases pass locally, in process and through the service, after two findings on the way: the evidence door had to accept the catalog's numbering, and the mapper's prompt had to name its four tools so it stops probing the one it lacks
-   (`docs/20-provenance/agent-plane.md`); (b) the Risk Analyst as a separate service,
-   ADR-004; (c) the Report Writer and human sign-off, ADR-007.
+   (`docs/20-provenance/agent-plane.md`); (b) done, the Risk Analyst as a separate
+   service with its own key over the A2A shape, no grant at the door, a deterministic
+   score that text cannot move, and the assessor job that composes mapper and analyst
+   into finding-in, verdict-out; both workflow cases pass locally, in process and through the service: the evidence case rated low with both rows cited from two corroborating sources, the no-evidence case rated high; ADR-004 accepted; boundary B9 with three
+   passing rows; (c) the Report Writer and human sign-off, ADR-007.
 4. P4 assurance plane: NeMo Retriever with Milvus, scheduled Garak and output-safety
    runs, and an eval harness that re-scores every agent on every change.
 5. P5 Pipeline Steward: the on-failure agent that diagnoses a broken Dagster job and

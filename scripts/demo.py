@@ -48,7 +48,8 @@ def write_env() -> dict:
 
     signing = secrets.token_urlsafe(48)
     token = mint("evidence-collector", ttl_seconds=8 * 3600, key=signing)
-    values = {"NVIDIA_API_KEY": api_key(), "GATEWAY_SIGNING_KEY": signing, "GATEWAY_TOKEN": token}
+    values = {"NVIDIA_API_KEY": api_key(), "GATEWAY_SIGNING_KEY": signing, "GATEWAY_TOKEN": token,
+              "RISK_SIGNING_KEY": secrets.token_urlsafe(48)}  # the analyst's own key, never the gateway's
     ENV_FILE.write_text("".join(f"{k}={v}\n" for k, v in values.items()), encoding="utf-8")
     print(f"wrote {ENV_FILE.name} (fresh signing key, agent token valid 8h)")
     return values

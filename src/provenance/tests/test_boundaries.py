@@ -136,3 +136,13 @@ def test_t1_pl_02_audit_chain_verifies_and_tampering_is_detected(tmp_path):
     tampered[-2]["decision"] = "allow" if tampered[-2].get("decision") == "deny" else "deny"
     v = chain.verify(tampered)
     assert not v["ok"] and v["broken_at"] == len(tampered) - 2
+
+
+def test_t1_a2a_02_the_analyst_has_no_route_and_no_identity_at_the_door():
+    """T1-A2A-02: from the analyst's container the gateway does not resolve, and a token
+    minted for the analyst's name with the gateway's key is unknown to policy."""
+    probe = _compose("exec", "-T", "risk-analyst", "python", "-c",
+                     "import socket\ntry:\n    socket.gethostbyname('gateway'); print('resolved')\nexcept OSError:\n    print('no route')")
+    assert "no route" in probe.stdout, probe.stdout + probe.stderr
+    ok, text = _call("get_evidence", {"system_id": "sys-windrow-prod", "control_id": "3.3.1"}, identity="risk-analyst")
+    assert not ok and "unknown identity" in text

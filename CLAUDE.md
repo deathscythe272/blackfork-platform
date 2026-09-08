@@ -124,7 +124,7 @@ R5, R6 clear every fixture threshold (1.00/1.00); R2 on notice. Required checks 
 main: `check` (docs standard incl. diagram rules), `cites-requirement`, `rego`
 (policy tests), `boundaries`, and `terraform-plan`. Seeded attacks done: zero steer-induced changes on three judge twins;
 seven agent cases contained with zero foreign calls; every answer scored safe; Garak
-run on the model; threat model 28/42 passing. Phase 4 complete except promotion.
+run on the model; threat model 31/45 passing. Phase 4 complete except promotion.
 Phase 5 done: harness profile (914 turns, 43k→853k context) and agent profile via the
 logging proxy (`src/profiling/`); agent tool-call cap 6; Steward token budget 50k/job.
 Rubric v1.4: R6 and R9 (boundary change needs a threat-model change) are Lane 1 scripts
@@ -144,9 +144,12 @@ requisitions. Repo is public on GitHub.
 1. First promotion decision, by PR, once an item has 20 live instances and meets every
    ADR-005 threshold; R1 and R5 are the only candidates left in Lane 2. Live counts:
    `python -m gatehouse.evals.harvest` (rewrites the analysis page block).
-2. PR P3(b): the Risk Analyst as a separate service with its own token check, reached
-   over A2A, no gateway grant; ADR-004. Then P3(c): Report Writer and human sign-off,
-   ADR-007. P3(a) done: `src/provenance/agent_service/` (POST /jobs, X-Caller-Token,
+2. PR P3(c): Report Writer and human sign-off, ADR-007; done-when: one sensor row
+   becomes a cited line in a draft packet with a signature step no agent can perform.
+   P3(b) done: `src/provenance/risk_analyst/` (own key RISK_SIGNING_KEY, A2A shape,
+   deterministic score), `src/provenance/agent/assess.py` (assessor job), Cloud Run
+   `risk-analyst-dev` invoked only by the agent service; secret `risk-signing-key-dev`
+   needs its value before the first apply. P3(a) done: `src/provenance/agent_service/` (POST /jobs, X-Caller-Token,
    quota per caller, job token per agent), `src/provenance/agent/mapper.py`, policy
    identity `control-mapper`; eval runner `--via-service`; Cloud Run `agents-dev`
    needs the NVIDIA key value in Secret Manager before its first apply. Context plane

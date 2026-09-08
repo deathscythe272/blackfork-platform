@@ -95,12 +95,26 @@ services:
       AGENT_JOB_QUOTA: "30"            # jobs per caller per window (T1-IN-04)
       AGENT_JOB_WINDOW_SECONDS: "3600"
       AGENT_JOBS_LOG: /jobs/jobs.jsonl
+      RISK_ANALYST_URL: http://risk-analyst:8090   # over the analysis network; the analyst sees nothing else
+      RISK_SIGNING_KEY: ${RISK_SIGNING_KEY}          # as the analyst's client
     volumes:
       - ./jobs:/jobs
     ports: ["8080:8080"]
-    depends_on: [gateway, otel-collector]
-    networks: [edge]
+    depends_on: [gateway, otel-collector, risk-analyst]
+    networks: [edge, analysis]
     labels: {plane: agent, system: provenance, env: dev, serves-br: "BR-3,BR-7,BR-8"}
+
+  risk-analyst:
+    build: {context: ./src, dockerfile: Dockerfile.agent}
+    command: ["python", "-m", "provenance.risk_analyst.server"]
+    environment:
+      RISK_SIGNING_KEY: ${RISK_SIGNING_KEY}  # its own key, not the gateway's
+      RISK_EXPLAIN: model
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY}
+      NIM_BASE_URL: ${NIM_BASE_URL:-https://integrate.api.nvidia.com/v1}
+    ports: ["8090:8090"]           # for the in-process eval runner on the host
+    networks: [analysis, egress]   # the agent service and the model endpoint; no gateway, no evidence, no policy engine
+    labels: {plane: agent, system: provenance, env: dev, serves-br: "BR-3,BR-8"}
 
   dagster:
     build: {context: ./src, dockerfile: Dockerfile.data}
@@ -119,3 +133,6 @@ networks:
   core:
     internal: true
   edge: {}
+  analysis:
+    internal: true   # agent service <-> risk analyst only
+  egress: {}         # the analyst's path to the model endpoint, and nothing on the platform
