@@ -133,6 +133,8 @@ def test_boundary_rule_skips_docs_hyperlinks_and_test_data():
     rules = importlib.util.module_from_spec(spec); spec.loader.exec_module(rules)
     link = [("docs/01-business-case.md", 3, "See https://www.nist.gov/ for the catalog.")]
     assert rules.boundary_rule(["docs/01-business-case.md"], link) == []
+    prose = [("docs/analysis/judge-precision.md", 9, "The diff adds PUBSUB_URL and a service; the judge flagged it.")]
+    assert rules.boundary_rule(["docs/analysis/judge-precision.md"], prose) == []  # a page quoting a name is not a boundary
     fixture = [("src/gatehouse/gatehouse/judge/fixtures/x/server.py", 1, "@mcp.tool()")]
     assert rules.tool_rule([fixture[0][0]], fixture) == [] and rules.boundary_rule([fixture[0][0]], fixture) == []
     real = [("src/provenance/evidence_mcp/server.py", 40, "@mcp.tool()")]
@@ -176,3 +178,34 @@ def test_parser_gates_close_items_with_no_signal():
     assert r5["verdict"] == "not_applicable" and v["findings"] == [] and "R5" in v["gated_off"]
     b2 = gather.from_fixture(FIXTURES / "secret-in-compose")
     assert "R5" not in prompt.gated_off(b2["signals"])
+
+
+def test_harvest_parses_a_judge_comment_and_counts_by_adr_005():
+    from gatehouse.evals import harvest
+    body = (
+        "<!-- gatehouse-judge -->\n### Gatehouse judge · rubric v1.4 · advisory\n"
+        "| Item | Verdict | Note |\n|---|---|---|\n"
+        "| R1 Diagram reads as one story | pass | fine |\n"
+        "| R5 No secrets or internal identifiers introduced | **fail** | hit |\n\n"
+        "| ID | Status | Sev | Where | Finding | Fix |\n|---|---|---|---|---|---|\n"
+        "| `R5-24e9ca` | dismissed by @jeff: references the secret by name | high | `infra/x.tf`:164 | a secret ref | none |\n"
+        "| `R5-aaaaaa` | fixed | high | `src/y.py`:3 | a real key | rotate |\n"
+        "| `R1-bbbbbb` | open | low | `docs/z.md` | vague | fix |\n"
+    )
+    parsed = harvest.parse_comment(body)
+    assert parsed["rubric_version"] == "1.4"
+    assert parsed["items"] == {"R1": "pass", "R5": "fail"}
+    assert [(f["item"], f["status"]) for f in parsed["findings"]] == [("R5", "dismissed"), ("R5", "fixed"), ("R1", "open")]
+    assert parsed["findings"][0]["reason"] == "references the secret by name"
+    report = {"pull_requests": [{"pr": 25, "merged_at": "2026-09-08", "title": "t", **parsed},
+                                {"pr": 9, "merged_at": "2026-09-01", "title": "old", "rubric_version": "1.1",
+                                 "items": {"R1": "pass", "R5": "n/a"}, "findings": []}]}
+    s = harvest.summarize(report)
+    r5 = s["items"]["R5"]
+    assert r5["judged"] == 1 and r5["accepted"] == 1 and r5["dismissed"] == 1 and r5["live_precision"] == 0.5
+    r1 = s["items"]["R1"]
+    assert r1["judged"] == 1  # the v1.1 pass predates the current wording and is not counted
+    assert r1["by_version"]["1.1"]["judged"] == 1 and r1["instances_needed"] == 19
+    assert [f["id"] for f in s["open_findings"]] == ["R1-bbbbbb"]
+    rendered = harvest.render({"harvested_at": "now", "pull_requests": report["pull_requests"], "summary": s})
+    assert "R1-bbbbbb" in rendered and "vague" not in rendered  # finding text never reaches the page

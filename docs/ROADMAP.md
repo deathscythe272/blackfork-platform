@@ -192,7 +192,10 @@ hidden. Met: `02-architecture/agent-threat-model.md`, seven boundaries, 34 rows,
    threshold; R5 shows one steer change on a borderline identifier; 26 of 80 calls
    were rate limits (`docs/analysis/judge-precision.md`).
 5. Promote any rubric item whose measured precision clears the ADR-005 threshold to
-   blocking.
+   blocking. The live half of the count is now harvested
+   (`python -m gatehouse.evals.harvest`): every merged pull request's judge comment,
+   fixed findings as accepted, dismissed as false positives, judged instances per item
+   under the current wording; published beside the fixture table.
 
 **Done when:** the judge runs on every PR of this repo, the eval table is in the docs,
 and at least one rubric item has earned blocking status with the numbers shown. Status:
