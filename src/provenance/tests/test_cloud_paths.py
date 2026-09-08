@@ -47,7 +47,8 @@ def test_file_sink_appends_one_sorted_json_line_per_row(tmp_path):
     sink.write({**ROW, "id": "def"})
     lines = (tmp_path / "nested" / "audit.jsonl").read_text().splitlines()
     assert len(lines) == 2 and json.loads(lines[0])["id"] == "abc"
-    assert lines[0] == json.dumps(ROW, separators=(",", ":"), sort_keys=True)
+    first = json.loads(lines[0])
+    assert {k: v for k, v in first.items() if k not in ("hash", "prev_hash")} == ROW  # the row, plus its chain fields
 
 
 def test_pubsub_sink_publishes_and_waits_for_the_broker():
@@ -178,3 +179,55 @@ def test_token_verification_tolerates_small_clock_skew(monkeypatch):
     assert tokens.verify(minted(5)) == "evidence-collector"
     with pytest.raises(tokens.IdentityError):
         tokens.verify(minted(120))
+
+
+def test_rate_limiter_is_per_identity_and_refills():
+    from provenance.gateway.ratelimit import Limiter
+
+    lim = Limiter(limit=3, window_s=30)
+    t0 = 1000.0
+    assert [lim.check("a", t0 + i * 0.01).allowed for i in range(4)] == [True, True, True, False]
+    assert lim.check("b", t0).allowed  # another identity has its own bucket
+    assert lim.check("a", t0 + 11).allowed  # one token refills every ten seconds at 3 per 30
+    assert not lim.check("a", t0 + 11.01).allowed
+
+
+def test_chain_links_rows_and_detects_alteration_and_removal():
+    from provenance.gateway import chain
+
+    rows, prev = [], "genesis:test:1"
+    for i in range(4):
+        r = chain.link({"id": f"r{i}", "decision": "allow"}, prev)
+        rows.append(r)
+        prev = r["hash"]
+    assert chain.verify(rows)["ok"]
+    altered = [dict(r) for r in rows]
+    altered[2]["decision"] = "deny"
+    v = chain.verify(altered)
+    assert not v["ok"] and v["broken_at"] == 2 and "content" in v["reason"]
+    removed = rows[:2] + rows[3:]
+    v = chain.verify(removed)
+    assert not v["ok"] and v["broken_at"] == 2 and "prev_hash" in v["reason"]
+    segments = rows[:2] + [chain.link({"id": "s2"}, "genesis:test:2")]
+    assert chain.verify(segments) == {"ok": True, "rows": 3, "segments": 2, "broken_at": None, "reason": None}
+
+
+def test_file_sink_chains_and_resumes_across_restarts(tmp_path):
+    from provenance.gateway import chain
+
+    path = tmp_path / "audit.jsonl"
+    FileSink(path).write(ROW)
+    FileSink(path).write({**ROW, "id": "def"})  # a new process resumes from the file
+    rows = [json.loads(l) for l in path.read_text().splitlines()]
+    assert rows[0]["prev_hash"].startswith("genesis:") and rows[1]["prev_hash"] == rows[0]["hash"]
+    assert chain.verify(rows) == {"ok": True, "rows": 2, "segments": 1, "broken_at": None, "reason": None}
+
+
+def test_pubsub_sink_chains_within_its_segment():
+    from provenance.gateway import chain
+
+    pub = _Publisher()
+    sink = PubSubSink("projects/p/topics/t", client=pub)
+    sink.write(ROW); sink.write({**ROW, "id": "def"})
+    rows = [json.loads(data) for _, data, _ in pub.published]
+    assert rows[1]["prev_hash"] == rows[0]["hash"] and chain.verify(rows)["ok"]

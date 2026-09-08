@@ -95,3 +95,44 @@ def test_t1_pl_03_gateway_fails_closed_without_opa():
         time.sleep(2)
     ok, _ = _call("list_controls", {"system_id": "sys-windrow-prod"})
     assert ok
+
+
+def test_t1_gw_05_a_flood_from_one_identity_is_refused_and_others_are_not():
+    """T1-GW-05: over the per-identity limit the gateway refuses with 'rate limited' and
+    audits it; a different identity is judged on its own terms (here: unknown to policy)."""
+    limit = int(os.environ.get("GATEWAY_RATE_LIMIT", "120"))
+
+    async def burst() -> str | None:
+        # one session, many calls: a real loop does not re-handshake, and the burst must
+        # outpace the bucket's refill, which a per-call handshake would not
+        headers = {"X-Agent-Token": mint("evidence-collector")}
+        async with streamablehttp_client(GATEWAY_URL, headers=headers) as (r, w, _):
+            async with ClientSession(r, w) as s:
+                await s.initialize()
+                for _ in range(limit + limit // 2 + 10):
+                    res = await s.call_tool("list_controls", {"system_id": "sys-windrow-prod"})
+                    text = "; ".join(getattr(c, "text", "") for c in res.content)
+                    if res.isError and "rate limited" in text:
+                        return text
+        return None
+
+    refused = asyncio.run(burst())
+    assert refused, "the flood was never refused"
+    ok, text = _call("list_controls", {"system_id": "sys-windrow-prod"}, identity="someone-else")
+    assert not ok and "unknown identity" in text and "rate limited" not in text
+    rows = [json.loads(l) for l in AUDIT_LOG.read_text(encoding="utf-8").splitlines() if l.strip()]
+    assert any(r.get("reason") == "rate limited" and r.get("identity") == "evidence-collector" for r in rows[-(limit * 2):])
+
+
+def test_t1_pl_02_audit_chain_verifies_and_tampering_is_detected(tmp_path):
+    """T1-PL-02: the live audit file verifies end to end; an altered copy breaks at the row."""
+    from provenance.gateway import chain
+
+    rows = [json.loads(l) for l in AUDIT_LOG.read_text(encoding="utf-8").splitlines() if l.strip()]
+    chained = [r for r in rows if r.get("hash")]
+    assert len(chained) >= 2
+    assert chain.verify(chained)["ok"]
+    tampered = [dict(r) for r in chained]
+    tampered[-2]["decision"] = "allow" if tampered[-2].get("decision") == "deny" else "deny"
+    v = chain.verify(tampered)
+    assert not v["ok"] and v["broken_at"] == len(tampered) - 2

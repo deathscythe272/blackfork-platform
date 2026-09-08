@@ -95,9 +95,11 @@ not granted", then corrected itself. Containment held; the tool descriptions now
 the framework id exactly so the agent has nothing to guess, and the case is rerun.
 
 **What is not here yet.** A second framework (the SOC 2 criteria are not published in
-an open machine-readable form; a vendored mapping is the likely route), the gateway's
-remaining threat-model gaps (per-identity rate limits and the audit hash chain, the
-next pull request), and control-to-evidence mapping as an agent task (phase 7 step 3).
+an open machine-readable form; a vendored mapping is the likely route), a caller quota
+at the agent, which needs the agent to be a service (phase 7 step 3), and
+control-to-evidence mapping as an agent task (phase 7 step 3). The gateway's own gaps,
+the per-identity rate limit and the audit hash chain, are closed; `v1-slice.md` has
+the detail.
 
 ## Why it's built this way
 
