@@ -52,7 +52,7 @@ def _query(sql: str, params: list[Any]) -> list[dict[str, Any]]:
 
 @mcp.tool()
 def get_control(framework: str, control_id: str) -> dict[str, Any] | None:
-    """One control's statement, guidance, and assessment objectives. Accepts `3.3.1` or `03.03.01`."""
+    """One control's statement, guidance, and assessment objectives. framework is the id, exactly "800-171"; control_id accepts `3.3.1` or `03.03.01`."""
     rows = _query(
         "SELECT framework, revision, control_id, legacy_id, family, title, status, statement, guidance, objectives "
         "FROM controls WHERE framework = ? AND control_id = ?",
@@ -63,7 +63,7 @@ def get_control(framework: str, control_id: str) -> dict[str, Any] | None:
 
 @mcp.tool()
 def list_family(framework: str, family_id: str) -> list[dict[str, Any]]:
-    """The controls in one family (for example `03.03`, Audit and Accountability), with status."""
+    """The controls in one family (for example `03.03`, Audit and Accountability), with status. framework is the id, exactly "800-171"."""
     return _query(
         "SELECT control_id, legacy_id, title, status FROM controls WHERE framework = ? AND family_id = ? ORDER BY control_id",
         [_framework(framework), normalize_id(family_id)],
@@ -72,7 +72,7 @@ def list_family(framework: str, family_id: str) -> list[dict[str, Any]]:
 
 @mcp.tool()
 def search_controls(framework: str, query: str, limit: int = 10) -> list[dict[str, Any]]:
-    """Active controls whose title or statement contains the words given, most relevant first."""
+    """Active controls whose title or statement contains the words given. framework is the id, exactly "800-171"."""
     limit = max(1, min(int(limit), 25))
     words = [w.lower() for w in query.split() if len(w) > 2][:6]
     if not words:
