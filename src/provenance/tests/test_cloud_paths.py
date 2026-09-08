@@ -155,3 +155,26 @@ def test_pubsub_source_drains_on_mark_then_collects_and_dedupes():
 def test_source_from_env_refuses_half_configuration():
     with pytest.raises(ValueError):
         source_from_env({"AUDIT_SOURCE": "pubsub"})
+
+
+def test_token_verification_tolerates_small_clock_skew(monkeypatch):
+    """A token minted on a laptop a second ahead of the gateway's clock must verify;
+    one minted well into the future must not."""
+    import datetime as dt
+
+    import jwt
+
+    from provenance.gateway import tokens
+
+    key = "k" * 40
+    monkeypatch.setenv("GATEWAY_SIGNING_KEY", key)
+
+    def minted(seconds_ahead: int) -> str:
+        now = dt.datetime.now(dt.timezone.utc) + dt.timedelta(seconds=seconds_ahead)
+        claims = {"iss": tokens.ISSUER, "aud": tokens.AUDIENCE, "sub": "evidence-collector",
+                  "iat": int(now.timestamp()), "exp": int((now + dt.timedelta(hours=1)).timestamp())}
+        return jwt.encode(claims, key, algorithm=tokens.ALGO)
+
+    assert tokens.verify(minted(5)) == "evidence-collector"
+    with pytest.raises(tokens.IdentityError):
+        tokens.verify(minted(120))

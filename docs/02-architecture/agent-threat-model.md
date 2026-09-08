@@ -106,7 +106,7 @@ control yet, or the control exists with no test, and the row says which.
 
 | STRIDE | Threat | Control in the design | Test | Status |
 |---|---|---|---|---|
-| Spoofing | A forged or replayed token acts as the Evidence Collector | Signed tokens with issuer, audience, and expiry; unknown or invalid tokens are refused before policy runs | T1-GW-01: forged token rejected and audited (`smoke.py`; `deployed_check.py` against the cloud gateway) | Passing, laptop and cloud |
+| Spoofing | A forged or replayed token acts as the Evidence Collector | Signed tokens with issuer, audience, and expiry, verified with thirty seconds of clock leeway; unknown or invalid tokens are refused before policy runs | T1-GW-01: forged token rejected and audited (`smoke.py`; `deployed_check.py` against the cloud gateway) | Passing, laptop and cloud |
 | Tampering | Arguments altered in transit, or a tool name that does not exist | Tool schema validation by the Model Context Protocol (MCP) server layer; transport is plain HTTP inside a private Compose network today | T1-GW-02: off-schema calls refused | Passing for schema; **gap** for transport (no TLS between containers; phase 6 adds mutual TLS) |
 | Repudiation | A call cannot later be tied to an identity and a decision | Audit row per call, denies included, with identity, tool, arguments, decision, policy version, timestamp | T1-GW-03: every eval call appears in the audit log with its decision | Passing, asserted by the eval runner on every case |
 | Information disclosure | The gateway logs payloads or results | Gateway logs decisions, not results; audit rows carry arguments only | T1-GW-04: audit and server logs contain no result payloads (`src/provenance/tests/test_boundaries.py`) | Passing |
