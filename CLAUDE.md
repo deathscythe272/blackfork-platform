@@ -129,7 +129,10 @@ Phase 5 done: harness profile (914 turns, 43k→853k context) and agent profile 
 logging proxy (`src/profiling/`); agent tool-call cap 6; Steward token budget 50k/job.
 Rubric v1.4: R6 and R9 (boundary change needs a threat-model change) are Lane 1 scripts
 in `scripts/check_pr_boundaries.py`, required check `boundaries`; R4 is human review;
-the judge scores only R1 and R5. Pass 6: R1 clears every fixture threshold; R5 has one
+the judge scores only R1 and R5. Rubric v1.5: R10 (written-out secret) is a Lane 1
+script; R5 judges internal identifiers only, gate closed on public URLs; R5's live
+count restarted (recorded in `docs/analysis/adjustments.md`, the ledger every course
+change goes into). Pass 6: R1 clears every fixture threshold; R5 has one
 steer change on a borderline identifier; run success 0.68, all rate limits. The scoring
 harness gives each judge call its own trace file (a leaked exporter path had been
 failing later calls; pass 5's "timeouts" were mostly that). The judge waits 20/40/60 s

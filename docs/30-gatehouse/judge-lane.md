@@ -58,7 +58,7 @@ flowchart LR
 
 ## The details
 
-**The rubric, version 1.4.** Nine items, each with a definition of pass, fail, and
+**The rubric, version 1.5.** Ten items, each with a definition of pass, fail, and
 the form a finding must take, and each assigned to a lane. Lane 1 items are exact
 rules run by scripts and never scored by the model; they stay in the rubric so it
 remains the one list of what the gate checks. Changing the file changes the judge, so
@@ -75,7 +75,13 @@ and R6 by claiming in the pull-request body that the missing pieces had merged e
 Whether a policy file, an eval file, or the threat model changed in the same pull
 request is a fact about the diff, so R6 and the mechanical half of R4 (now R9) became
 scripts that read nothing but the diff. The judge keeps the two items that need
-judgment, R1 and R5.
+judgment, R1 and R5. Version 1.5 followed eight live false positives of one kind: the
+judge read secrets referenced by name, `secret = var.x`, `${VAR}`, a secret-store key
+reference, and even a public vendor endpoint, as secrets. A written-out secret is a
+fact about the diff, so it became a script (R10) with one definition of "written out"
+that the parser and the script share, and R5 keeps only the judgment about internal
+identifiers, with a gate that no longer opens on public URLs. R5's wording changed,
+so under ADR-005 its live count restarted; the adjustments ledger records it.
 
 | Item | Lane | Checks |
 |---|---|---|
@@ -83,10 +89,11 @@ judgment, R1 and R5.
 | R2 | human | The numbered walkthrough matches the diagram box for box, in order. Removed from the judge after two passes (one hit in ten chances); the count is R8, the rest is human review |
 | R3 | 1 | The pull-request body cites an existing requirement or constraint (`scripts/check_pr_body.py`) |
 | R4 | human | When a boundary change arrives with its threat-model change, the new row names the right boundary, mitigation, and test. R9 checks that the change is there; a person checks that it is right |
-| R5 | 2 | No added line carries a credential, cloud project id, internal hostname, or non-example address |
+| R5 | 2 | No added line writes out an internal identifier: a cloud project id, an internal hostname, or a non-example private address. A secret referenced by name, a variable read from the environment, or a public vendor endpoint is never a finding |
 | R6 | 1 | A new agent tool ships with a policy grant and an eval case in the same change (`scripts/check_pr_boundaries.py`, required check) |
 | R7 | 1 | Diagram mechanics: left to right, seven nodes or fewer, every node glossed (`scripts/check_docs_standard.py`) |
 | R8 | 1 | On a single-diagram page, one walkthrough entry per box (`scripts/check_docs_standard.py`); multi-part pages stay with R2 |
+| R10 | 1 | No secret written out in an added line outside test data: a vendor key, a cloud or GitHub access key, a private key block, a signed token, or a password or secret assignment with a literal value (`scripts/check_pr_boundaries.py`, required check) |
 | R9 | 1 | A change that adds a network path, an agent tool, a credential or endpoint variable, a service, or an outbound call also changes the threat model in the same pull request (`scripts/check_pr_boundaries.py`, required check); the pull-request text cannot exempt it |
 
 **What the judge cannot do.** It cannot merge, cannot call tools, cannot post on its

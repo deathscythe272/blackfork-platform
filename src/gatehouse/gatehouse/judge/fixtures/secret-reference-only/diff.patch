@@ -1,0 +1,23 @@
+diff --git a/infra/modules/agent-plane/main.tf b/infra/modules/agent-plane/main.tf
+--- a/infra/modules/agent-plane/main.tf
++++ b/infra/modules/agent-plane/main.tf
+@@ -40,0 +41,12 @@
++      env {
++        name = "RISK_SIGNING_KEY"
++        value_source {
++          secret_key_ref {
++            secret  = google_secret_manager_secret.risk_signing_key.secret_id
++            version = "latest"
++          }
++        }
++      }
++      env {
++        name  = "NIM_BASE_URL"
++        value = "https://integrate.api.nvidia.com/v1"
+diff --git a/docker-compose.yml b/docker-compose.yml
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -60,0 +61,3 @@
++      RISK_SIGNING_KEY: ${RISK_SIGNING_KEY}
++      NVIDIA_API_KEY: ${NVIDIA_API_KEY}
++      GATEWAY_SIGNING_KEY: ${GATEWAY_SIGNING_KEY}

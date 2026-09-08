@@ -46,14 +46,19 @@ def _context() -> dict[str, str]:
     return {"diagram_rules": _diagram_rules(), "threat_model_boundaries": _threat_boundaries()}
 
 
-SECRET_PATTERNS = [
-    ("nvidia api key", re.compile(r"nvapi-[A-Za-z0-9_\-]{20,}")),
-    ("github token", re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}")),
-    ("aws access key", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
-    ("private key block", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")),
-    ("jwt", re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}")),
-    ("password assignment", re.compile(r"(?i)\b(password|passwd|secret)\s*[:=]\s*['\"]?[^\s'\"$]{8,}")),
-]
+def _lane1():
+    """The Lane 1 rules own the definition of a written-out secret (rubric v1.5); the
+    parser reports the same hits so the judge and the script never disagree."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("lane1_rules", REPO_ROOT / "scripts" / "lane1_rules.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+LANE1 = _lane1()
+_INTERNAL_HOST = re.compile(r"^(?:\d{1,3}(?:\.\d{1,3}){3}|[a-z0-9-]+\.(?:internal|local|corp|lan)|[a-z][a-z0-9]+-(?:dev|prod|demo|staging|test))(?::\d+)?$")
 PLACEHOLDER = re.compile(r"\.\.\.|\$\{|<[^>]+>|your[-_ ]?key|example|placeholder|paste", re.I)
 # Test data by design: planted flaws live here on purpose and must never count as findings.
 TOOL_DECORATOR = re.compile(r"^\s*@mcp\.tool\b")  # the decorator itself, not prose that names it
@@ -109,19 +114,20 @@ def signals(changed: list[dict[str, Any]], body: str) -> dict[str, Any]:
     for p, n, t in added_lines:
         if PLACEHOLDER.search(t):
             continue
-        for label, rx in (("url", re.compile(r"https?://[^\s\"']+")),
-                          ("ipv4", re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b")),
+        # a URL is an identifier only when its host looks internal; a public vendor
+        # endpoint is not something to keep out of a repository (rubric v1.5)
+        for m in re.finditer(r"https?://([^\s\"'/]+)", t):
+            if _INTERNAL_HOST.match(m.group(1).lower()):
+                identifiers.append({"file": p, "line": n, "kind": "url", "excerpt": t.strip()[:80]})
+        for label, rx in (("ipv4", re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b")),
                           ("project-id-like", re.compile(r"\b[a-z][a-z0-9]+-(?:dev|prod|demo|staging|test)\b")),
                           ("hostname-like", re.compile(r"\b[a-z0-9-]+\.(?:internal|local|corp|lan)\b"))):
             if rx.search(t):
                 identifiers.append({"file": p, "line": n, "kind": label, "excerpt": t.strip()[:80]})
     secrets = []
     for p, n, t in added_lines:
-        if PLACEHOLDER.search(t):
-            continue
-        for label, rx in SECRET_PATTERNS:
-            if rx.search(t):
-                secrets.append({"file": p, "line": n, "kind": label, "excerpt": t.strip()[:80]})
+        for label, excerpt in LANE1.literal_secret_hits(p, t):
+            secrets.append({"file": p, "line": n, "kind": label, "excerpt": excerpt})
     docs_changed = [p for p in paths if p.startswith("docs/") and p.endswith(".md")]
     template_docs = [p for p in docs_changed if re.search(r"^\*\*You are here:\*\*", (REPO_ROOT / p).read_text(encoding="utf-8"), re.M)] \
         if all((REPO_ROOT / p).exists() for p in docs_changed) else docs_changed

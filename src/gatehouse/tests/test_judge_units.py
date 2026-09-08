@@ -106,11 +106,11 @@ def test_render_roundtrips_state_and_conclusion():
 def test_lane1_verdicts_are_exact_on_fixtures():
     from gatehouse.evals.score import lane1_verdicts
     v = lane1_verdicts(gather.from_fixture(FIXTURES / "bad-diagram-nine-nodes"))
-    assert v == {"R3": False, "R7": True, "R8": True, "R6": False, "R9": False}
+    assert v == {"R3": False, "R7": True, "R8": True, "R6": False, "R9": False, "R10": False}
     v = lane1_verdicts(gather.from_fixture(FIXTURES / "no-citation"))
-    assert v == {"R3": True, "R7": False, "R8": False, "R6": False, "R9": False}
+    assert v == {"R3": True, "R7": False, "R8": False, "R6": False, "R9": False, "R10": False}
     v = lane1_verdicts(gather.from_fixture(FIXTURES / "clean-docs-gloss"))
-    assert v == {"R3": False, "R7": False, "R8": False, "R6": False, "R9": False}
+    assert v == {"R3": False, "R7": False, "R8": False, "R6": False, "R9": False, "R10": False}
 
 
 def test_tool_and_boundary_rules_ignore_the_body():
@@ -176,14 +176,14 @@ def test_parser_gates_close_items_with_no_signal():
     v = prompt.parse_verdict(raw, RUBRIC, b["signals"])
     r5 = next(i for i in v["items"] if i["id"] == "R5")
     assert r5["verdict"] == "not_applicable" and v["findings"] == [] and "R5" in v["gated_off"]
-    b2 = gather.from_fixture(FIXTURES / "secret-in-compose")
+    b2 = gather.from_fixture(FIXTURES / "new-network-path-no-threat-model")  # a project-id-like host opens R5
     assert "R5" not in prompt.gated_off(b2["signals"])
 
 
 def test_harvest_parses_a_judge_comment_and_counts_by_adr_005():
     from gatehouse.evals import harvest
     body = (
-        "<!-- gatehouse-judge -->\n### Gatehouse judge · rubric v1.4 · advisory\n"
+        "<!-- gatehouse-judge -->\n### Gatehouse judge · rubric v1.5 · advisory\n"
         "| Item | Verdict | Note |\n|---|---|---|\n"
         "| R1 Diagram reads as one story | pass | fine |\n"
         "| R5 No secrets or internal identifiers introduced | **fail** | hit |\n\n"
@@ -193,7 +193,7 @@ def test_harvest_parses_a_judge_comment_and_counts_by_adr_005():
         "| `R1-bbbbbb` | open | low | `docs/z.md` | vague | fix |\n"
     )
     parsed = harvest.parse_comment(body)
-    assert parsed["rubric_version"] == "1.4"
+    assert parsed["rubric_version"] == "1.5"
     assert parsed["items"] == {"R1": "pass", "R5": "fail"}
     assert [(f["item"], f["status"]) for f in parsed["findings"]] == [("R5", "dismissed"), ("R5", "fixed"), ("R1", "open")]
     assert parsed["findings"][0]["reason"] == "references the secret by name"
@@ -222,3 +222,48 @@ def test_rate_limits_wait_longer_than_other_faults():
     assert is_rate_limit(rl) and not is_rate_limit(other)
     assert [wait_before_retry(a, rl) for a in range(4)] == [20.0, 40.0, 60.0, 60.0]
     assert [wait_before_retry(a, other) for a in range(3)] == [2.0, 4.0, 8.0]
+
+
+def test_v15_a_reference_is_not_a_secret_and_a_literal_is():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("lane1_rules", gather.REPO_ROOT / "scripts" / "lane1_rules.py")
+    rules = importlib.util.module_from_spec(spec); spec.loader.exec_module(rules)
+    refs = [
+        "            secret  = google_secret_manager_secret.risk_signing_key.secret_id",
+        "            secret  = var.nvidia_api_key_secret",
+        "      NVIDIA_API_KEY: ${NVIDIA_API_KEY}",
+        '    key = os.environ.get("GATEWAY_SIGNING_KEY")',
+        "      RISK_SIGNING_KEY: ${RISK_SIGNING_KEY}  # as the analyst's client",
+        '        password: "<your-password>"',
+    ]
+    for line in refs:
+        assert rules.literal_secret_hits("infra/x.tf", line) == [], line
+    lits = [
+        "      NVIDIA_API_KEY: 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",
+        '      password: "hunter2hunter2"',
+        "      secret = s3cr3tValue2026",
+        "-----BEGIN RSA PRIVATE KEY-----",
+    ]
+    for line in lits:
+        assert rules.literal_secret_hits("infra/x.tf", line), line
+    added = [("infra/x.tf", 7, lits[1]), ("src/gatehouse/gatehouse/judge/fixtures/x/diff.patch", 1, lits[0])]
+    fails = rules.secret_rule(added)
+    assert len(fails) == 1 and fails[0].startswith("infra/x.tf:7")  # test data is skipped
+
+
+def test_v15_public_endpoints_do_not_open_r5_and_internal_hosts_do():
+    public = [{"path": "docker-compose.yml", "status": "modified", "patch": "@@ -1,0 +1,2 @@\n+      NIM_BASE_URL: https://integrate.api.nvidia.com/v1\n+      NVIDIA_API_KEY: ${NVIDIA_API_KEY}\n"}]
+    sig = gather.signals(public, "Serves: BR-7")
+    assert sig["identifier_candidates"] == [] and sig["secret_pattern_hits"] == []
+    assert "R5" in prompt.gated_off(sig)
+    internal = [{"path": "src/x.py", "status": "modified", "patch": "@@ -1,0 +1,1 @@\n+OPA_URL = \"http://opa.corp.internal:8181\"\n"}]
+    sig = gather.signals(internal, "Serves: BR-7")
+    assert [c["kind"] for c in sig["identifier_candidates"]] and "R5" not in prompt.gated_off(sig)
+
+
+def test_v15_reference_only_fixture_is_silent_by_script():
+    from gatehouse.evals.score import lane1_verdicts
+    v = lane1_verdicts(gather.from_fixture(FIXTURES / "secret-reference-only"))
+    assert v["R10"] is False and v["R6"] is False
+    v = lane1_verdicts(gather.from_fixture(FIXTURES / "secret-in-compose"))
+    assert v["R10"] is True

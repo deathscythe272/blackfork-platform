@@ -42,7 +42,7 @@ MARKER = "<!-- gatehouse-judge -->"
 
 # The rubric version from which each item's current wording, and the judge's prompt,
 # have been stable. ADR-005: a wording or prompt change resets the count.
-COUNTS_FROM = {"R1": "1.2", "R5": "1.2"}
+COUNTS_FROM = {"R1": "1.2", "R5": "1.5"}  # R5's wording changed in v1.5; ADR-005 restarts its count, on the record
 
 
 def _gh(path: str) -> list | dict:

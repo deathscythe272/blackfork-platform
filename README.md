@@ -40,7 +40,8 @@ Phase-by-phase plan with steps and done-criteria: [`docs/ROADMAP.md`](docs/ROADM
 - [x] T1: agent-runtime threat model — seven boundaries, every threat with a control
       and a test ID, gaps named ([docs/02-architecture/agent-threat-model.md](docs/02-architecture/agent-threat-model.md))
 - [x] Gatehouse: judge lane (G2, advisory on every PR) + ADR-005 + planted-flaw precision
-      per rubric item, four passes ([docs/analysis/judge-precision.md](docs/analysis/judge-precision.md))
+      per rubric item, every pass kept ([docs/analysis/judge-precision.md](docs/analysis/judge-precision.md)),
+      and every change of course with its cost ([docs/analysis/adjustments.md](docs/analysis/adjustments.md))
 - [x] Seeded attacks: injection twins against the judge, hostile and poisoned cases
       against the agent, Garak against the model, every answer safety-scored
       ([docs/analysis/seeded-attacks.md](docs/analysis/seeded-attacks.md))
