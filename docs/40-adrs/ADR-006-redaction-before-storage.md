@@ -35,6 +35,10 @@ line, not the first.
 - Given up: the ability to show a person the original summary through the platform.
   That is what bronze is for, and reading bronze is a human operation outside the
   agent path.
+- Over-reach is a failure too. The first full scan erased "Suricata", the sensor engine
+  named in two evidence rows, as a person's name. An allow list of the platform's
+  own vocabulary now exists, and it grows only with a row that proves the need, the
+  same rule as widening the entity set.
 - Given up: perfect recall. Names the model does not recognize survive. The entity
   set will widen only with a planted row that proves the gap, never by guess.
 

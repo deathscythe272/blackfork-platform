@@ -18,6 +18,16 @@ from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
 
 ENTITIES = ["PERSON", "EMAIL_ADDRESS", "IP_ADDRESS", "PHONE_NUMBER"]
+
+# The platform's own vocabulary, never redacted. The language model read "Suricata",
+# the sensor engine named at the start of a summary, as a person and erased it from two
+# evidence rows on the first full scan; every name here was added because a row showed
+# the need, per ADR-006, and each carries the row that proved it.
+ALLOW_LIST = [
+    "Suricata",         # ev-0004, ev-0103: the sensor engine that raised the alert
+    "Security Onion",
+    "Nmap", "Trivy", "Grype", "Terraform", "Dagster", "SIEM", "Windrow", "Blackfork",
+]
 PLACEHOLDERS = {"PERSON": "<PERSON>", "EMAIL_ADDRESS": "<EMAIL>", "IP_ADDRESS": "<IP>", "PHONE_NUMBER": "<PHONE>"}
 MIN_SCORE = 0.4  # below this the language model is guessing; the check below catches what slips
 
@@ -38,14 +48,14 @@ def find(text: str) -> list[str]:
     if not text:
         return []
     analyzer, _ = _engines()
-    return [r.entity_type for r in analyzer.analyze(text=text, language="en", entities=ENTITIES, score_threshold=MIN_SCORE)]
+    return [r.entity_type for r in analyzer.analyze(text=text, language="en", entities=ENTITIES, score_threshold=MIN_SCORE, allow_list=ALLOW_LIST)]
 
 
 def redact(text: str) -> Redaction:
     if not text:
         return Redaction(text or "")
     analyzer, anonymizer = _engines()
-    results = analyzer.analyze(text=text, language="en", entities=ENTITIES, score_threshold=MIN_SCORE)
+    results = analyzer.analyze(text=text, language="en", entities=ENTITIES, score_threshold=MIN_SCORE, allow_list=ALLOW_LIST)
     if not results:
         return Redaction(text)
     operators = {k: OperatorConfig("replace", {"new_value": v}) for k, v in PLACEHOLDERS.items()}
