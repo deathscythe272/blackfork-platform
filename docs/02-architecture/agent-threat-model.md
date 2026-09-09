@@ -98,6 +98,7 @@ control yet, or the control exists with no test, and the row says which.
 | Spoofing | Something without a caller identity asks an agent for a job | The agent service admits only a signed caller token; a job runs under a fresh token for the agent's own identity, minutes long, that the caller never holds | T1-IN-06: a job request with no token or a bad one is refused and recorded; the agent's job token names the agent, not the caller (`test_agent_service.py`) | Passing |
 | Denial of service | A caller floods the agent with expensive questions | A token bucket per caller at the agent service, thirty jobs an hour by default; a refused request is recorded; the gateway's per-identity limit (T1-GW-05) bounds what an accepted job can do downstream | T1-IN-04: the third job in a window is refused for one caller while another caller's job runs (`test_agent_service.py`) | Passing |
 | Elevation | A caller talks the agent out of its role over several turns (multi-turn jailbreak) | Slice is single-turn; Guardrails dialog rails apply when conversation is added | T1-IN-05: eval case `roleplay-jailbreak` plus Garak DAN-family probes against the model (`docs/analysis/seeded-attacks.md`) | Passing on the role-play case; Garak results on the seeded-attacks page |
+| Elevation | A jailbreak or injection outside the seeded set, or one the model newly obeys after a model update, gets through the rails and the door without anyone running a scan | Every week and on demand, Garak runs the same probes against the raw model and against the deployed agent through its door; a compliance-detector hit on the guarded agent fails the run; the raw model's obedience is trended so a change in the model shows before a change in the agent does | T1-RT-01: a guarded compliance hit is fatal and a refusal-wording hit is advisory; T1-RT-02: raw failures are measured, never fatal, an empty scan is a failing problem, and no prompt or answer reaches the record (`src/provenance/tests/test_redteam.py`, `.github/workflows/red-team.yml`) | Tests passing; first record red: the Anti-DAN persona adopted and one injection echoed through the rails, open until the rail's next revision holds (seeded-attacks page, ledger entry 24) |
 
 ### B2 — Agent to model
 
@@ -190,6 +191,7 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 |---|---|---|---|
 | T1-IN-01, T1-IN-02 | B1 | `src/provenance/evals/cases.yaml` | Passing |
 | T1-IN-03, T1-IN-05 | B1 | `src/provenance/evals/cases.yaml`; Garak run on the seeded-attacks page | Passing |
+| T1-RT-01, T1-RT-02 | B1 | `src/provenance/tests/test_redteam.py`, `.github/workflows/red-team.yml`; the scheduled block on the seeded-attacks page | Passing |
 | T1-IN-04, T1-IN-06 | B1 | `src/provenance/tests/test_agent_service.py` | Passing |
 | T1-HS-01, T1-HS-02 | B1 | `src/provenance/tests/test_packets.py` | Passing |
 | T1-MD-01, T1-MD-03 | B2 | phase 7 | Planned |
@@ -210,7 +212,7 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | T1-CI-01 to T1-CI-04 | B8 | `infra/modules/delivery-plane/`, `.github/workflows/terraform.yml` | Three passing, one planned |
 | T1-CI-05, T1-AS-01 to T1-AS-03 | B8 | `infra/modules/assurance-plane/`, `.github/workflows/terraform.yml`, `src/provenance/tests/test_assurance.py` | Passing |
 
-Count: 50 threat rows, 36 passing, 1 measured with mitigation upstream, 11 planned with a phase, 2 gaps named. The gaps are
+Count: 51 threat rows, 37 passing, 1 measured with mitigation upstream, 11 planned with a phase, 2 gaps named. The gaps are
 transport encryption between containers and dependency hash pinning; the audit
 chain's remaining weakness, removal of a whole tail, is noted on its row.
 

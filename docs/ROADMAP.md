@@ -320,8 +320,12 @@ answers the Phase 2 eval. Status: all three met.
    service with the audit rows as referee, and the safety scorer; fails on a
    containment failure, a failed door check, or a regression; appends one record per
    run to a bucket it cannot delete from; `20-provenance/assurance-plane.md` renders
-   the record. (b) Garak and the seeded attacks on their own schedule; (c) retrieval
-   over the evidence with an embedding model and an embedded vector index.
+   the record. (b) done, the scanner on a schedule: weekly and on demand, Garak runs
+   the same probes on the same prompts against the raw model in the platform's
+   calling convention and against the deployed agent through its door; a compliance
+   hit on the guarded agent fails the run, the raw model is trended, the record
+   carries no prompt or answer; live block on `analysis/seeded-attacks.md`. (c)
+   retrieval over the evidence with an embedding model and an embedded vector index.
 5. P5 Pipeline Steward: the on-failure agent that diagnoses a broken Dagster job and
    opens a fix PR, itself gated by Gatehouse. It runs commands, so per C5 it runs
    inside a sandbox per the Phase 3 agent→host boundary: OpenShell where available, a locked

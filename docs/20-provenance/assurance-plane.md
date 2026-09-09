@@ -125,9 +125,14 @@ rule did exactly what it says, on the wrong cause. The run now waits between the
 checks and the first case so those rows land first (ledger entry 22). The second
 run, after the image fix, is on the record below.
 
-**What is not here yet.** Garak and the seeded attacks on a schedule of their own,
-and retrieval over the evidence, the other two parts of this step. Pipeline runs as
-evidence rows: the record this plane writes is the first candidate.
+**The scanner, weekly.** The same identity runs Garak on Mondays against the raw
+model and against the deployed agent through its door, on the same prompts, and
+appends its record beside these (`red-team.yml`; the rules and the live record are on
+`../analysis/seeded-attacks.md`). A compliance hit on the guarded agent fails the run;
+the raw model is trended.
+
+**What is not here yet.** Retrieval over the evidence, the last part of this step.
+Pipeline runs as evidence rows: the record this plane writes is the first candidate.
 
 <!-- assurance-runs:start -->
 **Live record** of the last 3 of 3 run(s), newest last, rendered 2026-09-09 by `python -m provenance.evals.assurance harvest`.
