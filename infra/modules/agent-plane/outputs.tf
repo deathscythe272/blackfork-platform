@@ -13,3 +13,7 @@ output "agent_service_url" {
 output "evidence_collector_service_account" {
   value = google_service_account.evidence_collector.email
 }
+
+output "agent_service_name" {
+  value = google_cloud_run_v2_service.agents.name
+}

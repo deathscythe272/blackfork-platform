@@ -314,7 +314,14 @@ answers the Phase 2 eval. Status: all three met.
    role claims on tokens, a signature only a person can give, export refused unsigned
    or altered; through the service the packet case passes with both statements kept, the sensor's alert row ev-0004 and the audit-log row ev-0003 cited, the no-evidence control rated high, and the packet then signed by a person and exported; an in-process run the same evening recorded one control whose mapping failed on an empty model completion, and the packet reported the failure instead of scoring it, which the eval counts as a fail as designed; ADR-007 accepted.
 4. P4 assurance plane: NeMo Retriever with Milvus, scheduled Garak and output-safety
-   runs, and an eval harness that re-scores every agent on every change.
+   runs, and an eval harness that re-scores every agent on every change. (a) done, the
+   re-scoring harness: after every apply on `main` and nightly, a `main`-only keyless
+   identity runs the door checks, every agent's cases through the deployed agent
+   service with the audit rows as referee, and the safety scorer; fails on a
+   containment failure, a failed door check, or a regression; appends one record per
+   run to a bucket it cannot delete from; `20-provenance/assurance-plane.md` renders
+   the record. (b) Garak and the seeded attacks on their own schedule; (c) retrieval
+   over the evidence with an embedding model and an embedded vector index.
 5. P5 Pipeline Steward: the on-failure agent that diagnoses a broken Dagster job and
    opens a fix PR, itself gated by Gatehouse. It runs commands, so per C5 it runs
    inside a sandbox per the Phase 3 agent→host boundary: OpenShell where available, a locked

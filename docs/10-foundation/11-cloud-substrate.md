@@ -69,7 +69,7 @@ infra/
     data-plane/        lakehouse bucket, platform-events topic
     context-plane/     gateway and evidence-server identities, the model-key secret
     agent-plane/       agent identities and what each may read
-    assurance-plane/   event reader identity and its subscription
+    assurance-plane/   re-scoring identity, its subscription, its append-only results bucket
   envs/
     dev/               the root automation plans and applies; records in the state bucket
 ```
@@ -99,7 +99,7 @@ exists to rotate, leak, or commit.
 | Controls server | The evidence server's identity: read the lakehouse bucket | Fixed queries over the gold controls table; the baked catalog is its fallback; admits only the gateway |
 | Evidence Collector (the agent service) | Read the model-key and signing-key secrets; write packets under `packets/` in the lakehouse bucket | Runs every agent job; verifies callers and mints job tokens with the signing key; stores drafts and signatures beside the evidence they cite; its data path is the gateway |
 | Risk Analyst | Read its own signing key and the model key | Scores findings it is handed; no gateway identity, no bucket; invoked only by the agent service's identity |
-| Assurance reader | Read the platform-events subscription | Gate decisions and pipeline results become evidence |
+| Assurance reader | Read the platform-events subscription; read the gateway's signing key; read three services' addresses; add to the results bucket, never delete | Re-scores every agent against the deployed services after every apply and every night; gate decisions and pipeline results become evidence |
 
 **Label schema.**
 
