@@ -28,3 +28,24 @@ variable "platform_events_topic" {
   description = "Data-plane topic to subscribe to."
   type        = string
 }
+
+variable "github_repository" {
+  description = "owner/repo whose main-branch workflow may become the assurance identity."
+  type        = string
+}
+
+variable "workload_identity_pool_id" {
+  description = "Id of the keyless identity pool the bootstrap root created."
+  type        = string
+  default     = "github"
+}
+
+variable "gateway_signing_key_secret" {
+  description = "Secret id of the gateway's signing key; the harness mints its tokens with it."
+  type        = string
+}
+
+variable "services_under_test" {
+  description = "Cloud Run service names the harness needs the addresses of, keyed by role."
+  type        = map(string)
+}

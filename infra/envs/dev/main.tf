@@ -57,10 +57,17 @@ module "agent" {
 }
 
 module "assurance" {
-  source                = "../../modules/assurance-plane"
-  project_id            = var.project_id
-  region                = var.region
-  env                   = var.env
-  labels                = local.labels
-  platform_events_topic = module.data.platform_events_topic
+  source                     = "../../modules/assurance-plane"
+  project_id                 = var.project_id
+  region                     = var.region
+  env                        = var.env
+  labels                     = local.labels
+  platform_events_topic      = module.data.platform_events_topic
+  github_repository          = var.github_repository
+  gateway_signing_key_secret = module.context.gateway_signing_key_secret
+  services_under_test = {
+    gateway  = module.context.gateway_service_name
+    evidence = module.context.evidence_mcp_service_name
+    agents   = module.agent.agent_service_name
+  }
 }

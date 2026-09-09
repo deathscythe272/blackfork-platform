@@ -144,8 +144,12 @@ requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. Phase 7 P4 assurance plane: NeMo Retriever with Milvus, scheduled Garak and
-   output-safety runs, an eval harness that re-scores every agent on every change.
+1. Phase 7 P4 assurance plane, (b) scheduled Garak and output-safety runs, then (c)
+   NeMo Retriever with Milvus. (a) done: the re-scoring harness
+   (`src/provenance/evals/assurance.py`, `.github/workflows/assurance.yml`; identity
+   `assurance-dev`, results bucket `<project>-assurance-dev`; repo variable
+   GCP_ASSURANCE_SERVICE_ACCOUNT; harvest with `python -m provenance.evals.assurance
+   harvest --store gs://<bucket>`).
    P3 done: agent service (`src/provenance/agent_service/`), mapper, assessor, Risk
    Analyst (`src/provenance/risk_analyst/`, own key RISK_SIGNING_KEY; Cloud Run
    `risk-analyst-dev` needs `risk-signing-key-dev` populated), Report Writer

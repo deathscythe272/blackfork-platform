@@ -75,6 +75,10 @@ flowchart LR
   merged commit, pushes them tagged with that commit, applies with that tag, and
   writes the tag beside the state. A pull request plans against the tag main last
   deployed, so its plan shows only what the pull request changes.
+- **After the apply.** A successful apply on `main` starts the assurance run
+  (`assurance.yml`, `20-provenance/assurance-plane.md`): a third identity, bound to
+  `main` like the apply deployer and tested the same way on every pull request
+  (T1-CI-05), re-scores every agent against what was just deployed.
 - **Not yet built.** A `demo` environment deploys on a tagged release only, when it exists.
   Pipeline runs as evidence rows in Provenance arrive with phase 7. Code ownership
   routing for `infra/` and `policy/` is a one-file change once a second reviewer
@@ -94,5 +98,6 @@ around (BR-3, BR-4).
 ## Go deeper
 
 - `30-gatehouse/README.md` — the gate that runs inside steps 2 and 4
+- `../20-provenance/assurance-plane.md` — what runs after step 6
 - `11-cloud-substrate.md` — the identities and project these jobs touch
 - `../02-architecture/agent-threat-model.md` — boundary B8, the four tests on this trust

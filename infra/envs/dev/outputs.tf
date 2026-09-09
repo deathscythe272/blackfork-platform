@@ -38,3 +38,7 @@ output "audit_subscription" {
 output "nvidia_api_key_secret" {
   value = module.context.nvidia_api_key_secret
 }
+
+output "assurance_results_bucket" {
+  value = module.assurance.results_bucket
+}
