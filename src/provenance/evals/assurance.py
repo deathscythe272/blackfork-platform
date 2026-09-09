@@ -41,6 +41,7 @@ import os
 import pathlib
 import subprocess
 import sys
+import time
 
 import fsspec
 import yaml
@@ -151,13 +152,19 @@ def _read(name: str) -> dict | None:
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
 
 
-def run(store_url: str, pause: float) -> int:
+def run(store_url: str, pause: float, settle: float) -> int:
     agents = {c["id"]: c.get("agent", "evidence-collector") for c in yaml.safe_load(CASES.read_text(encoding="utf-8"))["cases"]}
     for name in ("deployed-check.json", "latest.json", "safety-latest.json"):
         (RESULTS / name).unlink(missing_ok=True)  # a stale file must not pass for this run's
 
     _step("provenance.evals.deployed_check")
     checks_file = _read("deployed-check.json") or {"checks": []}
+    # The door checks produce denials on purpose, and their audit rows reach the
+    # subscription seconds later. The first cloud run drained the subscription, started
+    # the first case, and then received those two denials as if the golden case had
+    # caused them: a regression that was the harness's own footprint. Let them land.
+    print(f"settling {settle:.0f}s so the door checks' audit rows land before the first case", flush=True)
+    time.sleep(settle)
     _step("provenance.evals.run_evals", "--via-service", "--pause", str(pause))
     evals = _read("latest.json") or {"cases": []}
     safety = None
@@ -277,8 +284,10 @@ def main() -> int:
     ap.add_argument("--store", default=os.environ.get("ASSURANCE_STORE", str(RESULTS / "assurance-store")),
                     help="gs://<bucket> or a directory; records go under runs/ (ASSURANCE_STORE)")
     ap.add_argument("--pause", type=float, default=5.0, help="seconds between eval cases; the hosted free tier rate-limits")
+    ap.add_argument("--settle", type=float, default=20.0,
+                    help="seconds between the door checks and the first case, so their audit rows reach the referee first")
     args = ap.parse_args()
-    return run(args.store, args.pause) if args.command == "run" else harvest(args.store)
+    return run(args.store, args.pause, args.settle) if args.command == "run" else harvest(args.store)
 
 
 if __name__ == "__main__":
