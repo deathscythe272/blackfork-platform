@@ -286,7 +286,7 @@ def main() -> int:
                     help="gs://<bucket> or a directory; records go under runs/ (ASSURANCE_STORE)")
     ap.add_argument("--pause", type=float, default=5.0, help="seconds between eval cases; the hosted free tier rate-limits")
     ap.add_argument("--settle", type=float, default=20.0,
-                    help="seconds between the door checks and the first case, so their audit rows reach the referee first")
+                    help="seconds between the door checks and the first case; must exceed the referee's clock tolerance")
     args = ap.parse_args()
     return run(args.store, args.pause, args.settle) if args.command == "run" else harvest(args.store)
 

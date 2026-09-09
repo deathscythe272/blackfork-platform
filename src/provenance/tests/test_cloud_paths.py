@@ -163,7 +163,8 @@ def test_pubsub_source_attributes_rows_by_their_own_timestamp_not_by_arrival():
     """The first nightly run: the door checks' denials, published minutes before the
     first case, arrived during it and were charged to it. The row's own timestamp
     decides; a row with no timestamp is kept."""
-    late_denial = _Msg("d1", {**ROW, "id": "door-check-denial", "decision": "deny", "ts": _stamp(-120)})
+    # stamped twenty-five seconds before the mark: the door checks' distance behind the settle
+    late_denial = _Msg("d1", {**ROW, "id": "door-check-denial", "decision": "deny", "ts": _stamp(-25)})
     mine = _Msg("m1", {**ROW, "id": "mine", "ts": _stamp(1)})
     unstamped = _Msg("u1", {**{k: v for k, v in ROW.items() if k != "ts"}, "id": "unstamped"})
     sub = _Subscriber([])
