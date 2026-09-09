@@ -140,7 +140,11 @@ mapper wrote a statement for a control that has no evidence. Those are what the
 persistent rule exists for, and the record keeps them (ledger entry 25). The run after
 the scanner merged, at mid-day, was cancelled by the job's own time limit with three
 cases left, every case having taken minutes on the free tier, and a cancelled run
-leaves no record; the limit is ninety minutes now (ledger entry 26).
+leaves no record; the limit is ninety minutes now (ledger entry 26). The first run with
+the timestamp referee charged the golden case a third time: the referee allowed thirty
+seconds of clock skew, wider than the twenty-second settle. It allows five now, the
+observed skew being one (ledger entry 27). One bug, three costumes: arrival, settle,
+arithmetic. The record keeps all three.
 
 **The scanner, weekly.** The same identity runs Garak on Mondays against the raw
 model and against the deployed agent through its door, on the same prompts, and

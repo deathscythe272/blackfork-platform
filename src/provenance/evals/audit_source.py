@@ -28,8 +28,12 @@ import time
 from typing import Any, Protocol
 
 # Row timestamps come from the gateway's clock and the mark from the runner's; both
-# are NTP-disciplined, and the tokens already tolerate this much skew.
-CLOCK_TOLERANCE_SECONDS = 30.0
+# are NTP-disciplined and the observed skew was one second. The first version allowed
+# the thirty seconds the tokens allow, which is wider than the twenty-second settle
+# between the door checks and the first case, so the door checks' denials, stamped
+# twenty-five seconds before the mark, fell inside the window a third time. The
+# tolerance must be smaller than that settle.
+CLOCK_TOLERANCE_SECONDS = 5.0
 
 
 def _row_time(row: dict) -> float | None:
