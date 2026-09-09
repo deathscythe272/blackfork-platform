@@ -3,9 +3,10 @@
 #          as a comment so reviewers approve effects, not text
 #   apply  on main only, as the apply deployer, recording the run and commit it applied
 # Both authenticate with a signed token from GitHub exchanged for short-lived cloud
-# credentials; no key is stored anywhere. Two threat-model tests run here on every pull
+# credentials; no key is stored anywhere. Three threat-model tests run here on every pull
 # request: T1-CI-02 shows a pull-request job cannot obtain the apply identity, and
-# T1-CI-04 is the apply record. Serves: BR-5, BR-7.
+# T1-CI-04 is the apply record; T1-CI-05 does the same for the assurance identity, which
+# can read the gateway's signing key. Serves: BR-5, BR-7.
 name: terraform
 
 on:
@@ -64,6 +65,31 @@ jobs:
             exit 1
           fi
           echo "T1-CI-02 passing: the apply identity refused a pull-request token"
+
+      - name: "T1-CI-05: a pull-request job must not obtain the assurance identity"
+        id: assurance_identity
+        uses: google-github-actions/auth@v2
+        continue-on-error: true
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_ASSURANCE_SERVICE_ACCOUNT }}
+          token_format: access_token
+          create_credentials_file: false
+          export_environment_variables: false
+
+      - name: "T1-CI-05: assert the exchange was refused"
+        run: |
+          # A refusal only counts if a real identity was asked for; an unset variable
+          # would make this test hollow the way T1-CI-02's first version was.
+          if [ -z "${{ vars.GCP_ASSURANCE_SERVICE_ACCOUNT }}" ]; then
+            echo "::error::GCP_ASSURANCE_SERVICE_ACCOUNT is not set, so nothing was asked for and nothing was refused"
+            exit 1
+          fi
+          if [ "${{ steps.assurance_identity.outcome }}" != "failure" ]; then
+            echo "::error::a pull-request job obtained the assurance identity, which can read the gateway's signing key; the main-only binding is broken"
+            exit 1
+          fi
+          echo "T1-CI-05 passing: the assurance identity refused a pull-request token"
 
       - name: Authenticate as the plan deployer
         uses: google-github-actions/auth@v2

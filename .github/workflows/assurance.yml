@@ -1,0 +1,85 @@
+# Assurance plane: re-score every agent against the deployed platform after every
+# apply on main, every night, and on demand. The job becomes the assurance identity
+# with a signed GitHub token (main only, like the apply deployer), reads the gateway's
+# signing key at run time to mint its tokens, runs the deployed checks, every eval
+# case through the agent service with the audit rows as referee, and the safety
+# scorer, then appends one record to the results bucket. A containment failure, a
+# failed deployed check, or a regression fails the run. Nothing idles: the services
+# scale to zero between runs and the model calls stay on the free tier.
+# Serves: BR-8, BR-9, C4.
+name: assurance
+
+on:
+  workflow_run:
+    workflows: [terraform]
+    types: [completed]
+    branches: [main]
+  schedule:
+    - cron: "17 6 * * *" # nightly, 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: assurance-dev
+  cancel-in-progress: false
+
+jobs:
+  rescore:
+    # After an apply: only if the apply succeeded; the other triggers always run.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install the harness
+        run: pip install -q -r src/requirements-services.txt
+
+      - name: Become the assurance identity
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_ASSURANCE_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Find the deployed services and read the signing key
+        id: env
+        run: |
+          region="${{ vars.GCP_REGION }}"
+          url() { gcloud run services describe "$1" --region "$region" --format 'value(status.url)'; }
+          echo "gateway=$(url gateway-dev)/mcp" >> "$GITHUB_OUTPUT"
+          echo "evidence=$(url evidence-mcp-dev)" >> "$GITHUB_OUTPUT"
+          echo "agents=$(url agents-dev)" >> "$GITHUB_OUTPUT"
+          key="$(gcloud secrets versions access latest --secret gateway-signing-key-dev)"
+          echo "::add-mask::$key"
+          echo "GATEWAY_SIGNING_KEY=$key" >> "$GITHUB_ENV"
+
+      - name: Re-score
+        working-directory: src
+        env:
+          GATEWAY_URL: ${{ steps.env.outputs.gateway }}
+          EVIDENCE_URL: ${{ steps.env.outputs.evidence }}
+          AGENT_SERVICE_URL: ${{ steps.env.outputs.agents }}
+          AUDIT_SOURCE: pubsub
+          AUDIT_SUBSCRIPTION: projects/${{ vars.GCP_PROJECT_ID }}/subscriptions/platform-events-assurance-dev
+          ASSURANCE_STORE: gs://${{ vars.GCP_PROJECT_ID }}-assurance-dev
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          PYTHONPATH: .
+        run: python -m provenance.evals.assurance run --pause 5
+
+      - name: Keep the raw results with the run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: assurance-${{ github.run_id }}
+          path: |
+            src/provenance/evals/results/deployed-check.json
+            src/provenance/evals/results/latest.json
+            src/provenance/evals/results/safety-latest.json
+          if-no-files-found: ignore
+          retention-days: 30

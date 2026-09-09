@@ -13,4 +13,7 @@ whole lives in `../02-architecture/` (flow and narrative) and the build order in
   framework, each a fixed set of questions; the catalog's injection surface and its test.
 - `agent-plane.md` — agents as a service: a signed-token door with a quota per caller,
   a job-long token for the agent's own identity, a record per job; the Control Mapper.
-- assurance plane, Pipeline Steward — with phase 7.
+- `assurance-plane.md` — after every apply and every night, every agent's cases run
+  against the deployed services, scored for containment and safety, compared to the
+  last record, recorded where a run cannot erase a run.
+- Pipeline Steward — with phase 7.

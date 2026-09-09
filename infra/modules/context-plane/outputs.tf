@@ -26,3 +26,11 @@ output "gateway_signing_key_secret" {
 output "nvidia_api_key_secret" {
   value = google_secret_manager_secret.nvidia_api_key.id
 }
+
+output "gateway_service_name" {
+  value = google_cloud_run_v2_service.gateway.name
+}
+
+output "evidence_mcp_service_name" {
+  value = google_cloud_run_v2_service.evidence_mcp.name
+}

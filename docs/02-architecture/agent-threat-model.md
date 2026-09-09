@@ -172,6 +172,8 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | Elevation | A pull request applies changes instead of planning them | Two deployers: any branch may become the plan identity (read only); only a token from `refs/heads/main` may become the apply identity | T1-CI-02: the pull-request workflow asks for the apply identity on every run and fails the run if it gets it | Passing, asserted on every pull request (`.github/workflows/terraform.yml`); the first real exchange was refused with permission denied |
 | Tampering | Terraform records altered or deleted so the next apply does the wrong thing | Versioned bucket with public access prevented at the bucket; only the two deployers and the operator may write | T1-CI-03: versioning and public-access prevention verified on the bucket | Passing (verified on the bucket after bootstrap apply) |
 | Repudiation | A change to the cloud cannot be traced to a merged pull request | Apply runs only on `main`, from a workflow whose run URL is recorded with the plan; no human holds the apply identity | T1-CI-04: every apply maps to a run and a merge commit; the record is written beside the state by the apply job | Passing from the first apply on main (`.github/workflows/terraform.yml`) |
+| Elevation | A pull request, or a fork, obtains the assurance identity, which can read the gateway's signing key and mint any identity's token | The assurance identity accepts a token only from this repository on `refs/heads/main`; it may read the key, three service addresses, the audit subscription, and add to the results bucket, nothing else; the workflow that uses it sits under the same gate as every other file | T1-CI-05: the pull-request workflow asks for the assurance identity with a real token exchange and fails if it is granted (`.github/workflows/terraform.yml`) | Passing |
+| Tampering | A change ships that weakens containment, or breaks an agent, and nothing notices until a person does | After every apply on `main` and every night, the assurance run re-scores every agent's cases against the deployed services with the audit rows as referee, scores answers for safety, and fails on a containment failure, a failed door check, or a regression; its record is append-only | T1-AS-01: a containment failure fails the run and repeats into an incident; T1-AS-02: a regression is fatal and a known failure is not; T1-AS-03: a run adds a record and never rewrites one, and the page carries no answer text (`src/provenance/tests/test_assurance.py`, `.github/workflows/assurance.yml`) | Passing |
 
 ### B9 — Agent to agent
 
@@ -206,8 +208,9 @@ Steward will, and C5 says the rules must exist before the first such agent is tr
 | T1-HX-01 to T1-HX-04 | B7 | phase 7 | Planned |
 | T1-A2A-01 to T1-A2A-04 | B9 | `test_risk_analyst.py`, `test_boundaries.py`, `test_packets.py` | Passing |
 | T1-CI-01 to T1-CI-04 | B8 | `infra/modules/delivery-plane/`, `.github/workflows/terraform.yml` | Three passing, one planned |
+| T1-CI-05, T1-AS-01 to T1-AS-03 | B8 | `infra/modules/assurance-plane/`, `.github/workflows/terraform.yml`, `src/provenance/tests/test_assurance.py` | Passing |
 
-Count: 48 threat rows, 34 passing, 1 measured with mitigation upstream, 11 planned with a phase, 2 gaps named. The gaps are
+Count: 50 threat rows, 36 passing, 1 measured with mitigation upstream, 11 planned with a phase, 2 gaps named. The gaps are
 transport encryption between containers and dependency hash pinning; the audit
 chain's remaining weakness, removal of a whole tail, is noted on its row.
 
