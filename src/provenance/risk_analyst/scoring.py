@@ -18,7 +18,10 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-ROW_ID = re.compile(r"\bev-\d{4}\b")
+# Any ev- token is a citation to check, not only the four-digit shape the fixture uses.
+# The first packet run found the mapper citing "ev-20240115-001", an id that exists
+# nowhere, and a four-digit pattern let it through as if it were prose.
+ROW_ID = re.compile(r"\bev-[0-9A-Za-z][0-9A-Za-z-]*")
 STALE_DAYS = 90
 
 
@@ -87,8 +90,8 @@ def score(finding: dict[str, Any], now: dt.datetime | None = None) -> Verdict:
         missing.append("an implementation statement that cites its rows")
     else:
         if unknown:
-            points += 20
-            reasons.append(f"the statement cites row(s) that are not in the evidence: {', '.join(unknown)}")
+            points += 50  # an invented citation is worse than a missing one: an assessor could believe it
+            reasons.append(f"the statement cites row(s) that do not exist in the evidence: {', '.join(unknown)}; invented citations rate high on their own")
         if rows and not cited:
             points += 10
             reasons.append("the statement cites no evidence rows")

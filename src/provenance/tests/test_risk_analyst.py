@@ -43,7 +43,10 @@ def test_score_reflects_the_evidence_not_the_prose():
     stale = score(_finding(evidence=[dict(r, observed_at="2025-01-01T00:00:00Z") for r in ROWS]), now=NOW)
     assert stale.severity == "medium" and any("freshness" in r for r in stale.reasons)
     invented = score(_finding(statement="Covered by ev-0003 and ev-0099."), now=NOW)
-    assert invented.unknown_citations == ["ev-0099"] and invented.score > good.score
+    assert invented.unknown_citations == ["ev-0099"] and invented.severity == "high"
+    # the first packet run: a long invented id, and a real one beside it
+    long_id = score(_finding(statement="Per the Event Logging Policy (ev-20240115-001) and GCP audit logs (ev-0003)."), now=NOW)
+    assert long_id.unknown_citations == ["ev-20240115-001"] and long_id.severity == "high"
 
 
 def test_an_instruction_in_the_statement_cannot_move_the_score():

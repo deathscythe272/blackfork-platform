@@ -11,5 +11,5 @@ narrative's "where the whys become ADRs" map):
 | [004](ADR-004-narrow-agents-risk-analyst-isolated.md) | Narrow agents, one identity and grant each; the Risk Analyst isolated behind its own key over A2A, no grant at the door, deterministic score — **accepted** | BR-3, BR-8 |
 | [005](ADR-005-two-lanes-promotion-by-precision.md) | Gatehouse two lanes; advisory→blocking promotion by measured precision (incl. fail-open/closed) — **accepted** | BR-3, BR-4, BR-9 |
 | [006](ADR-006-redaction-before-storage.md) | Redaction before storage — data minimization as primary PII control; a check that does not trust the redactor — **accepted** | BR-7, C2 |
-| 007 | Human sign-off required on all outbound packets | C3, BR-7 |
+| [007](ADR-007-human-signoff-on-outbound-packets.md) | A person signs every packet that leaves and no agent can: role claims, a hash-bound signature, export refused unsigned — **accepted** | C3, BR-7 |
 | 008 | Hosted NIM for dev; self-hosted NIM containers as the CUI path | C2, C4 |

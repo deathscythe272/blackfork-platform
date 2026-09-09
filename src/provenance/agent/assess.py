@@ -43,6 +43,12 @@ async def main(system_id: str, control_id: str, token: str | None = None) -> dic
     control = await _gateway_call("get_control", {"framework": "800-171", "control_id": control_id}, token)
     evidence = await _gateway_call("get_evidence", {"system_id": system_id, "control_id": control_id, "limit": 50}, token)
     mapped = await mapper_main(system_id, control_id, token=token)
+    if mapped.get("error") or mapped.get("input_blocked") or mapped.get("output_blocked"):
+        # no statement was drafted; there is nothing to score. Say so instead of rating it.
+        why = mapped.get("error") or ("input blocked" if mapped.get("input_blocked") else "output blocked")
+        return {**mapped, "finding_rows": [r["row_id"] for r in (evidence or [])], "verdict": None,
+                "mapping_failed": why,
+                "answer": f"Mapping failed for control {control_id} on {system_id}: {why}. No verdict was produced."}
     finding = {
         "system_id": system_id, "control_id": control_id,
         "requirement": (control or {}).get("statement", "") if isinstance(control, dict) else "",

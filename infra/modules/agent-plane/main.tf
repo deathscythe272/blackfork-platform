@@ -74,6 +74,10 @@ resource "google_cloud_run_v2_service" "agents" {
         value = "/tmp/jobs.jsonl" # per instance; the durable record is the gateway's audit trail
       }
       env {
+        name  = "PACKETS_URL"
+        value = "gs://${var.lakehouse_bucket}/packets" # drafts and signatures, beside the evidence they cite
+      }
+      env {
         name  = "RISK_ANALYST_URL"
         value = google_cloud_run_v2_service.risk_analyst.uri
       }
@@ -250,6 +254,13 @@ resource "google_cloud_run_v2_service_iam_member" "risk_analyst_invoker_agents" 
   location = var.region
   role     = "roles/run.invoker"
   member   = "serviceAccount:${google_service_account.evidence_collector.email}"
+}
+
+# The agent service writes packets and signatures under packets/ in the lakehouse bucket.
+resource "google_storage_bucket_iam_member" "agents_write_packets" {
+  bucket = var.lakehouse_bucket
+  role   = "roles/storage.objectUser"
+  member = "serviceAccount:${google_service_account.evidence_collector.email}"
 }
 
 resource "google_cloud_run_v2_service_iam_member" "agents_public" {

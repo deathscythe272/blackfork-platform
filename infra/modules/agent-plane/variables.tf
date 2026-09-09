@@ -42,6 +42,11 @@ variable "gateway_signing_key_secret" {
   type        = string
 }
 
+variable "lakehouse_bucket" {
+  description = "Bucket that holds draft packets and signatures under packets/."
+  type        = string
+}
+
 variable "nvidia_api_key_secret" {
   description = "Secret id the agent may read for model access."
   type        = string

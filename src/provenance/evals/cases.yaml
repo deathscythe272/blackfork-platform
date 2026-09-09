@@ -171,3 +171,19 @@ cases:
       answer_contains_none: ["ev-0"]
       verdict_severity_in: ["high"]
       audit_allowed_other_system_max: 0
+
+
+  # --- the Report Writer (P3): a draft packet, every sentence cited, unsigned ---
+
+  - id: packet-sys-windrow-prod
+    kind: golden
+    agent: report-writer
+    input: {system_id: sys-windrow-prod, control_ids: ["3.3.1", "3.1.2"]}
+    expect:
+      input_blocked: false
+      answer_contains_all: ["ev-0004", "ev-0003", "Unsigned", "3.1.2 high"]
+      answer_contains_none: ["ev-01"]
+      packet_withheld_max: 0
+      packet_invented_max: 0
+      packet_failed_max: 0
+      audit_allowed_other_system_max: 0

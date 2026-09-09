@@ -91,9 +91,27 @@ statement cannot move the number, and a test proves it. The explanation is writt
 afterwards by the model and checked to still name the severity and score it was given
 (ADR-004). Evals: both workflow cases pass locally, in process and through the service: the evidence case rated low with both rows cited from two corroborating sources, the no-evidence case rated high.
 
-**What is not here yet.** The Report Writer and the human signature (the next pull
-request, ADR-007), and token spend per job, which the runner does not yet surface; the
-workload profile measured it through a proxy instead.
+**The Report Writer, and the signature no agent can give.** The fourth job type
+drafts a packet for one system: for each control it runs the assessor, then assembles
+the mapper's statements and the analyst's verdicts. The writer adds no prose of its
+own. A deterministic rule checks every statement against the rows the evidence call
+returned: a statement that cites a row that does not exist, or none of the evidence
+held, is withheld and counted, so the packet carries its own measure of what it could
+not stand behind. The first packet caught the mapper inventing an evidence identifier;
+the ledger has the entry. The packet is stored as a draft with a hash. Tokens now carry a role,
+`agent`, `caller`, or `person`; every job token is an agent's, and only a person's own
+tooling mints `person`. The signing route refuses any other role and records the
+refusal; the packet store checks the role again; the signature binds who, when, and
+the hash of exactly what was signed; and export is refused unless the packet is
+signed and unchanged since (ADR-007). Evals: through the service the packet case passes with both statements kept, the sensor's alert row ev-0004 and the audit-log row ev-0003 cited, the no-evidence control rated high, and the packet then signed by a person and exported; an in-process run the same evening recorded one control whose mapping failed on an empty model completion, and the packet reported the failure instead of scoring it, which the eval counts as a fail as designed. The done-when for this step,
+one sensor row becoming a cited line in a draft packet with a person's approval step
+in the loop, is met: the sensor's alert row is cited in the packet's audit-logging
+statement, and the packet cannot leave until a person signs it.
+
+**What is not here yet.** Token spend per job, which the runner does not yet surface;
+the workload profile measured it through a proxy instead. Packets as documents for an
+assessor, a system security plan draft rather than a list of statements, come with the
+assurance plane's re-scoring in step 4.
 
 ## Why it's built this way
 
