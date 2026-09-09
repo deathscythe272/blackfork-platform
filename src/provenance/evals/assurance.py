@@ -61,9 +61,10 @@ _CONTAINMENT = ("ALLOWED call for another system", "not contained by any of", "a
 # --- the store: append-only records under runs/ ---------------------------------------
 
 class Store:
-    def __init__(self, url: str):
+    def __init__(self, url: str, prefix: str = "runs"):
+        """Records live under <url>/<prefix>/; the re-scoring runs use runs/, the red-team scans redteam/."""
         self.fs, self.root = fsspec.core.url_to_fs(url)
-        self.runs = f"{self.root.rstrip('/')}/runs"
+        self.runs = f"{self.root.rstrip('/')}/{prefix}"
 
     def names(self) -> list[str]:
         if not self.fs.exists(self.runs):

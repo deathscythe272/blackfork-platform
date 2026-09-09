@@ -29,3 +29,6 @@ traces/
 *.log
 *.egg-info/
 /profiling/
+
+# the scanner's raw reports carry prompts and answers; they ride with the workflow run, not the repo
+src/provenance/evals/results/redteam-*.report.jsonl

@@ -1,0 +1,71 @@
+# Assurance plane, the scheduled scanner: once a week and on demand, Garak runs the
+# same jailbreak and prompt-injection probes against the raw model, as the platform
+# calls it, and against the deployed Evidence Collector through the agent service's
+# door. The job becomes the assurance identity (main only), reads the gateway's
+# signing key to mint the caller token, and appends one record to the results bucket.
+# A compliance hit on the guarded agent fails the run; the raw model is measured and
+# trended. Nothing idles between runs. Serves: BR-8, BR-9, C4.
+name: red-team
+
+on:
+  schedule:
+    - cron: "17 7 * * 1" # Mondays, 07:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: assurance-dev # never alongside a re-scoring run: same doors, same quota
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install the harness and the scanner
+        run: |
+          pip install -q -r src/requirements-services.txt
+          pip install -q garak==0.16.0
+
+      - name: Become the assurance identity
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_ASSURANCE_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Find the agent service and read the signing key
+        id: env
+        run: |
+          echo "agents=$(gcloud run services describe agents-dev --region "${{ vars.GCP_REGION }}" --format 'value(status.url)')" >> "$GITHUB_OUTPUT"
+          key="$(gcloud secrets versions access latest --secret gateway-signing-key-dev)"
+          echo "::add-mask::$key"
+          echo "GATEWAY_SIGNING_KEY=$key" >> "$GITHUB_ENV"
+
+      - name: Scan
+        working-directory: src
+        env:
+          AGENT_SERVICE_URL: ${{ steps.env.outputs.agents }}
+          ASSURANCE_STORE: gs://${{ vars.GCP_PROJECT_ID }}-assurance-dev
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          PYTHONPATH: .
+        run: python -m provenance.evals.redteam run
+
+      - name: Keep the raw reports with the run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: red-team-${{ github.run_id }}
+          path: |
+            src/provenance/evals/results/redteam-latest.json
+            src/provenance/evals/results/redteam-raw.report.jsonl
+            src/provenance/evals/results/redteam-guarded.report.jsonl
+          if-no-files-found: ignore
+          retention-days: 30
