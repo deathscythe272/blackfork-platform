@@ -48,6 +48,7 @@ workflow:
   llm_name: nim_llm
   tool_names: [evidence]
   max_tool_calls: 6  # was 8; the workload profile showed only a retry loop ever went past six
+  parse_agent_response_max_retries: 3  # was the default 1; the model sometimes stops after a Thought, and one re-ask is usually enough
   verbose: true
   system_prompt: |
     You are the Evidence Collector for Blackfork Systems. Your job is to gather
