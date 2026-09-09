@@ -6,20 +6,40 @@ needs the rows written during one case, wherever the gateway put them.
 
   file     (default)  the JSONL file at AUDIT_LOG; the mark is a line offset.
   pubsub              the assurance plane's subscription named by AUDIT_SUBSCRIPTION;
-                      the mark drains whatever is pending, and rows_since pulls until
-                      the subscription has been quiet for a moment. Delivery is
-                      at-least-once, so rows are de-duplicated by id.
+                      the mark drains whatever is pending and notes the time, and
+                      rows_since pulls until the subscription has been quiet for a
+                      moment, keeping only rows the gateway stamped at or after the
+                      mark. Delivery is at-least-once and its timing is not ours: the
+                      first nightly run received the door checks' denials, published
+                      minutes earlier, during the first case, twice in a row despite a
+                      settle. A row's own timestamp says which case it belongs to;
+                      arrival does not. Rows are de-duplicated by id.
 
 Serves: BR-8, BR-9.
 """
 
 from __future__ import annotations
 
+import datetime as dt
 import json
 import os
 import pathlib
 import time
 from typing import Any, Protocol
+
+# Row timestamps come from the gateway's clock and the mark from the runner's; both
+# are NTP-disciplined, and the tokens already tolerate this much skew.
+CLOCK_TOLERANCE_SECONDS = 30.0
+
+
+def _row_time(row: dict) -> float | None:
+    ts = row.get("ts")
+    if not ts:
+        return None
+    try:
+        return dt.datetime.fromisoformat(str(ts).replace("Z", "+00:00")).timestamp()
+    except ValueError:
+        return None
 
 
 class AuditSource(Protocol):
@@ -74,25 +94,31 @@ class PubSubSource:
                 continue  # not an audit row; someone else's event on the shared topic
         return rows
 
-    def mark(self) -> None:
-        """Drain whatever is pending so the next rows_since sees only this case's rows.
-        A pull can come back empty while messages remain, so the drain stops only after
-        the subscription has been quiet for quiet_seconds, not at the first empty pull.
-        The first cloud run learned this: rows from an earlier check leaked into case one."""
+    def mark(self) -> float:
+        """Drain whatever is pending, then return the moment this case starts. A pull can
+        come back empty while messages remain, so the drain stops only after the
+        subscription has been quiet for quiet_seconds. The drain is a courtesy to the
+        next pull; the timestamp is what decides attribution."""
         deadline = time.time() + self.max_wait
         last_seen = time.time()
         while time.time() < deadline and time.time() - last_seen < self.quiet_seconds:
             if self._pull_once(timeout=2.0):
                 last_seen = time.time()
-        return None
+        return time.time()
 
     def rows_since(self, mark: Any) -> list[dict]:
+        """Rows the gateway stamped at or after the mark (within clock tolerance); a row
+        with no timestamp is kept, since the file source never had one to check."""
+        since = (float(mark) if mark is not None else 0.0) - CLOCK_TOLERANCE_SECONDS
         seen: dict[str, dict] = {}
         deadline = time.time() + self.max_wait
         last_new = time.time()
         while time.time() < deadline and time.time() - last_new < self.quiet_seconds:
             for row in self._pull_once(timeout=2.0):
                 key = str(row.get("id", len(seen)))
+                when = _row_time(row)
+                if when is not None and when < since:
+                    continue  # an earlier case's row, or a door check's, arriving late
                 if key not in seen:
                     seen[key] = row
                     last_new = time.time()
