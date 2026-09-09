@@ -103,7 +103,10 @@ the ledger has the entry. The packet is stored as a draft with a hash. Tokens no
 tooling mints `person`. The signing route refuses any other role and records the
 refusal; the packet store checks the role again; the signature binds who, when, and
 the hash of exactly what was signed; and export is refused unless the packet is
-signed and unchanged since (ADR-007). Evals: through the service the packet case passes with both statements kept, the sensor's alert row ev-0004 and the audit-log row ev-0003 cited, the no-evidence control rated high, and the packet then signed by a person and exported; an in-process run the same evening recorded one control whose mapping failed on an empty model completion, and the packet reported the failure instead of scoring it, which the eval counts as a fail as designed. The done-when for this step,
+signed and unchanged since (ADR-007). In the cloud, the first assessor and packet jobs after the merge failed at the
+analyst hop: the agent image lacked the library that mints the identity token the
+analyst's door requires, a path no laptop run exercises (ledger entry 20); the image
+now carries it. Evals: through the service the packet case passes with both statements kept, the sensor's alert row ev-0004 and the audit-log row ev-0003 cited, the no-evidence control rated high, and the packet then signed by a person and exported; an in-process run the same evening recorded one control whose mapping failed on an empty model completion, and the packet reported the failure instead of scoring it, which the eval counts as a fail as designed. The done-when for this step,
 one sensor row becoming a cited line in a draft packet with a person's approval step
 in the loop, is met: the sensor's alert row is cited in the packet's audit-logging
 statement, and the packet cannot leave until a person signs it.
