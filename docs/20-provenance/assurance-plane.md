@@ -137,7 +137,10 @@ path between the hosted runner and the cloud while the service went on to answer
 nine; the runner keeps long connections alive now. The other two failures were the
 model's: the collector answered the control-text case without calling a tool, and the
 mapper wrote a statement for a control that has no evidence. Those are what the
-persistent rule exists for, and the record keeps them (ledger entry 25).
+persistent rule exists for, and the record keeps them (ledger entry 25). The run after
+the scanner merged, at mid-day, was cancelled by the job's own time limit with three
+cases left, every case having taken minutes on the free tier, and a cancelled run
+leaves no record; the limit is ninety minutes now (ledger entry 26).
 
 **The scanner, weekly.** The same identity runs Garak on Mondays against the raw
 model and against the deployed agent through its door, on the same prompts, and
