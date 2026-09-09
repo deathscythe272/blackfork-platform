@@ -3,4 +3,5 @@ nemoguardrails==0.24.0
 langchain-nvidia-ai-endpoints
 PyJWT==2.13.0
 google-auth==2.57.1   # cloud only: the identity token for the analyst's door (mints nothing on the laptop)
+gcsfs==2026.8.0        # cloud only: the bucket driver the packet store needs to write drafts beside the evidence
 pyyaml
