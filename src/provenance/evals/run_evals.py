@@ -53,6 +53,22 @@ def _run_in_process(case: dict) -> dict:
     return asyncio.run(agent_main(case["question"]))
 
 
+def _keepalive_transport():
+    """A job can run for minutes with nothing on the wire. The first nightly run lost the
+    packet job at about five minutes with 'server disconnected' while the service went
+    on to answer 200 at nine: a network path between the hosted runner and the cloud
+    dropped the idle connection. TCP keepalives every minute keep it open."""
+    import socket
+
+    import httpx
+
+    options = [(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)]
+    for name, value in (("TCP_KEEPIDLE", 60), ("TCP_KEEPINTVL", 30), ("TCP_KEEPCNT", 5)):
+        if hasattr(socket, name):  # Linux and macOS name these; Windows keeps the default probe timing
+            options.append((socket.IPPROTO_TCP, getattr(socket, name), value))
+    return httpx.HTTPTransport(socket_options=options)
+
+
 def _run_via_service(case: dict) -> dict:
     """POST the job to the agent service as the eval runner's own identity."""
     import httpx
@@ -62,8 +78,9 @@ def _run_via_service(case: dict) -> dict:
     url = os.environ.get("AGENT_SERVICE_URL", "http://localhost:8080")
     agent = case.get("agent", "evidence-collector")
     job_input = case["input"] if agent in ("control-mapper", "assessor", "report-writer") else {"question": case["question"]}
-    r = httpx.post(f"{url}/jobs", json={"agent": agent, "input": job_input},
-                   headers={"X-Caller-Token": mint("eval-runner")}, timeout=600)
+    with httpx.Client(transport=_keepalive_transport(), timeout=600) as client:
+        r = client.post(f"{url}/jobs", json={"agent": agent, "input": job_input},
+                        headers={"X-Caller-Token": mint("eval-runner")})
     if r.status_code != 200:
         return {"answer": None, "error": f"agent service HTTP {r.status_code}: {r.text[:200]}", "input_blocked": False, "output_blocked": False}
     return r.json()

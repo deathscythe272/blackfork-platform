@@ -31,7 +31,7 @@ jobs:
     # After an apply: only if the apply succeeded; the other triggers always run.
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90 # the hosted free tier can take four minutes a case by day; a cancelled run leaves no record
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
