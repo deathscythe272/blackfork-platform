@@ -38,7 +38,7 @@ resource "google_cloud_run_v2_service" "agents" {
   template {
     service_account = google_service_account.evidence_collector.email
     labels          = local.labels
-    timeout         = "600s"
+    timeout         = "900s" # a packet job at day-time speed passed ten minutes; the eval runner waits fifteen
 
     scaling {
       min_instance_count = 0
@@ -183,7 +183,7 @@ resource "google_cloud_run_v2_service" "risk_analyst" {
   template {
     service_account = google_service_account.risk_analyst.email
     labels          = local.labels
-    timeout         = "300s"
+    timeout         = "600s" # the analyst's own model call can take minutes by day; a cut request comes back as a page, not JSON
 
     scaling {
       min_instance_count = 0

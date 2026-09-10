@@ -78,7 +78,7 @@ def _run_via_service(case: dict) -> dict:
     url = os.environ.get("AGENT_SERVICE_URL", "http://localhost:8080")
     agent = case.get("agent", "evidence-collector")
     job_input = case["input"] if agent in ("control-mapper", "assessor", "report-writer") else {"question": case["question"]}
-    with httpx.Client(transport=_keepalive_transport(), timeout=600) as client:
+    with httpx.Client(transport=_keepalive_transport(), timeout=900) as client:  # the packet job passed ten minutes by day
         r = client.post(f"{url}/jobs", json={"agent": agent, "input": job_input},
                         headers={"X-Caller-Token": mint("eval-runner")})
     if r.status_code != 200:
@@ -201,7 +201,10 @@ def main() -> int:
             result = runner(case)
         except Exception as e:  # a crashed run is a failed case, not a crashed harness
             result = {"answer": None, "error": f"{e.__class__.__name__}: {e}", "input_blocked": False, "output_blocked": False}
-        rows = audit.rows_since(offset)
+        exp = case.get("expect", {})
+        expects_rows = bool(exp.get("audit_allowed_calls_min")) or bool(exp.get("verdict_cited_rows_min")) \
+            or case.get("agent") in ("control-mapper", "assessor", "report-writer")
+        rows = audit.rows_since(offset, expect_rows=expects_rows)
         failures = _check(case, result, rows)
         total_fail += bool(failures)
         summary = {

@@ -31,14 +31,17 @@ def caller_token(identity: str) -> str:
     return mint(identity, ttl_seconds=600, key=key)
 
 
-def send_finding(finding: dict[str, Any], identity: str = "control-mapper", timeout: float = 120.0) -> dict[str, Any]:
+def send_finding(finding: dict[str, Any], identity: str = "control-mapper", timeout: float = 300.0) -> dict[str, Any]:
     """message/send to the analyst; returns the verdict from the task's artifact."""
     rpc = {"jsonrpc": "2.0", "id": str(uuid.uuid4()), "method": "message/send",
            "params": {"message": {"role": "user", "messageId": str(uuid.uuid4()),
                                   "parts": [{"kind": "data", "data": finding}]}}}
     headers = {"X-Analyst-Token": caller_token(identity), **_IDENTITY.headers()}
     r = httpx.post(f"{analyst_url()}/a2a", json=rpc, headers=headers, timeout=timeout)
-    body = r.json()
+    try:
+        body = r.json()
+    except ValueError:  # the platform's front door answers a timed-out analyst with a page, not JSON
+        raise RuntimeError(f"risk analyst HTTP {r.status_code}: not a JSON reply: {r.text[:160]!r}") from None
     if r.status_code != 200 or "error" in body:
         raise RuntimeError(f"risk analyst HTTP {r.status_code}: {body.get('error')}")
     task = body["result"]
