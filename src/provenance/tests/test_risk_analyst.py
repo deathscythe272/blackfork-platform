@@ -9,7 +9,10 @@ from __future__ import annotations
 
 import datetime as dt
 
+import httpx
 import pytest
+
+from provenance.risk_analyst import client as analyst_client
 from starlette.testclient import TestClient
 
 from provenance.gateway.tokens import mint
@@ -85,3 +88,13 @@ def test_a2a_shape_card_and_message_send(analyst):
                        headers={"X-Analyst-Token": mint("control-mapper", key=ANALYST_KEY)})
     assert bad.status_code == 404 and bad.json()["error"]["code"] == -32601
     assert analyst.get("/health").json()["ok"]
+
+
+def test_client_names_a_non_json_reply_instead_of_crashing_on_it(monkeypatch):
+    """The nightly saw the analyst's front door answer a cut request with a page; the
+    assessor then died on a JSON decode error with nothing to say. It says the status now."""
+    monkeypatch.setenv("RISK_SIGNING_KEY", "k" * 32)
+    monkeypatch.setattr(analyst_client.httpx, "post",
+                        lambda *a, **k: httpx.Response(504, text="<html>upstream request timeout</html>"))
+    with pytest.raises(RuntimeError, match="HTTP 504: not a JSON reply"):
+        analyst_client.send_finding({"control_id": "3.3.1"})

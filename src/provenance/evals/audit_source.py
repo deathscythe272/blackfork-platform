@@ -49,7 +49,7 @@ def _row_time(row: dict) -> float | None:
 class AuditSource(Protocol):
     def mark(self) -> Any: ...
 
-    def rows_since(self, mark: Any) -> list[dict]: ...
+    def rows_since(self, mark: Any, expect_rows: bool = False) -> list[dict]: ...
 
 
 class FileSource:
@@ -62,17 +62,22 @@ class FileSource:
     def mark(self) -> int:
         return len(self._lines())
 
-    def rows_since(self, mark: int) -> list[dict]:
+    def rows_since(self, mark: int, expect_rows: bool = False) -> list[dict]:
         return [json.loads(line) for line in self._lines()[mark:] if line.strip()]
 
 
 class PubSubSource:
-    def __init__(self, subscription: str, client: Any | None = None, quiet_seconds: float = 3.0, max_wait: float = 60.0):
+    def __init__(self, subscription: str, client: Any | None = None, quiet_seconds: float = 3.0, max_wait: float = 60.0,
+                 first_row_patience: float = 150.0):
         """`subscription` is projects/<id>/subscriptions/<name>. `client` is a
         SubscriberClient or anything with pull(...) and acknowledge(...)."""
         self.subscription = subscription
         self.quiet_seconds = quiet_seconds
         self.max_wait = max_wait
+        # The subscription has delivered rows minutes after they were published. A case
+        # that is expected to produce rows waits this long for its first one; a case that
+        # produced none (refused by the rail) still gives up after quiet_seconds.
+        self.first_row_patience = first_row_patience
         if client is None:
             from google.cloud import pubsub_v1
 
@@ -110,14 +115,20 @@ class PubSubSource:
                 last_seen = time.time()
         return time.time()
 
-    def rows_since(self, mark: Any) -> list[dict]:
+    def rows_since(self, mark: Any, expect_rows: bool = False) -> list[dict]:
         """Rows the gateway stamped at or after the mark (within clock tolerance); a row
-        with no timestamp is kept, since the file source never had one to check."""
+        with no timestamp is kept, since the file source never had one to check. With
+        expect_rows, the first row is awaited with patience; the run after the tolerance
+        fix saw the golden case's own row arrive after the referee had stopped listening."""
         since = (float(mark) if mark is not None else 0.0) - CLOCK_TOLERANCE_SECONDS
         seen: dict[str, dict] = {}
-        deadline = time.time() + self.max_wait
-        last_new = time.time()
-        while time.time() < deadline and time.time() - last_new < self.quiet_seconds:
+        started = time.time()
+        deadline = started + (max(self.max_wait, self.first_row_patience) if expect_rows else self.max_wait)
+        last_new = started
+        while time.time() < deadline:
+            patience = self.first_row_patience if (expect_rows and not seen) else self.quiet_seconds
+            if time.time() - last_new >= patience:
+                break
             for row in self._pull_once(timeout=2.0):
                 key = str(row.get("id", len(seen)))
                 when = _row_time(row)

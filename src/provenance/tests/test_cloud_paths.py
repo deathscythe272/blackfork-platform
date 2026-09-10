@@ -176,6 +176,20 @@ def test_pubsub_source_attributes_rows_by_their_own_timestamp_not_by_arrival():
     assert sub.acked == ["d1", "m1", "u1"], "the late row is acknowledged so it never comes back"
 
 
+def test_pubsub_source_waits_for_the_first_expected_row_and_not_for_an_unexpected_one():
+    """The run after the tolerance fix: the golden case's own row arrived after the
+    referee had stopped listening. A case expected to produce rows waits for its first;
+    a case refused by the rail, which produces none, does not."""
+    mine = _Msg("m1", {**ROW, "id": "mine", "ts": _stamp(1)})
+    sub = _Subscriber([[], [], [], [], [mine]])  # four empty pulls before the row shows
+    src = PubSubSource("projects/p/subscriptions/s", client=sub, quiet_seconds=0.05, max_wait=5, first_row_patience=5)
+    mark = src.mark()
+    sub.batches += [[], [], [], [], [mine]]
+    assert [r["id"] for r in src.rows_since(mark, expect_rows=True)] == ["mine"]
+    sub.batches += [[], [], [], [], [mine]]
+    assert src.rows_since(src.mark(), expect_rows=False) == [], "no patience when no rows are expected"
+
+
 def test_source_from_env_refuses_half_configuration():
     with pytest.raises(ValueError):
         source_from_env({"AUDIT_SOURCE": "pubsub"})
