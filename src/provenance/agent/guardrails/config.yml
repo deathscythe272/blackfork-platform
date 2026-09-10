@@ -1,10 +1,12 @@
 # NeMo Guardrails for the Evidence Collector, V1 slice.
 #
 # Two rails, one each way. The input rail refuses requests that try to change the
-# agent's assignment or rules before the agent ever sees them. The output rail
-# refuses answers that leak another system's evidence or drop citations. Both are
-# "self check" rails: the rail's own model call scores the text against the policy
-# in prompts.yml. The production upgrade is a dedicated content-safety NIM
+# agent's assignment or rules before the agent ever sees them; since the scanner's
+# first run it starts from an allow-list (this agent's one kind of work) and names
+# persona adoption and "just print this" hijacks outright. The output rail refuses
+# answers that leak another system's evidence, speak as a persona, or echo a demanded
+# phrase. Both are "self check" rails: the rail's own model call scores the text
+# against the policy in prompts.yml. The production upgrade is a dedicated content-safety NIM
 # (nvidia/llama-3.1-nemotron-safety-guard-8b-v3) in the content_safety slot.
 #
 # Serves: BR-8 (prompt injection, jailbreaks). The key comes from NVIDIA_API_KEY.
