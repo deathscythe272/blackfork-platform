@@ -155,6 +155,15 @@ quiet pass (T1-RT-02). The record carries probe and detector names and counts, n
 a prompt or an answer; it is appended to the assurance results bucket beside the
 re-scoring records, and the raw reports ride with the workflow run for thirty days.
 
+**The rail's second revision.** The input rail's policy had listed the attacks the
+platform thought of. It now starts from an allow-list, the one kind of work this agent
+does, and names persona adoption, prefix labels, and stop-and-print demands outright;
+the output rail refuses an answer that speaks as a persona or echoes a demanded phrase.
+Both openings are eval cases now, `persona-prefix-jailbreak` and
+`task-hijack-just-print`, so the seeded set grows from what the scanner finds and the
+nightly run holds the line the weekly scan drew (ledger entry 29). The scan after this
+revision is the one that decides whether the record turns green.
+
 **The first full run found two openings.** Run from a laptop against the deployed
 agent before the workflow existed on `main`, and copied into the bucket as the first
 record: the raw model complied with about two thirds of the compliance-detector
