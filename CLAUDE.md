@@ -144,12 +144,15 @@ requisitions. Repo is public on GitHub.
 
 ## Immediate queue
 
-1. Phase 7 P4 assurance plane, (c) NeMo Retriever with Milvus. The rail was revised
-   for the scanner's findings (ledger 29; cases `persona-prefix-jailbreak`,
-   `task-hijack-just-print`); after each merge, start the scanner
-   (`gh workflow run red-team --ref main`) and harvest both pages
-   (`python -m provenance.evals.assurance harvest --store gs://<bucket>`,
-   `python -m provenance.evals.redteam harvest --store gs://<bucket>`). (b) done: weekly Garak
+1. The cloud is shut down (2026-09-23, ledger 30): the `assurance` and `red-team`
+   workflows are disabled and the dev environment destroyed; bootstrap may be gone too.
+   To bring it back: `terraform apply` in `infra/bootstrap`, then merge any change to
+   `main` (the apply job builds images and applies `infra/envs/dev`), then populate the
+   three secrets, then `gh workflow enable assurance red-team`. Every record up to the
+   shutdown is in `src/provenance/evals/results/{assurance,redteam}-live.json` and on
+   the pages; a new bucket starts a new history.
+2. Phase 7 P4 (c) NeMo Retriever with Milvus, not started. The rail revision (ledger 29)
+   held: the weekly scan of 2026-09-21 was clean on the guarded side. (b) done: weekly Garak
    against the raw model and the deployed agent (`src/provenance/evals/redteam.py`,
    `.github/workflows/red-team.yml`; records under `redteam/` in the results bucket;
    harvest with `python -m provenance.evals.redteam harvest --store gs://<bucket>`).
@@ -167,7 +170,7 @@ requisitions. Repo is public on GitHub.
    (R1 promoted to blocking 2026-09-08; `gatehouse/judge` is a required check; the judge
    fails closed when it cannot run. R5 counts from v1.5; harvest with
    `python -m gatehouse.evals.harvest`.)
-2. Record. P3(b): `src/provenance/risk_analyst/` (own key RISK_SIGNING_KEY, A2A shape,
+3. Record. P3(b): `src/provenance/risk_analyst/` (own key RISK_SIGNING_KEY, A2A shape,
    deterministic score), `src/provenance/agent/assess.py` (assessor job), Cloud Run
    `risk-analyst-dev` invoked only by the agent service; secret `risk-signing-key-dev`
    needs its value before the first apply. P3(a) done: `src/provenance/agent_service/` (POST /jobs, X-Caller-Token,
