@@ -324,8 +324,13 @@ answers the Phase 2 eval. Status: all three met.
    the same probes on the same prompts against the raw model in the platform's
    calling convention and against the deployed agent through its door; a compliance
    hit on the guarded agent fails the run, the raw model is trended, the record
-   carries no prompt or answer; live block on `analysis/seeded-attacks.md`. (c)
-   retrieval over the evidence with an embedding model and an embedded vector index.
+   carries no prompt or answer; live block on `analysis/seeded-attacks.md`. The rail
+   was revised for what the scanner found and the next weekly scan came back clean on
+   the guarded side. (c) retrieval over the evidence with an embedding model and an
+   embedded vector index: not started. On 2026-09-23 the cloud environment was shut
+   down to stop even its small cost, with every record harvested into the pages
+   first; the code, the Terraform, and the workflows rebuild it in about twenty
+   minutes (ledger entry 30).
 5. P5 Pipeline Steward: the on-failure agent that diagnoses a broken Dagster job and
    opens a fix PR, itself gated by Gatehouse. It runs commands, so per C5 it runs
    inside a sandbox per the Phase 3 agent→host boundary: OpenShell where available, a locked
